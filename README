@@ -1,0 +1,17 @@
+Documentation style:
+
+1) Tabs are the method of spacing with a width of 8.
+2) \n is the preferred line ending for consistency.
+3) Labels and code should never share a line.
+4) Underscores are the naming convention of choice.  Case variations are not permitted.
+5) Prefer sublabels whenever possible.
+6) A newline may be added after jumps/subroutines/forced branches/or branches into other subroutines.
+7) The "soft margin" width is 120 characters per line. 
+8) Lines missing an address should have the address added.
+9) At this time RAM defines should NOT be used.
+10) Abbreviations should be avoided where possible to enforce maximum consistency.
+11) Opcode suffixes are currently required.  At some point they will be removed however.
+12) Avoid +/- labels if reasonable.
+13) Opcodes and hex numbers are written in upper case.
+14) Documentation should be enough to at a mimium explain the result of an operation, rather than the operation itself.
+15) All labels should recieve meaningful names, code/data labels should be gradually removed.

@@ -1,0 +1,9 @@
+*.exe
+*.ips
+*.smc
+*.sfc
+*.dll
+*.o
+*.so
+*.swp
+*~*
