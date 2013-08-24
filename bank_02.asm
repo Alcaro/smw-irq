@@ -4965,10 +4965,7 @@ CODE_02A4DE:
 CODE_02A4E0:
 	STA.w $176F,X
 	LDA.b #$01				;$02A4E3	|
-
-Instr02A4E5:
-	STA.w $170B,x
-
+	STA.w $170B,x				;$02A4E5	|
 	RTS					;$02A4E8	|
 
 DATA_02A4E9:
@@ -6169,17 +6166,11 @@ Return02ADC8:
 
 CODE_02ADC9:
 	LDA $9D
-
-Instr02ADCB:
-	db $F0,$03
-
+	BEQ CODE_02ADD0				;$02ADCA	|
 	JMP CODE_02AE5B				;$02ADCD	|
-
+CODE_02ADD0:
 	LDA.w $16FF,X				;$02ADD0	|
-
-Instr02ADD3:
-	db $D0,$0F
-
+	BNE CODE_02ADE4				;$02ADD3	|
 	STZ.w $16E1,X				;$02ADD5	|
 	RTS					;$02ADD8	|
 
@@ -6190,6 +6181,7 @@ CoinsToGive:
 attributes2Upand3Up:
 	db $04,$06
 
+CODE_02ADE4:
 	DEC.w $16FF,X				;$02ADE4	|
 	CMP.b #$2A				;$02ADE7	|
 	BNE CODE_02AE38				;$02ADE9	|
@@ -6903,10 +6895,7 @@ GenerateEerie:
 	ADC.w DATA_02B2D2,Y			;$02B313	|
 	STA.w $14E0,X				;$02B316	|
 	LDA.w DATA_02B2D4,Y			;$02B319	|
-
-Instr02B31C:
-	db $95,$B6
-
+	STA $B6,X				;$02B31C	|
 Return02B31E:
 	RTS
 

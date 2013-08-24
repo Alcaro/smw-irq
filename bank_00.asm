@@ -435,9 +435,8 @@ CODE_00835C:					;		 |
 CODE_008371:					;		 |
 	JMP CODE_008294				;$008371	/
 
-IRQHandler:					;		\
+IRQ_start:					;		\
 	SEI					;$008374	 |
-IRQStart:					;		 |
 	PHP					;$008375	 |
 	REP #$30				;$008376	 |
 	PHA					;$008378	 |
@@ -1627,7 +1626,7 @@ CODE_008E60:
 	ORA.w $0F32				;$008E63	|
 	ORA.w $0F33				;$008E66	|
 	BNE CODE_008E6F				;$008E69	|
-	JSL KillMario				;$008E6B	|
+	JSL kill_mario				;$008E6B	|
 CODE_008E6F:
 	LDA.w $0F31
 	STA.w $0F25				;$008E72	|
@@ -3339,10 +3338,7 @@ CODE_009C13:
 	INC.w $1B87
 	INC.w $1B88				;$009C16	|
 	LDY.b #$1B				;$009C19	|
-
-Instr009C1B:
-	db $20,$29,$9D
-
+	JSR CODE_009D29				;$009C1B	|
 	RTL					;$009C1E	|
 
 IntroControlData:
@@ -4576,10 +4572,7 @@ CODE_00A5FD:
 	JSR CODE_00A390				;$00A601	|
 	INC $14					;$00A604	|
 	LDA $14					;$00A606	|
-
-Instr00A608:
-	db $29,$07
-
+	AND.b #$07				;$00A608	|
 	BNE CODE_00A5FD				;$00A60A	|
 	RTS					;$00A60C	|
 
@@ -7477,20 +7470,20 @@ CODE_00C593:
 	LDA $71
 	JSL ExecutePtr				;$00C595	|
 
-AnimationSeqPtr:
-	dw ResetAni
-	dw PowerDownAni
-	dw MushroomAni
-	dw CapeAni
-	dw FlowerAni
-	dw DoorPipeAni
-	dw VertPipeAni
-	dw PipeCannonAni
-	dw YoshiWingsAni
-	dw MarioDeathAni
-	dw EnterCastleAni
+animation_pointers:
+	dw no_animation
+	dw hurt_animation
+	dw mushroom_animation
+	dw cape_animation
+	dw flower_animation
+	dw horizontal_pipe_animation
+	dw vertical_pipe_animation
+	dw slanted_pipe_animation
+	dw yoshi_wings_animation
+	dw death_animation
+	dw castle_enter_animation
 	dw UnknownAniB
-	dw UnknownAniC
+	dw castle_destroy_animation
 	dw Return00C592
 
 UnknownAniB:
@@ -7510,10 +7503,7 @@ CODE_00C5D1:
 	LDA.b #$01
 	STA.w $1B88				;$00C5D3	|
 	LDA.b #$07				;$00C5D6	|
-
-Instr00C5D8:
-	db $8D,$28,$19
-
+	STA.w $1928				;$00C5D8	|
 	JSR NoButtons				;$00C5DB	|
 	JMP CODE_00CD24				;$00C5DE	|
 
@@ -7559,7 +7549,7 @@ DATA_00C5E9:
 DATA_00C6DF:
 	db $01,$00,$10,$A0,$84,$50,$BC,$D8
 
-UnknownAniC:
+castle_destroy_animation:
 	JSR NoButtons
 	STZ.w $13DE				;$00C6EA	|
 	JSR CODE_00DC2D				;$00C6ED	|
@@ -7725,7 +7715,7 @@ Return00C7F8:
 DATA_00C7F9:
 	db $C0,$FF,$A0,$00
 
-YoshiWingsAni:
+yoshi_wings_animation:
 	JSR NoButtons
 	LDA.b #$0B				;$00C800	|
 	STA $72					;$00C802	|
@@ -7757,17 +7747,16 @@ CODE_00C827:
 	LDA $80					;$00C82F	|
 	CMP.w DATA_00C7F9,Y			;$00C831	|
 	SEP #$20				;$00C834	|
-	BPL Instr00C845				;$00C836	|
+	BPL CODE_00C845				;$00C836	|
 	STZ $71					;$00C838	|
 	TYA					;$00C83A	|
-	BNE Instr00C845				;$00C83B	|
+	BNE CODE_00C845				;$00C83B	|
 	INY					;$00C83D	|
 	INY					;$00C83E	|
 	STY.w $1B95				;$00C83F	|
 	JSR CODE_00D273				;$00C842	|
-
-Instr00C845:
-	db $4C,$8F,$CD
+CODE_00C845:
+	JMP CODE_00CD8F
 
 DATA_00C848:
 	db $01,$5F,$00,$30,$08,$30,$00,$20
@@ -7776,7 +7765,7 @@ DATA_00C848:
 	db $3A,$01,$38,$00,$30,$08,$30,$00
 	db $20,$40,$01,$00,$30,$01,$80,$FF
 
-EnterCastleAni:
+castle_enter_animation:
 	STZ.w $13E2
 	LDX.w $1931				;$00C873	|
 	BIT.w DATA_00A625,X			;$00C876	|
@@ -7927,7 +7916,7 @@ CODE_00C984:
 	JSR CODE_00D76B				;$00C988	|
 CODE_00C98B:
 	LDA $7B
-	BNE Instr00C9A4				;$00C98D	|
+	BNE CODE_00C9A4				;$00C98D	|
 	STZ.w $1411				;$00C98F	|
 	JSR CODE_00CA3E				;$00C992	|
 	INC.w $1B99				;$00C995	|
@@ -7936,9 +7925,8 @@ CODE_00C98B:
 	ASL					;$00C99D	|
 	STA.w $1494				;$00C99E	|
 	STZ.w $1495				;$00C9A1	|
-
-Instr00C9A4:
-	db $4C,$24,$CD
+CODE_00C9A4:
+	JMP CODE_00CD24
 
 DATA_00C9A7:
 	db $25,$07,$40,$0E,$20,$1A,$34,$32
@@ -8233,7 +8221,7 @@ DATA_00CC5C:
 	db $00,$00,$00,$00,$02,$00,$06,$00
 	db $FE,$FF,$FA,$FF
 
-ResetAni:
+no_animation:
 	LDA $17
 	AND.b #$20				;$00CC6A	|
 	BEQ CODE_00CC81				;$00CC6C	|
@@ -8436,7 +8424,7 @@ CODE_00CDC6:
 	BVC Return00CDDC			;$00CDD2	|
 	LDA.b #$08				;$00CDD4	|
 	STA.w $18DB				;$00CDD6	|
-	JSR ShootFireball			;$00CDD9	|
+	JSR shoot_fireball			;$00CDD9	|
 Return00CDDC:
 	RTS
 
@@ -8835,14 +8823,14 @@ CODE_00D081:
 CODE_00D0A8:
 	STY $76
 CODE_00D0AA:
-	JSR ShootFireball
+	JSR shoot_fireball
 Return00D0AD:
 	RTS
 
 DATA_00D0AE:
 	db $7C,$00,$80,$00,$00,$06,$00,$01
 
-MarioDeathAni:
+death_animation:
 	STZ $19
 	LDA.b #$3E				;$00D0B8	|
 	STA.w $13E0				;$00D0BA	|
@@ -8902,7 +8890,7 @@ GrowingAniImgs:
 	db $00,$3D,$00,$3D,$00,$3D,$46,$3D
 	db $46,$3D,$46,$3D
 
-PowerDownAni:
+hurt_animation:
 	LDA.w $1496
 	BEQ CODE_00D140				;$00D12C	|
 	LSR					;$00D12E	|
@@ -8923,7 +8911,7 @@ CODE_00D140:
 	STA.w $1497				;$00D142	|
 	BRA CODE_00D158				;$00D145	|
 
-MushroomAni:
+mushroom_animation:
 	LDA.w $1496
 	BEQ CODE_00D156				;$00D14A	|
 	LSR					;$00D14C	|
@@ -8943,7 +8931,7 @@ CODE_00D158:
 Return00D15E:
 	RTS
 
-CapeAni:
+cape_animation:
 	LDA.b #$7F
 	STA $78					;$00D161	|
 	DEC.w $1496				;$00D163	|
@@ -8952,7 +8940,7 @@ CapeAni:
 	LSR					;$00D16A	|
 	BEQ CODE_00D140				;$00D16B	|
 	BNE CODE_00D158				;$00D16D	|
-FlowerAni:
+flower_animation:
 	LDA.w $13ED
 	AND.b #$80				;$00D172	|
 	ORA.w $1407				;$00D174	|
@@ -8979,7 +8967,7 @@ DATA_00D192:
 DATA_00D193:
 	db $00,$63,$1C,$00
 
-DoorPipeAni:
+horizontal_pipe_animation:
 	JSR NoButtons
 	STZ.w $13DE				;$00D19A	|
 	JSL CODE_00CEB1				;$00D19D	|
@@ -9038,7 +9026,7 @@ PipeCntrBoundryX:
 PipeCntringSpeed:
 	db $FF,$01
 
-VertPipeAni:
+vertical_pipe_animation:
 	JSR NoButtons
 	STZ.w $13DF				;$00D206	|
 	LDA.b #$0F				;$00D209	|
@@ -9113,7 +9101,7 @@ CODE_00D273:
 	STA $88					;$00D284	|
 	RTS					;$00D286	|
 
-PipeCannonAni:
+slanted_pipe_animation:
 	JSR NoButtons
 	LDA.b #$02				;$00D28A	|
 	STA.w $13F9				;$00D28C	|
@@ -10419,7 +10407,7 @@ DATA_00E0CC:
 	db $10,$B7,$E4,$B5,$61,$0A,$55,$0D
 	db $75,$77,$1E,$59,$59,$58,$02,$02
 	db $6D,$6E,$6F,$F3,$68,$6F,$6F,$06
-MarioPalIndex:
+mario_properties:
 	db $00,$40
 
 DATA_00E18E:
@@ -10646,7 +10634,7 @@ CODE_00E3B0:
 CODE_00E3CA:
 	LDY.w DATA_00E2B2,X
 	LDX $76					;$00E3CD	|
-	ORA.w MarioPalIndex,X			;$00E3CF	|
+	ORA.w mario_properties,X		;$00E3CF	|
 	STA.w $0303,Y				;$00E3D2	|
 	STA.w $0307,Y				;$00E3D5	|
 	STA.w $030F,Y				;$00E3D8	|
@@ -12774,7 +12762,7 @@ HurtMario:
 	PLB					;$00F5D4	|
 CODE_00F5D5:
 	LDA $19
-	BEQ KillMario				;$00F5D7	|
+	BEQ kill_mario				;$00F5D7	|
 	CMP.b #$02				;$00F5D9	|
 	BNE PowerDown				;$00F5DB	|
 	LDA.w $1407				;$00F5DD	|
@@ -12798,7 +12786,7 @@ PowerDown:
 	LDA.b #$2F				;$00F602	|
 	BRA CODE_00F61D				;$00F604	|
 
-KillMario:
+kill_mario:
 	LDA.b #$90
 	STA $7D					;$00F608	|
 CODE_00F60A:
@@ -12820,7 +12808,7 @@ Return00F628:
 	RTL
 
 CODE_00F629:
-	JSL KillMario
+	JSL kill_mario
 NoButtons:
 	STZ $15
 	STZ $16					;$00F62F	|
@@ -13996,7 +13984,7 @@ DATA_00FE9C:
 DATA_00FEA2:
 	db $08,$08,$0C,$0C,$14,$14
 
-ShootFireball:
+shoot_fireball:
 	LDX.b #$09
 CODE_00FEAA:
 	LDA.w $170B,X
@@ -14150,13 +14138,13 @@ InternalSNESHeader:
 	dw $82C3				;		 | Native COP vector
 	dw $FFFF				;		 | Native BRK vector
 	dw $82C3				;		 | Native ABORT vector
-	dw $816A				;		 | Native NMI vector
+	dw NMI_start				;		 | Native NMI vector
 	dw $8000				;		 | Native RESET vector(unused)
-	dw $8374				;		 | Native IRQ vector
+	dw IRQ_start				;		 | Native IRQ vector
 	db $FF,$FF,$FF,$FF			;		 |
 	dw $82C3				;		 | Emulation COP vector
 	dw $82C3				;		 | Emulation BRK vector(unused)
 	dw $82C3				;		 | Emulation ABORT vector
 	dw $82C3				;		 | Emulation NMI vector
-	dw $8000				;		 | Emulation RESET vector
+	dw reset_start				;		 | Emulation RESET vector
 	dw $82C3				;		/ Emulation IRQ and BRK vector

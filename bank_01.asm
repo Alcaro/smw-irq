@@ -5497,10 +5497,7 @@ CODE_01A77C:
 	LDY.w $1534,X				;$01A791	|
 	BNE CODE_01A7C0				;$01A794	|
 	STZ.w $1528,X				;$01A796	|
-
-Instr01A799:
-	db $9E,$3E,$16
-
+	STZ.w $163E,X				;$01A799	|
 	TAY					;$01A79C	|
 	STY $00					;$01A79D	|
 	LDA $E4,X				;$01A79F	|
@@ -11336,10 +11333,7 @@ CODE_01D0C0:
 	LDA $D8,X				;$01D0CD	|
 	CMP.w $D0D6,Y				;$01D0CF	|
 	BCC CODE_01D0DC				;$01D0D2	|
-
-Instr01D0D4:
-	db $B9,$D6,$D0
-
+	LDA.w DATA_01D0DE-8,Y			;$01D0D4	|
 	STA $D8,X				;$01D0D7	|
 	STZ $AA,X				;$01D0D9	|
 	RTS					;$01D0DB	|

@@ -5904,10 +5904,7 @@ CODE_0CD5C9:
 	LDA.b #$D0				;$0CD5CE	|
 	STA.w $144D				;$0CD5D0	|
 	LDA.b #$13				;$0CD5D3	|
-
-Instr0CD5D5:
-	db $8D,$FB,$1D
-
+	STA.w $1DFB				;$0CD5D5	|
 	RTS					;$0CD5D8	|
 
 DATA_0CD5D9:
