@@ -201,9 +201,9 @@ ExplodeKillSpr:
 	LDA.b #$02				;$028168	|
 	STA.w $14C8,Y				;$02816A	|
 	LDA.b #$C0				;$02816D	|
-	STA.w $AA,Y				;$02816F	|
+	STA.w $00AA,y				;$02816F	|
 	LDA.b #$00				;$028172	|
-	STA.w $B6,Y				;$028174	|
+	STA.w $00B6,y				;$028174	|
 Return028177:
 	RTS
 
@@ -1264,7 +1264,7 @@ CODE_0289E1:
 	LDA.w $14C8,Y
 	CMP.b #$08				;$0289E4	|
 	BCC CODE_0289F3				;$0289E6	|
-	LDA.w $9E,Y				;$0289E8	|
+	LDA.w $009E,y				;$0289E8	|
 	CMP.b #$2D				;$0289EB	|
 	BNE CODE_0289F3				;$0289ED	|
 CODE_0289EF:
@@ -2386,13 +2386,13 @@ BounceSprGfx:
 	BPL CODE_029201				;$0291FD	|
 	LDY.b #$04				;$0291FF	|
 CODE_029201:
-	LDA.w $1C,Y
+	LDA.w $001C,y
 	STA $02					;$029204	|
-	LDA.w $1A,Y				;$029206	|
+	LDA.w $001A,y				;$029206	|
 	STA $03					;$029209	|
-	LDA.w $1D,Y				;$02920B	|
+	LDA.w $001D,y				;$02920B	|
 	STA $04					;$02920E	|
-	LDA.w $1B,Y				;$029210	|
+	LDA.w $001B,y				;$029210	|
 	STA $05					;$029213	|
 	LDA.w $16A1,X				;$029215	|
 	CMP $02					;$029218	|
@@ -3489,11 +3489,11 @@ CODE_029A08:
 	ASL					;$029A0B	|
 	ASL					;$029A0C	|
 	TAY					;$029A0D	|
-	LDA.w $1C,Y				;$029A0E	|
+	LDA.w $001C,y				;$029A0E	|
 	STA $02					;$029A11	|
-	LDA.w $1A,Y				;$029A13	|
+	LDA.w $001A,y				;$029A13	|
 	STA $03					;$029A16	|
-	LDA.w $1D,Y				;$029A18	|
+	LDA.w $001D,y				;$029A18	|
 	STA $04					;$029A1B	|
 	LDA.w $17D4,X				;$029A1D	|
 	CMP $02					;$029A20	|
@@ -6257,9 +6257,9 @@ CODE_02AE5B:
 	ASL					;$02AE5F	|
 	TAY					;$02AE60	|
 	REP #$20				;$02AE61	|
-	LDA.w $1C,Y				;$02AE63	|
+	LDA.w $001C,y				;$02AE63	|
 	STA $02					;$02AE66	|
-	LDA.w $1A,Y				;$02AE68	|
+	LDA.w $001A,y				;$02AE68	|
 	STA $04					;$02AE6B	|
 	SEP #$20				;$02AE6D	|
 	LDA.w $16ED,X				;$02AE6F	|
@@ -6629,7 +6629,7 @@ CODE_02B115:
 	JSL FindFreeSlotLowPri
 	BMI Return02B152			;$02B119	|
 	LDA.b #$1C				;$02B11B	|
-	STA.w $9E,Y				;$02B11D	|
+	STA.w $009E,y				;$02B11D	|
 	LDA.b #$08				;$02B120	|
 	STA.w $14C8,Y				;$02B122	|
 	TYX					;$02B125	|
@@ -6638,19 +6638,19 @@ CODE_02B115:
 	LDA.w DATA_02B0FA,X			;$02B12C	|
 	CLC					;$02B12F	|
 	ADC $1A					;$02B130	|
-	STA.w $E4,Y				;$02B132	|
+	STA.w $00E4,y				;$02B132	|
 	LDA $1B					;$02B135	|
 	ADC.b #$00				;$02B137	|
 	STA.w $14E0,Y				;$02B139	|
 	LDA.w DATA_02B103,X			;$02B13C	|
 	CLC					;$02B13F	|
 	ADC $1C					;$02B140	|
-	STA.w $D8,Y				;$02B142	|
+	STA.w $00D8,y				;$02B142	|
 	LDA $1D					;$02B145	|
 	ADC.b #$00				;$02B147	|
 	STA.w $14D4,Y				;$02B149	|
 	LDA.w DATA_02B10C,X			;$02B14C	|
-	STA.w $C2,Y				;$02B14F	|
+	STA.w $00C2,y				;$02B14F	|
 Return02B152:
 	RTS
 
@@ -7028,13 +7028,13 @@ LaunchTorpedo:
 	LDA.b #$08				;$02B3EB	|
 	STA.w $14C8,Y				;$02B3ED	|
 	LDA.b #$44				;$02B3F0	|
-	STA.w $9E,Y				;$02B3F2	|
+	STA.w $009E,y				;$02B3F2	|
 	LDA.w $179B,X				;$02B3F5	|
-	STA.w $E4,Y				;$02B3F8	|
+	STA.w $00E4,y				;$02B3F8	|
 	LDA.w $17A3,X				;$02B3FB	|
 	STA.w $14E0,Y				;$02B3FE	|
 	LDA.w $178B,X				;$02B401	|
-	STA.w $D8,Y				;$02B404	|
+	STA.w $00D8,y				;$02B404	|
 	LDA.w $1793,X				;$02B407	|
 	STA.w $14D4,Y				;$02B40A	|
 	PHX					;$02B40D	|
@@ -7120,15 +7120,15 @@ ShootBullet:
 	LDA.b #$01				;$02B4AC	|
 	STA.w $14C8,Y				;$02B4AE	|
 	LDA.b #$1C				;$02B4B1	|
-	STA.w $9E,Y				;$02B4B3	|
+	STA.w $009E,y				;$02B4B3	|
 	LDA.w $179B,X				;$02B4B6	|
-	STA.w $E4,Y				;$02B4B9	|
+	STA.w $00E4,y				;$02B4B9	|
 	LDA.w $17A3,X				;$02B4BC	|
 	STA.w $14E0,Y				;$02B4BF	|
 	LDA.w $178B,X				;$02B4C2	|
 	SEC					;$02B4C5	|
 	SBC.b #$01				;$02B4C6	|
-	STA.w $D8,Y				;$02B4C8	|
+	STA.w $00D8,y				;$02B4C8	|
 	LDA.w $1793,X				;$02B4CB	|
 	SBC.b #$00				;$02B4CE	|
 	STA.w $14D4,Y				;$02B4D0	|
@@ -7573,7 +7573,7 @@ Return02B7D5:
 CODE_02B7D6:
 	LDA.w $1558,X
 	BNE Return02B7D5			;$02B7D9	|
-	LDA.w $D8,Y				;$02B7DB	|
+	LDA.w $00D8,y				;$02B7DB	|
 	SEC					;$02B7DE	|
 	SBC $D8,X				;$02B7DF	|
 	PHY					;$02B7E1	|
@@ -7630,9 +7630,9 @@ CODE_02B82E:
 	LDA.b #$02				;$02B834	|
 	STA.w $14C8,Y				;$02B836	|
 	LDA.b #$70				;$02B839	|
-	STA.w $9E,Y				;$02B83B	|
+	STA.w $009E,y				;$02B83B	|
 	LDA $E4,X				;$02B83E	|
-	STA.w $E4,Y				;$02B840	|
+	STA.w $00E4,y				;$02B840	|
 	LDA.w $14E0,X				;$02B843	|
 	STA.w $14E0,Y				;$02B846	|
 	PHX					;$02B849	|
@@ -7640,7 +7640,7 @@ CODE_02B82E:
 	JSL InitSpriteTables			;$02B84B	|
 	LDX.w $1695				;$02B84F	|
 	LDA $D8,X				;$02B852	|
-	STA.w $D8,Y				;$02B854	|
+	STA.w $00D8,y				;$02B854	|
 	LDA.w $14D4,X				;$02B857	|
 	STA.w $14D4,Y				;$02B85A	|
 	LDA $B6,X				;$02B85D	|
@@ -7648,13 +7648,13 @@ CODE_02B82E:
 	ASL					;$02B861	|
 	ROR $00					;$02B862	|
 	LDA $00					;$02B864	|
-	STA.w $B6,Y				;$02B866	|
+	STA.w $00B6,y				;$02B866	|
 	LDA.b #$E0				;$02B869	|
-	STA.w $AA,Y				;$02B86B	|
+	STA.w $00AA,y				;$02B86B	|
 	PLX					;$02B86E	|
 	LDA $C2,X				;$02B86F	|
 	AND $0D					;$02B871	|
-	STA.w $C2,Y				;$02B873	|
+	STA.w $00C2,y				;$02B873	|
 	LDA.b #$01				;$02B876	|
 	STA.w $1534,Y				;$02B878	|
 	LDA.b #$01				;$02B87B	|
@@ -7865,7 +7865,7 @@ CODE_02B9D5:
 
 CODE_02B9D9:
 	LDA.b #$21
-	STA.w $9E,Y				;$02B9DB	|
+	STA.w $009E,y				;$02B9DB	|
 	LDA.b #$08				;$02B9DE	|
 	STA.w $14C8,Y				;$02B9E0	|
 	PHX					;$02B9E3	|
@@ -7993,15 +7993,15 @@ CODE_02BAC0:
 	LDA.b #$08
 	STA.w $14C8,Y				;$02BAC2	|
 	LDA.b #$74				;$02BAC5	|
-	STA.w $9E,Y				;$02BAC7	|
+	STA.w $009E,y				;$02BAC7	|
 	LDA $00					;$02BACA	|
-	STA.w $E4,Y				;$02BACC	|
+	STA.w $00E4,y				;$02BACC	|
 	STA $9A					;$02BACF	|
 	LDA $08					;$02BAD1	|
 	STA.w $14E0,Y				;$02BAD3	|
 	STA $9B					;$02BAD6	|
 	LDA $01					;$02BAD8	|
-	STA.w $D8,Y				;$02BADA	|
+	STA.w $00D8,y				;$02BADA	|
 	STA $98					;$02BADD	|
 	LDA $09					;$02BADF	|
 	STA.w $14D4,Y				;$02BAE1	|
@@ -8951,7 +8951,7 @@ CODE_02C19A:
 	LDA.b #$08				;$02C1A0	|
 	STA.w $14C8,Y				;$02C1A2	|
 	LDA.b #$48				;$02C1A5	|
-	STA.w $9E,Y				;$02C1A7	|
+	STA.w $009E,y				;$02C1A7	|
 	LDA.w $157C,X				;$02C1AA	|
 	STA $02					;$02C1AD	|
 	LDA $E4,X				;$02C1AF	|
@@ -8965,22 +8965,22 @@ CODE_02C19A:
 	LDA $00					;$02C1C0	|
 	CLC					;$02C1C2	|
 	ADC.w DATA_02C194,X			;$02C1C3	|
-	STA.w $E4,Y				;$02C1C6	|
+	STA.w $00E4,y				;$02C1C6	|
 	LDA $01					;$02C1C9	|
 	ADC.w DATA_02C196,X			;$02C1CB	|
 	STA.w $14E0,Y				;$02C1CE	|
 	LDA.w DATA_02C198,X			;$02C1D1	|
-	STA.w $B6,Y				;$02C1D4	|
+	STA.w $00B6,y				;$02C1D4	|
 	PLX					;$02C1D7	|
 	LDA $D8,X				;$02C1D8	|
 	CLC					;$02C1DA	|
 	ADC.b #$0A				;$02C1DB	|
-	STA.w $D8,Y				;$02C1DD	|
+	STA.w $00D8,y				;$02C1DD	|
 	LDA.w $14D4,X				;$02C1E0	|
 	ADC.b #$00				;$02C1E3	|
 	STA.w $14D4,Y				;$02C1E5	|
 	LDA.b #$C0				;$02C1E8	|
-	STA.w $AA,Y				;$02C1EA	|
+	STA.w $00AA,y				;$02C1EA	|
 	LDA.b #$2C				;$02C1ED	|
 	STA.w $1540,Y				;$02C1EF	|
 Return02C1F2:
@@ -9532,13 +9532,13 @@ CODE_02C5BC:
 	LDA.b #$08				;$02C5C2	|
 	STA.w $14C8,Y				;$02C5C4	|
 	LDA.b #$91				;$02C5C7	|
-	STA.w $9E,Y				;$02C5C9	|
+	STA.w $009E,y				;$02C5C9	|
 	LDA $E4,X				;$02C5CC	|
-	STA.w $E4,Y				;$02C5CE	|
+	STA.w $00E4,y				;$02C5CE	|
 	LDA.w $14E0,X				;$02C5D1	|
 	STA.w $14E0,Y				;$02C5D4	|
 	LDA $D8,X				;$02C5D7	|
-	STA.w $D8,Y				;$02C5D9	|
+	STA.w $00D8,y				;$02C5D9	|
 	LDA.w $14D4,X				;$02C5DC	|
 	STA.w $14D4,Y				;$02C5DF	|
 	PHX					;$02C5E2	|
@@ -9546,10 +9546,10 @@ CODE_02C5BC:
 	JSL InitSpriteTables			;$02C5E4	|
 	LDX.w $185E				;$02C5E8	|
 	LDA.w DATA_02C57E,X			;$02C5EB	|
-	STA.w $B6,Y				;$02C5EE	|
+	STA.w $00B6,y				;$02C5EE	|
 	PLX					;$02C5F1	|
 	LDA.b #$C8				;$02C5F2	|
-	STA.w $AA,Y				;$02C5F4	|
+	STA.w $00AA,y				;$02C5F4	|
 	LDA.b #$50				;$02C5F7	|
 	STA.w $1540,Y				;$02C5F9	|
 CODE_02C5FC:
@@ -11260,11 +11260,11 @@ CODE_02D2B2:
 	PHA					;$02D2D1	|
 	LDA $97					;$02D2D2	|
 	PHA					;$02D2D4	|
-	LDA.w $E4,Y				;$02D2D5	|
+	LDA.w $00E4,y				;$02D2D5	|
 	STA $94					;$02D2D8	|
 	LDA.w $14E0,Y				;$02D2DA	|
 	STA $95					;$02D2DD	|
-	LDA.w $D8,Y				;$02D2DF	|
+	LDA.w $00D8,y				;$02D2DF	|
 	STA $96					;$02D2E2	|
 	LDA.w $14D4,Y				;$02D2E4	|
 	STA $97					;$02D2E7	|
@@ -12471,7 +12471,7 @@ CODE_02DB66:
 	LDA.w $14C8,Y
 	CMP.b #$08				;$02DB69	|
 	BNE CODE_02DB74				;$02DB6B	|
-	LDA.w $9E,Y				;$02DB6D	|
+	LDA.w $009E,y				;$02DB6D	|
 	CMP.b #$9B				;$02DB70	|
 	BEQ PutHammerBroOnPlat			;$02DB72	|
 CODE_02DB74:
@@ -12483,13 +12483,13 @@ PutHammerBroOnPlat:
 	TYA
 	STA.w $1594,X				;$02DB7A	|
 	LDA $E4,X				;$02DB7D	|
-	STA.w $E4,Y				;$02DB7F	|
+	STA.w $00E4,y				;$02DB7F	|
 	LDA.w $14E0,X				;$02DB82	|
 	STA.w $14E0,Y				;$02DB85	|
 	LDA $D8,X				;$02DB88	|
 	SEC					;$02DB8A	|
 	SBC.b #$10				;$02DB8B	|
-	STA.w $D8,Y				;$02DB8D	|
+	STA.w $00D8,y				;$02DB8D	|
 	LDA.w $14D4,X				;$02DB90	|
 	SBC.b #$00				;$02DB93	|
 	STA.w $14D4,Y				;$02DB95	|
@@ -12545,7 +12545,7 @@ CODE_02DBF8:
 	LDA.b #$02				;$02DBFD	|
 	STA.w $14C8,Y				;$02DBFF	|
 	LDA.b #$C0				;$02DC02	|
-	STA.w $AA,Y				;$02DC04	|
+	STA.w $00AA,y				;$02DC04	|
 	PHX					;$02DC07	|
 	TYX					;$02DC08	|
 	JSL CODE_01AB6F				;$02DC09	|
@@ -12770,17 +12770,17 @@ GenSumoLightning:
 	JSL FindFreeSprSlot
 	BMI Return02DDC5			;$02DD93	|
 	LDA.b #$2B				;$02DD95	|
-	STA.w $9E,Y				;$02DD97	|
+	STA.w $009E,y				;$02DD97	|
 	LDA.b #$08				;$02DD9A	|
 	STA.w $14C8,Y				;$02DD9C	|
 	LDA $E4,X				;$02DD9F	|
 	ADC.b #$04				;$02DDA1	|
-	STA.w $E4,Y				;$02DDA3	|
+	STA.w $00E4,y				;$02DDA3	|
 	LDA.w $14E0,X				;$02DDA6	|
 	ADC.b #$00				;$02DDA9	|
 	STA.w $14E0,Y				;$02DDAB	|
 	LDA $D8,X				;$02DDAE	|
-	STA.w $D8,Y				;$02DDB0	|
+	STA.w $00D8,y				;$02DDB0	|
 	LDA.w $14D4,X				;$02DDB3	|
 	STA.w $14D4,Y				;$02DDB6	|
 	PHX					;$02DDB9	|
@@ -14519,7 +14519,7 @@ CODE_02EA50:
 	LDA.w $14C8,Y				;$02EA63	|
 	CMP.b #$08				;$02EA66	|
 	BCC CODE_02EA86				;$02EA68	|
-	LDA.w $9E,Y				;$02EA6A	|
+	LDA.w $009E,y				;$02EA6A	|
 	CMP.b #$70				;$02EA6D	|
 	BEQ CODE_02EA86				;$02EA6F	|
 	CMP.b #$0E				;$02EA71	|
@@ -14559,7 +14559,7 @@ CODE_02EAA9:
 	STA.w $160E,X				;$02EAB7	|
 	STZ.w $157C,X				;$02EABA	|
 	LDA $E4,X				;$02EABD	|
-	CMP.w $E4,Y				;$02EABF	|
+	CMP.w $00E4,y				;$02EABF	|
 	LDA.w $14E0,X				;$02EAC2	|
 	SBC.w $14E0,Y				;$02EAC5	|
 	BCC Return02EACD			;$02EAC8	|
@@ -14601,13 +14601,13 @@ CODE_02EAF2:
 	LDA.b #$08				;$02EAF8	|
 	STA.w $14C8,Y				;$02EAFA	|
 	LDA.b #$77				;$02EAFD	|
-	STA.w $9E,Y				;$02EAFF	|
+	STA.w $009E,y				;$02EAFF	|
 	LDA $E4,X				;$02EB02	|
-	STA.w $E4,Y				;$02EB04	|
+	STA.w $00E4,y				;$02EB04	|
 	LDA.w $14E0,X				;$02EB07	|
 	STA.w $14E0,Y				;$02EB0A	|
 	LDA $D8,X				;$02EB0D	|
-	STA.w $D8,Y				;$02EB0F	|
+	STA.w $00D8,y				;$02EB0F	|
 	LDA.w $14D4,X				;$02EB12	|
 	STA.w $14D4,Y				;$02EB15	|
 	TYX					;$02EB18	|
@@ -14923,9 +14923,9 @@ CODE_02ED93:
 	LDA.b #$08				;$02ED99	|
 	STA.w $14C8,Y				;$02ED9B	|
 	LDA.b #$61				;$02ED9E	|
-	STA.w $9E,Y				;$02EDA0	|
+	STA.w $009E,y				;$02EDA0	|
 	LDA $D8,X				;$02EDA3	|
-	STA.w $D8,Y				;$02EDA5	|
+	STA.w $00D8,y				;$02EDA5	|
 	LDA.w $14D4,X				;$02EDA8	|
 	STA.w $14D4,Y				;$02EDAB	|
 	LDX $00					;$02EDAE	|
@@ -14933,7 +14933,7 @@ CODE_02ED93:
 	LDX.w $15E9				;$02EDB3	|
 	CLC					;$02EDB6	|
 	ADC $E4,X				;$02EDB7	|
-	STA.w $E4,Y				;$02EDB9	|
+	STA.w $00E4,y				;$02EDB9	|
 	LDA.w $14E0,X				;$02EDBC	|
 	ADC.b #$00				;$02EDBF	|
 	STA.w $14E0,Y				;$02EDC1	|
@@ -14962,7 +14962,7 @@ CODE_02EDD8:
 	BNE CODE_02EDF6				;$02EDE2	|
 	LDY.b #$09				;$02EDE4	|
 CODE_02EDE6:
-	LDA.w $9E,Y
+	LDA.w $009E,y
 	CMP.b #$61				;$02EDE9	|
 	BNE CODE_02EDF2				;$02EDEB	|
 	LDA.b #$00 				;$02EDED	|
@@ -15000,7 +15000,7 @@ CODE_02EE19:
 CODE_02EE21:
 	LDA.w $14C8,Y
 	BEQ CODE_02EE36				;$02EE24	|
-	LDA.w $9E,Y				;$02EE26	|
+	LDA.w $009E,y				;$02EE26	|
 	CMP.b #$61				;$02EE29	|
 	BNE CODE_02EE36				;$02EE2B	|
 	LDA.w $1588,Y				;$02EE2D	|
@@ -15189,13 +15189,13 @@ ADDR_02EF7B:
 	LDA.b #$08
 	STA.w $14C8,Y				;$02EF7D	|
 	LDA.b #$78				;$02EF80	|
-	STA.w $9E,Y				;$02EF82	|
+	STA.w $009E,y				;$02EF82	|
 	LDA $E4,X				;$02EF85	|
-	STA.w $E4,Y				;$02EF87	|
+	STA.w $00E4,y				;$02EF87	|
 	LDA.w $14E0,X				;$02EF8A	|
 	STA.w $14E0,Y				;$02EF8D	|
 	LDA $D8,X				;$02EF90	|
-	STA.w $D8,Y				;$02EF92	|
+	STA.w $00D8,y				;$02EF92	|
 	LDA.w $14D4,X				;$02EF95	|
 	STA.w $14D4,Y				;$02EF98	|
 	PHX					;$02EF9B	|
@@ -16032,7 +16032,7 @@ CODE_02F54A:
 
 CODE_02F553:
 	LDA.b #$8B
-	STA.w $9E,Y				;$02F555	|
+	STA.w $009E,y				;$02F555	|
 	LDA.b #$08				;$02F558	|
 	STA.w $14C8,Y				;$02F55A	|
 	PHX					;$02F55D	|

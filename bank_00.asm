@@ -2171,7 +2171,7 @@ CODE_0092ED:
 	LDY.w #$0008				;$0092EF	|
 	LDX.w #$0014				;$0092F2	|
 CODE_0092F5:
-	LDA.w $1A,Y
+	LDA.w $001A,y
 	STA.w $04A1,X				;$0092F8	|
 	STA.w $04A4,X				;$0092FB	|
 	LDA.w $1462,Y				;$0092FE	|
@@ -13389,19 +13389,19 @@ FlatPalaceSwitch:
 	STA.w $1887				;$00FA47	|
 	LDY.b #$02				;$00FA4A	|
 	LDA.b #$60				;$00FA4C	|
-	STA.w $9E,Y				;$00FA4E	|
+	STA.w $009E,y				;$00FA4E	|
 	LDA.b #$08				;$00FA51	|
 	STA.w $14C8,Y				;$00FA53	|
 	LDA $9A					;$00FA56	|
 	AND.b #$F0				;$00FA58	|
-	STA.w $E4,Y				;$00FA5A	|
+	STA.w $00E4,y				;$00FA5A	|
 	LDA $9B					;$00FA5D	|
 	STA.w $14E0,Y				;$00FA5F	|
 	LDA $98					;$00FA62	|
 	AND.b #$F0				;$00FA64	|
 	CLC					;$00FA66	|
 	ADC.b #$10				;$00FA67	|
-	STA.w $D8,Y				;$00FA69	|
+	STA.w $00D8,y				;$00FA69	|
 	LDA $99					;$00FA6C	|
 	ADC.b #$00				;$00FA6E	|
 	STA.w $14D4,Y				;$00FA70	|
@@ -13432,7 +13432,7 @@ LvlEndSprLoopStrt:
 	BRA LvlEndNextSprite			;$00FAA1	|
 
 CODE_00FAA3:
-	LDA.w $9E,Y
+	LDA.w $009E,y
 	CMP.b #$7B				;$00FAA6	|
 	BEQ CODE_00FAB2				;$00FAA8	|
 	LDA.w $15A0,Y				;$00FAAA	|
@@ -13484,7 +13484,7 @@ CODE_00FB09:
 	BEQ CODE_00FB10				;$00FB0C	|
 	LDX.b #$05				;$00FB0E	|
 CODE_00FB10:
-	LDA.w $9E,Y
+	LDA.w $009E,y
 	CMP.b #$2F				;$00FB13	|
 	BEQ CODE_00FB2D				;$00FB15	|
 	CMP.b #$3E				;$00FB17	|
@@ -13526,7 +13526,7 @@ CODE_00FB41:
 	BCS LvlEndStoreSpr			;$00FB51	|
 	LDA.b #$78				;$00FB53	|
 LvlEndStoreSpr:
-	STA.w $9E,Y
+	STA.w $009E,y
 	CMP.b #$76				;$00FB58	|
 	BNE CODE_00FB5F				;$00FB5A	|
 	INC.w $13CB				;$00FB5C	|
@@ -13538,9 +13538,9 @@ CODE_00FB5F:
 	LDA.b #$0C				;$00FB69	|
 	STA.w $14C8,Y				;$00FB6B	|
 	LDA.b #$D0				;$00FB6E	|
-	STA.w $AA,Y				;$00FB70	|
+	STA.w $00AA,y				;$00FB70	|
 	LDA.b #$05				;$00FB73	|
-	STA.w $B6,Y				;$00FB75	|
+	STA.w $00B6,y				;$00FB75	|
 	LDA.b #$20				;$00FB78	|
 	STA.w $154C,Y				;$00FB7A	|
 	LDA.b #$0C				;$00FB7D	|
@@ -13556,9 +13556,9 @@ CODE_00FB84:
 CODE_00FB8D:
 	LDA.b #$01
 	STA.w $17C0,X				;$00FB8F	|
-	LDA.w $D8,Y				;$00FB92	|
+	LDA.w $00D8,y				;$00FB92	|
 	STA.w $17C4,X				;$00FB95	|
-	LDA.w $E4,Y				;$00FB98	|
+	LDA.w $00E4,y				;$00FB98	|
 	STA.w $17C8,X				;$00FB9B	|
 	LDA.b #$1B				;$00FB9E	|
 	STA.w $17CC,X				;$00FBA0	|
@@ -13637,7 +13637,7 @@ ADDR_00FC25:
 	LDA.w $14C8,Y
 	CMP.b #$08				;$00FC28	|
 	BNE ADDR_00FC73				;$00FC2A	|
-	LDA.w $9E,Y				;$00FC2C	|
+	LDA.w $009E,y				;$00FC2C	|
 	CMP.b #$35				;$00FC2F	|
 	BNE ADDR_00FC73				;$00FC31	|
 	LDA.b #$01				;$00FC33	|
@@ -13652,20 +13652,20 @@ ADDR_00FC25:
 	LDA $1A					;$00FC4A	|
 	SEC					;$00FC4C	|
 	SBC.b #$10				;$00FC4D	|
-	STA.w $E4,Y				;$00FC4F	|
+	STA.w $00E4,y				;$00FC4F	|
 	LDA $1B					;$00FC52	|
 	SBC.b #$00				;$00FC54	|
 	STA.w $14E0,Y				;$00FC56	|
 	LDA $96					;$00FC59	|
-	STA.w $D8,Y				;$00FC5B	|
+	STA.w $00D8,y				;$00FC5B	|
 	LDA $97					;$00FC5E	|
 	STA.w $14D4,Y				;$00FC60	|
 	LDA.b #$03				;$00FC63	|
-	STA.w $C2,Y				;$00FC65	|
+	STA.w $00C2,y				;$00FC65	|
 	LDA.b #$00				;$00FC68	|
 	STA.w $157C,Y				;$00FC6A	|
 	LDA.b #$10				;$00FC6D	|
-	STA.w $B6,Y				;$00FC6F	|
+	STA.w $00B6,y				;$00FC6F	|
 Return00FC72:
 	RTL
 

@@ -7419,7 +7419,7 @@ CODE_04F3BF:
 	PLY					;$04F3D2	|
 	REP #$20				;$04F3D3	|
 	SEC					;$04F3D5	|
-	SBC.w $1A,Y				;$04F3D6	|
+	SBC.w $001A,y				;$04F3D6	|
 	SEC					;$04F3D9	|
 	SBC.w #$0008				;$04F3DA	|
 	STA.w $0000,Y				;$04F3DD	|
@@ -8813,7 +8813,7 @@ CODE_04FE7D:
 	LDA.w $0E35,X				;$04FE81	|
 	REP #$20				;$04FE84	|
 	SEC					;$04FE86	|
-	SBC.w $1A,Y				;$04FE87	|
+	SBC.w $001A,y				;$04FE87	|
 	STA.w $0000,Y				;$04FE8A	|
 	SEP #$20				;$04FE8D	|
 	RTS					;$04FE8F	|
