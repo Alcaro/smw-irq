@@ -1,5 +1,5 @@
 ORG $008000
-ResetStart:
+reset_start:
 	SEI					;$008000	\ Disable IRQ
 	STZ.w $4200				;$008001	 | Disable IRQ, NMI and joypad reading
 	STZ.w $420C				;$008004	 | Disable HDMA
@@ -21,7 +21,7 @@ ResetStart:
 	STA.l $7F8000				;$00802A	 | | LDA #$F0
 	LDX.w #$017D				;$00802E	 | | Loop counter
 	LDY.w #$03FD				;$008031	 | | Current address
-RAMRoutineUpload:				;		 | |
+RAM_routine_upload:				;		 | |
 	LDA.w #$008D				;$008034	 | | STA $XXXX
 	STA.l $7F8002,X				;$008037	 | |
 	TYA					;$00803B	 | | Set the address to store to
@@ -32,67 +32,67 @@ RAMRoutineUpload:				;		 | |
 	DEX					;$008045	 | | Decrememnt loop
 	DEX					;$008046	 | |
 	DEX					;$008047	 | |
-	BPL RAMRoutineUpload			;$008048	 | |
+	BPL RAM_routine_upload			;$008048	 | |
 	SEP #$30				;$00804A	 | | 8 bit A/X/Y
 	LDA.b #$6B				;$00804C	 | | RTL
 	STA.l $7F8182				;$00804E	 |/
-	JSR UploadSPCEngine			;$008052	 | Upload the SPC engine
+	JSR upload_SPC_engine			;$008052	 | Upload the SPC engine
 	STZ.w $0100				;$008055	 | Clear game mode
 	STZ.w $0109				;$008058	 | Clear level number(used for OW bypass)
-	JSR ClearStack				;$00805B	 | RAM clear routine
-	JSR UploadSamples			;$00805E	 | Upload SPC samples
-	JSR WindowDMASetup			;$008061	 | Set up DMA for window settings
+	JSR clear_stack				;$00805B	 | RAM clear routine
+	JSR upload_samples			;$00805E	 | Upload SPC samples
+	JSR window_DMA_setup			;$008061	 | Set up DMA for window settings
 	LDA.b #$03				;$008064	 |\ Set up OAM registers( 8x8 and 16x16)
 	STA.w $2101				;$008066	 |/
 	INC $10					;$008069	/
-GameLoop:
+game_loop:
 	LDA $10					;$00806B	\ Main wait loop
-	BEQ GameLoop				;$00806D	 | $10 is set in NMI to $00
+	BEQ game_loop				;$00806D	 | $10 is set in NMI to $00
 	CLI					;$00806F	 | Enable interrupts
 	INC $13					;$008070	 | Increment frame counter
-	JSR RunGameMode				;$008072	 | Run the game
+	JSR run_game_mode			;$008072	 | Run the game
 	STZ $10					;$008075	 | Clear $10
-	BRA GameLoop				;$008077	/ Back to the wait loop
+	BRA game_loop				;$008077	/ Back to the wait loop
 
-SPC700UploadLoop:
+SPC_upload_loop:
 	PHP					;$008079	\ Preserve processor flags
 	REP #$30				;$00807A	 |  16 bit A/X/Y
 	LDY.w #$0000				;$00807C	 |
 	LDA.w #$BBAA				;$00807F	 |\ Value to check if the SPC is ready
-.SPCWait					;		 | |
+.SPC_wait					;		 | |
 	CMP.w $2140				;$008082	 | | Wait for the SPC to be ready
-	BNE .SPCWait				;$008085	 |/
+	BNE .SPC_wait				;$008085	 |/
 	SEP #$20				;$008087	 | 8 bit A
 	LDA.b #$CC				;$008089	 |\ Byte used to enable SPC block upload
-	BRA SendSPCBlock			;$00808B	 |/
-TransferBytes:					;		 |\
+	BRA send_SPC_block			;$00808B	 |/
+SPC_transfer_bytes:				;		 |\
 	LDA [$00],Y				;$00808D	 | | Load the Byte into the low byte
 	INY					;$00808F	 | | Increase the index
 	XBA					;$008090	 | | Move it to the high byte
 	LDA.b #$00				;$008091	 |/ Set the validation byte to the low byte
-	BRA CODE_0080A0				;$008093	 |
-NextByte:					;		 |\
+	BRA start_block_upload			;$008093	 |
+next_byte:					;		 |\
 	XBA					;$008095	 | | Switch the high and low byte
 	LDA [$00],Y				;$008096	 | | Load a new low byte
 	INY					;$008098	 | | Increase the index
 	XBA					;$008099	 |/ Switch the new low byte to the high byte
-.SPCWait					;		 |\ SPC wait loop
+.SPC_wait					;		 |\ SPC wait loop
 	CMP.w $2140				;$00809A	 | | Wait till $2140 matches the validation byte
-	BNE .SPCWait				;$00809D	 |/
+	BNE .SPC_wait				;$00809D	 |/
 	INC A					;$00809F	 | Increment the validation byte
-CODE_0080A0:					;		 |\
+start_block_upload:				;		 |\
 	REP #$20				;$0080A0	 | | 16 bit A
 	STA.w $2140				;$0080A2	 | | Store to $2140/$2141
 	SEP #$20				;$0080A5	 | | 8 bit A
 	DEX					;$0080A7	 |/ Decrement byte counter
-	BNE NextByte				;$0080A8	 |
-.SPCWait					;		 |\ SPC wait loop
+	BNE next_byte				;$0080A8	 |
+.SPC_wait					;		 |\ SPC wait loop
 	CMP.w $2140				;$0080AA	 | |
-	BNE .SPCWait				;$0080AD	 |/
-.AddThree					;		 |\
+	BNE .SPC_wait				;$0080AD	 |/
+.add_three					;		 |\
 	ADC.b #$03				;$0080AD	 | | If A is 0 add 3 again
-	BEQ .AddThree				;$0080B1	 |/
-SendSPCBlock:					;		 |
+	BEQ .add_three				;$0080B1	 |/
+send_SPC_block:					;		 |
 	PHA					;$0080B3	 | Preserve A to store to $2140 later
 	REP #$20				;$0080B4	 | 16 bit A
 	LDA [$00],Y				;$0080B6	 |\ Get data length
@@ -111,10 +111,10 @@ SendSPCBlock:					;		 |
 	ADC.b #$7F				;$0080CD	 | if A is one this sets the overflow flag
 	PLA					;$0080CF	 |\ Store the A pushed earlier
 	STA.w $2140				;$0080D0	 |/
-.SPCWait					;		 |\ SPC wait loop
+.SPC_wait					;		 |\ SPC wait loop
 	CMP.w $2140				;$0080D3	 | |
-	BNE .SPCWait				;$0080D6	 |/
-	BVS TransferBytes			;$0080D8	 | If the overflow is not set, keep uploading
+	BNE .SPC_wait				;$0080D6	 |/
+	BVS SPC_transfer_bytes			;$0080D8	 | If the overflow is not set, keep uploading
 	STZ.w $2140				;$0080DA	 |\ Clear SPC I/O ports
 	STZ.w $2141				;$0080DD	 | |
 	STZ.w $2142				;$0080E0	 | |
@@ -122,77 +122,77 @@ SendSPCBlock:					;		 |
 	PLP					;$0080E6	 | Restore processor flag
 	RTS					;$0080E7	/
 
-UploadSPCEngine:
+upload_SPC_engine:
 	LDA.b #$00				;$0080E8	\
 	STA.w $0000				;$0080EA	 | Set up pointer at $00 to the SPC data ($0E8000)
 	LDA.b #$80				;$0080ED	 |
 	STA.w $0001				;$0080EF	 |
 	LDA.b #$0E				;$0080F2	 |
 	STA.w $0002				;$0080F4	 |
-UploadDataToSPC:				;		/
+upload_data_to_SPC:				;		/
 	SEI					;$0080F7	\ Prevent interrupts from interrupting SPC upload
-	JSR SPC700UploadLoop			;$0080F8	 | Main SPC upload loop
+	JSR SPC_upload_loop			;$0080F8	 | Main SPC upload loop
 	CLI					;$0080FB	 | Enable interrupts again
 	RTS					;$0080FC	/
 
-UploadSamples:
+upload_samples:
 	LDA.b #$00				;$0080FD	\ Set up pointer at $00 to the SPC data ($0F8000)
 	STA.w $0000				;$0080FF	 |
 	LDA.b #$80				;$008102	 |
 	STA.w $0001				;$008104	 |
 	LDA.b #$0F				;$008107	 |
 	STA.w $0002				;$008109	 |
-	BRA StartMusicUpload			;$00810C	/
+	BRA start_SPC_upload			;$00810C	/
 
-UploadMusicBank1:
+upload_music_bank_1:
 	LDA.b #$B1				;$00810E	\ Set up pointer at $00 to the SPC data ($0E98B1)
 	STA.w $0000				;$008110	 |
 	LDA.b #$98				;$008113	 | Map Music
 	STA.w $0001				;$008115	 |
 	LDA.b #$0E				;$008118	 |
 	STA.w $0002				;$00811A	/
-StartMusicUpload:				;		\
+start_SPC_upload:				;		\
 	LDA.b #$FF				;$00811D	 |\ Tell the SPC to enable the upload routine
 	STA.w $2141				;$00811F	 |/
-	JSR UploadDataToSPC			;$008122	 | Enter the SNES side SPC upload
-	LDX.b #$03				;$008125	 |\
-SPC700ZeroLoop:					;		 | | Clear out all SPC I/O ports and mirrors
+	JSR upload_data_to_SPC			;$008122	 | Enter the SNES side SPC upload
+	LDX.b #$03				;$008125	 |\ 
+SPC_clear_loop:					;		 | | Clear out all SPC I/O ports and mirrors
 	STZ.w $2140,X				;$008127	 | |
 	STZ.w $1DF9,X				;$00812A	 | |
 	STZ.w $1DFD,X				;$00812D	 | |
 	DEX					;$008130	 | |
-	BPL SPC700ZeroLoop			;$008131	 |/
-SPCUploadReturn:				;		 |
+	BPL SPC_clear_loop			;$008131	 |/
+SPC_upload_return:				;		 |
 	RTS					;$008133	/
 
-UploadLevelMusic:
+upload_level_music:
 	LDA.w $1425				;$008134	\ Load bank 2 music if you are going to a bonus game
-	BNE UploadMusicBank2			;$008137	 |
+	BNE upload_music_bank_2			;$008137	 |
 	LDA.w $0109				;$008139	 | Load bank 2 music if this is the intro level
 	CMP.b #$E9				;$00813C	 |
-	BEQ UploadMusicBank2			;$00813E	 |
+	BEQ upload_music_bank_2			;$00813E	 |
 	ORA.w $141A				;$008140	 | If you are transitioning levels reupload music
 	ORA.w $141D				;$008143	 |
-	BNE SPCUploadReturn			;$008146	/
-UploadMusicBank2:
+	BNE SPC_upload_return			;$008146	/
+upload_music_bank_2:
 	LDA.b #$D6				;$008148	\ Set up pointer at $00 to the SPC data ($0EAED6)
 	STA.w $0000				;$00814A	 |
 	LDA.b #$AE				;$00814D	 |
 	STA.w $0001				;$00814F	 | Level music
 	LDA.b #$0E				;$008152	 |
 	STA.w $0002				;$008154	 |
-	BRA StartMusicUpload			;$008157	/
+	BRA start_SPC_upload			;$008157	/
 
-UploadMusicBank3:
+upload_music_bank_3:
 	LDA.b #$00				;$008159	\ Set up pointer at $00 to the SPC data ($03E400)
 	STA.w $0000				;$00815B	 |
 	LDA.b #$E4				;$00815E	 |
 	STA.w $0001				;$008160	 | Credits music
 	LDA.b #$03				;$008163	 |
 	STA.w $0002				;$008165	 |
-	BRA StartMusicUpload			;$008168	/
+	BRA start_SPC_upload			;$008168	/
 
-NMIStart:					;		\
+NMI_start:					;		\
 	SEI					;$00816A	 | Disable interrupts to stop interrupting an interrupt
 	PHP					;$00816B	 |\
 	REP #$30				;$00816C	 | | Push pretty much everything(except direct page)
@@ -205,15 +205,15 @@ NMIStart:					;		\
 	SEP #$30				;$008174	 | 8 bit A/X/Y
 	LDA.w $4210				;$008176	 | Read to clear the n flag
 	LDA.w $1DFB				;$008179	 |\ If playing a sound in $1DFB branch to keep playing
-	BNE .KeepPlaying			;$00817C	 |/
+	BNE .keep_playing			;$00817C	 |/
 	LDY.w $2142				;$00817E	 |\ Check if $1DFF matches the current playing sound
 	CPY.w $1DFF				;$008181	 | |
-	BNE .SoundUpdate			;$008184	 |/
-.KeepPlaying					;		 |
+	BNE .sound_update			;$008184	 |/
+.keep_playing					;		 |
 	STA.w $2142				;$008186	 |\ Keep the current sound playing
 	STA.w $1DFF				;$008189	 | | Then mirror and clear $1DFB
 	STZ.w $1DFB				;$00818C	 |/
-.SoundUpdate					;		 |
+.sound_update					;		 |
 	LDA.w $1DF9				;$00818F	 |\ Update the remaining sound ports and clear mirrors
 	STA.w $2140				;$008192	 | |
 	LDA.w $1DFA				;$008195	 | |
@@ -235,28 +235,28 @@ NMIStart:					;		\
 	LDA $44					;$0081C1	 |\ Initial color addition settings
 	STA.w $2130				;$0081C3	 |/
 	LDA.w $0D9B				;$0081C6	 |\ Check for a regular level
-	BPL RegularLevelNMI			;$0081C9	 | |
-	JMP Mode7NMI				;$0081CB	 |/ Otherwise go to mode 7 routines
-RegularLevelNMI:				;		 |
+	BPL .regular_level_NMI			;$0081C9	 | |
+	JMP mode7_NMI				;$0081CB	 |/ Otherwise go to mode 7 routines
+.regular_level_NMI				;		 |
 	LDA $40					;$0081CE	 |\ Set up color math on all layers in $40 but three
 	AND.b #$FB				;$0081D0	 | |
 	STA.w $2131				;$0081D2	 |/
 	LDA.b #$09				;$0081D5	 |\ Mode 1 with layer 3 priority
 	STA.w $2105				;$0081D7	 |/
 	LDA $10					;$0081DA	 |\ If the game is not lagging
-	BEQ .NoLag				;$0081DC	 |/
-	LDA.w $0D9B				;$0081DE	 \ Check if we are in a regular level
-	LSR					;$0081E1	  |
-	BEQ NotSpecialLevelNMI			;$0081E2	  |
-	JMP SpecialLevelNMI			;$0081E4	 / Otherwise process as a special level
-.NoLag						;		 |
+	BEQ .no_lag				;$0081DC	 |/
+	LDA.w $0D9B				;$0081DE	 |\ Check if we are in a regular level
+	LSR					;$0081E1	 | |
+	BEQ not_special_level_NMI		;$0081E2	 | |
+	JMP special_level_NMI			;$0081E4	 |/ Otherwise process as a special level
+.no_lag						;		 |
 	INC $10					;$0081E7	 | Allow the game loop to run after NMI
 	JSR CODE_00A488				;$0081E9	 |
 	LDA.w $0D9B				;$0081EC	 |
 	LSR					;$0081EF	 |
 	BNE CODE_008222				;$0081F0	 |
 	BCS CODE_0081F7				;$0081F2	 |
-	JSR DrawStatusBar			;$0081F4	 |
+	JSR draw_status_bar			;$0081F4	 |
 CODE_0081F7:					;		 |
 	LDA.w $13C6				;$0081F7	 |
 	CMP.b #$08				;$0081FA	 |
@@ -296,7 +296,7 @@ CODE_00823D:					;		 |
 	JSR DoSomeSpriteDMA			;$008240	 |
 CODE_008243:					;		 |
 	JSR ControllerUpdate			;$008243	 |
-NotSpecialLevelNMI:				;		 |
+not_special_level_NMI:				;		 |
 	LDA $1A					;$008246	 |
 	STA.w $210D				;$008248	 |
 	LDA $1B					;$00824B	 |
@@ -318,7 +318,7 @@ NotSpecialLevelNMI:				;		 |
 	STA.w $2110				;$008272	 |
 	LDA.w $0D9B				;$008275	 |
 	BEQ CODE_008292				;$008278	 |
-SpecialLevelNMI:				;		 |
+special_level_NMI:				;		 |
 	LDA.b #$81				;$00827A	 |
 	LDY.w $13C6				;$00827C	 |
 	CPY.b #$08				;$00827F	 |
@@ -354,7 +354,7 @@ NotCredits:					;		 |
 	PLP					;$0082C2	 |
 	RTI					;$0082C3	/
 
-Mode7NMI:					;		\
+mode7_NMI:					;		\
 	LDA $10					;$0082C4	 |
 	BNE CODE_0082F7				;$0082C6	 |
 	INC $10					;$0082C8	 |
@@ -372,7 +372,7 @@ CODE_0082D4:					;		 |
 	LSR					;$0082E5	 |
 	BCS CODE_0082EB				;$0082E6	 |
 CODE_0082E8:					;		 |
-	JSR DrawStatusBar			;$0082E8	 |
+	JSR draw_status_bar			;$0082E8	 |
 CODE_0082EB:					;		 |
 	JSR CODE_00A488				;$0082ED	 |
 	JSR LoadScrnImage			;$0082EE	 |
@@ -1255,7 +1255,7 @@ DATA_008A40:
 DATA_008A47:
 	db $01,$18,$A8,$1D,$00,$2C,$00
 
-ClearStack:
+clear_stack:
 	REP #$30
 	LDX.w #$1FFE				;$008A50	|
 CODE_008A53:
@@ -1535,7 +1535,7 @@ DATA_008D9E:
 DATA_008DA5:
 	db $01,$18,$F7,$8C,$00,$08,$00
 
-DrawStatusBar:
+draw_status_bar:
 	STZ.w $2115
 	LDA.b #$42				;$008DAF	|
 	STA.w $2116				;$008DB1	|
@@ -2086,7 +2086,7 @@ CODE_00923A:
 DATA_009249:
 	db $00,$22,$03,$07,$00,$00,$02
 
-WindowDMASetup:
+window_DMA_setup:
 	LDX.b #$04				;$009250	\ Index for DMA set up
 .loop						;                \ Upload to $4374 to $4370
 	LDA.w DMAWindowData,X			;$009252	  |
@@ -2197,7 +2197,7 @@ DATA_009318:
 DATA_00931D:
 	db $02,$11,$B4,$04,$00
 
-RunGameMode:
+run_game_mode:
 	LDA.w $0100
 	JSL ExecutePtr				;$009325	|
 
@@ -2386,7 +2386,7 @@ CODE_009468:
 	LDA.b #$D2				;$009499	|
 	STA $12					;$00949B	|
 	JSR LoadScrnImage			;$00949D	|
-	JSR UploadMusicBank3			;$0094A0	|
+	JSR upload_music_bank_3			;$0094A0	|
 	JSL CODE_0C93DD				;$0094A3	|
 	JSR DisableHDMA				;$0094A7	|
 	INC.w $1931				;$0094AA	|
@@ -2634,7 +2634,7 @@ CODE_0096AB:
 
 CODE_0096AE:
 	STZ.w $4200
-	JSR ClearStack				;$0096B1	|
+	JSR clear_stack				;$0096B1	|
 	LDX.b #$07				;$0096B4	|
 	LDA.b #$FF				;$0096B6	|
 CODE_0096B8:
@@ -2643,7 +2643,7 @@ CODE_0096B8:
 	BPL CODE_0096B8				;$0096BC	|
 	LDA.w $0109				;$0096BE	|
 	BNE CODE_0096CB				;$0096C1	|
-	JSR UploadMusicBank1			;$0096C3	|
+	JSR upload_music_bank_1			;$0096C3	|
 	LDA.b #$01				;$0096C6	|
 	STA.w $1DFB				;$0096C8	|
 CODE_0096CB:
@@ -2672,7 +2672,7 @@ CODE_0096FA:
 	STA.w $1462,X				;$0096FC	|
 	DEX					;$0096FF	|
 	BPL CODE_0096FA				;$009700	|
-	JSR UploadLevelMusic			;$009702	|
+	JSR upload_level_music			;$009702	|
 	JSR CODE_00A635				;$009705	|
 	LDA.b #$20				;$009708	|
 	STA $5E					;$00970A	|
@@ -3937,7 +3937,7 @@ CODE_00A093:
 
 CODE_00A0B0:
 	JSR CODE_0085FA
-	JSR UploadMusicBank1			;$00A0B3	|
+	JSR upload_music_bank_1			;$00A0B3	|
 	JSR SetUpScreen				;$00A0B6	|
 	STZ.w $0DDA				;$00A0B9	|
 	LDX.w $0DB3				;$00A0BC	|
