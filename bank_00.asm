@@ -41,7 +41,7 @@ RAM_routine_upload:				;		 | |
 	STZ.w $0109				;$008058	 | Clear level number(used for OW bypass)
 	JSR clear_stack				;$00805B	 | RAM clear routine
 	JSR upload_samples			;$00805E	 | Upload SPC samples
-	JSR window_DMA_setup			;$008061	 | Set up DMA for window settings
+	JSR setup_window_HDMA			;$008061	 | Set up HDMA for window settings
 	LDA.b #$03				;$008064	 |\ Set up OAM registers( 8x8 and 16x16)
 	STA.w $2101				;$008066	 |/
 	INC $10					;$008069	/
@@ -292,10 +292,10 @@ CODE_008237:					;		 |
 	JSR CODE_00A4E3				;$008237	 |
 	JSR MarioGFXDMA				;$00823A	 |
 CODE_00823D:					;		 |
-	JSR LoadScrnImage			;$00823D	 |
-	JSR DoSomeSpriteDMA			;$008240	 |
+	JSR _load_stripe_image_			;$00823D	 |
+	JSR DMA_OAM				;$008240	 |
 CODE_008243:					;		 |
-	JSR ControllerUpdate			;$008243	 |
+	JSR update_controls			;$008243	 |
 not_special_level_NMI:				;		 |
 	LDA $1A					;$008246	 |
 	STA.w $210D				;$008248	 |
@@ -375,9 +375,9 @@ CODE_0082E8:					;		 |
 	JSR draw_status_bar			;$0082E8	 |
 CODE_0082EB:					;		 |
 	JSR CODE_00A488				;$0082ED	 |
-	JSR LoadScrnImage			;$0082EE	 |
-	JSR DoSomeSpriteDMA			;$0082F1	 |
-	JSR ControllerUpdate			;$0082F4	 |
+	JSR _load_stripe_image_			;$0082EE	 |
+	JSR DMA_OAM				;$0082F1	 |
+	JSR update_controls			;$0082F4	 |
 CODE_0082F7:					;		 |
 	LDA.b #$09				;$0082F7	 |
 	STA.w $2105				;$0082F9	 |
@@ -554,7 +554,7 @@ CODE_008445:
 	BNE CODE_008445				;$008446	|
 	RTS					;$008448	|
 
-DoSomeSpriteDMA:
+DMA_OAM:
 	STZ.w $4300
 	REP #$20				;$00844C	|
 	STZ.w $2102				;$00844E	|
@@ -610,15 +610,15 @@ CODE_008496:
 	BPL CODE_008496				;$0084C5	|
 	RTS					;$0084C7	|
 
-CODE_0084C8:
+load_stripe_image:
 	PHB
 	PHK					;$0084C9	|
 	PLB					;$0084CA	|
-	JSR LoadScrnImage			;$0084CB	|
+	JSR _load_stripe_image_			;$0084CB	|
 	PLB					;$0084CE	|
 	RTL					;$0084CF	|
 
-ImagePointers:
+stripe_images:
 	dl $7F837D				;		|$7F837D
 	dl DATA_05B375				;		|$05B375
 	dl DATA_04A400				;		|$04A400
@@ -706,15 +706,15 @@ ImagePointers:
 	dl DATA_0DFD5C				;		|$0DFD5C
 	dl DATA_0CBD02				;		|$0CBD02
 
-LoadScrnImage:
+_load_stripe_image_:
 	LDY $12
-	LDA.w ImagePointers,Y			;$0085D4	|
+	LDA.w stripe_images,Y			;$0085D4	|
 	STA $00					;$0085D7	|
-	LDA.w ImagePointers+1,Y			;$0085D9	|
+	LDA.w stripe_images+1,Y			;$0085D9	|
 	STA $01					;$0085DC	|
-	LDA.w ImagePointers+2,Y			;$0085DE	|
+	LDA.w stripe_images+2,Y			;$0085DE	|
 	STA $02					;$0085E1	|
-	JSR CODE_00871E				;$0085E3	|
+	JSR DMA_stripe_image			;$0085E3	|
 	LDA $12					;$0085E6	|
 	BNE CODE_0085F7				;$0085E8	|
 	STA.l $7F837B				;$0085EA	|
@@ -759,12 +759,12 @@ CODE_00862F:
 	STY.w $420B				;$00863D	|
 	STZ $3F					;$008640	|
 	JSL $7F8000				;$008642	|
-	JMP DoSomeSpriteDMA			;$008646	|
+	JMP DMA_OAM				;$008646	|
 
 DATA_008649:
 	db $08,$18,$00,$00,$00,$00,$10
 
-ControllerUpdate:
+update_controls:
 	LDA.w $4218
 	AND.b #$F0				;$008653	|
 	STA.w $0DA4				;$008655	|
@@ -866,7 +866,7 @@ ExecutePtrLong:
 	LDY $05					;$008719	|
 	JMP [$0000]				;$00871B	|
 
-CODE_00871E:
+DMA_stripe_image:
 	REP #$10
 	STA.w $4314				;$008720	|
 	LDY.w #$0000				;$008723	|
@@ -2085,10 +2085,10 @@ CODE_00923A:
 DATA_009249:
 	db $00,$22,$03,$07,$00,$00,$02
 
-window_DMA_setup:
+setup_window_HDMA:
 	LDX.b #$04				;$009250	\ Index for DMA set up
 .loop						;                \ Upload to $4374 to $4370
-	LDA.w DMAWindowData,X			;$009252	  |
+	LDA.w window_HDMA_settings,X		;$009252	  |
 	STA.w $4370,X				;$009255	  |
 	DEX					;$009258	  |
 	BPL .loop				;$009259	 /
@@ -2096,7 +2096,7 @@ window_DMA_setup:
 	STA.w $4377				;$00925D	 /
 DisableHDMA:					;                |
 	STZ.w $0D9F				;$009260	 | Disable HDMA
-ClearWindowHDMA:				;                |
+clear_window_HDMA:				;                |
 	REP #$10				;$009263	 | 16 bit x/y
 	LDX.w #$01BE				;$009265	 \
 	LDA.b #$FF				;$009268	  | Initialize the HDMA table to FF00
@@ -2109,13 +2109,19 @@ ClearWindowHDMA:				;                |
 	SEP #$10				;$009274	 | 8 bit x/y
 	RTS					;$009276	/
 
-DMAWindowData:
-	db $41,$26,$7C,$92,$00			;$009277	| DMA settings
-	db $F0,$A0,$04,$F0			;$00927C	\ DMA data
-	db $80,$05,$00				;$009280	/
+window_HDMA_settings:
+	db $41,$26
+	dl window_HDMA_data
+
+window_HDMA_data:
+	db $F0
+	dw $04A0
+	db $F0
+	dw $0580
+	db $00
 
 CODE_009283:
-	JSR ClearWindowHDMA
+	JSR clear_window_HDMA
 	LDA.w $0D9B				;$009286	|
 	LSR					;$009289	|
 	BCS CODE_0092A0				;$00928A	|
@@ -2136,7 +2142,7 @@ CODE_0092A0:
 	RTS					;$0092A7	|
 
 CODE_0092A8:
-	JSR ClearWindowHDMA
+	JSR clear_window_HDMA
 	REP #$10				;$0092AB	|
 	LDX.w #$0198				;$0092AD	|
 	BRA WindowHDMAenable			;$0092B0	|
@@ -2251,10 +2257,10 @@ TurnOffIO:
 	STA.w $2100				;$009385	|
 	RTS					;$009388	|
 
-NintendoPos:
+nintendo_positions:
 	db $60,$70,$80,$90
 
-NintendoTile:
+nintendo_tiles:
 	db $02,$04,$06,$08
 
 CODE_009391:
@@ -2264,11 +2270,11 @@ CODE_009391:
 	LDY.b #$0C				;$00939A	|
 	LDX.b #$03				;$00939C	|
 CODE_00939E:
-	LDA.w NintendoPos,X
+	LDA.w nintendo_positions,X
 	STA.w $0200,Y				;$0093A1	|
 	LDA.b #$70				;$0093A4	|
 	STA.w $0201,Y				;$0093A6	|
-	LDA.w NintendoTile,X			;$0093A9	|
+	LDA.w nintendo_tiles,X			;$0093A9	|
 	STA.w $0202,Y				;$0093AC	|
 	LDA.b #$30				;$0093AF	|
 	STA.w $0203,Y				;$0093B1	|
@@ -2384,7 +2390,7 @@ CODE_009468:
 	JSR CODE_00955E				;$009496	|
 	LDA.b #$D2				;$009499	|
 	STA $12					;$00949B	|
-	JSR LoadScrnImage			;$00949D	|
+	JSR _load_stripe_image_			;$00949D	|
 	JSR upload_music_bank_3			;$0094A0	|
 	JSL CODE_0C93DD				;$0094A3	|
 	JSR DisableHDMA				;$0094A7	|
@@ -2397,10 +2403,10 @@ CODE_0094B2:
 	STA.w $1DFB				;$0094B4	|
 	LDA.w DATA_009460,X			;$0094B7	|
 	STA $12					;$0094BA	|
-	JSR LoadScrnImage			;$0094BC	|
+	JSR _load_stripe_image_			;$0094BC	|
 	LDA.b #$CF				;$0094BF	|
 	STA $12					;$0094C1	|
-	JSR LoadScrnImage			;$0094C3	|
+	JSR _load_stripe_image_			;$0094C3	|
 	REP #$20				;$0094C6	|
 	LDA.w #$0090				;$0094C8	|
 	STA $94					;$0094CB	|
@@ -2561,7 +2567,7 @@ CODE_009603:
 CODE_009612:
 	JSR CODE_00922F
 	JSR CODE_0092B2				;$009615	|
-	JSR LoadScrnImage			;$009618	|
+	JSR _load_stripe_image_			;$009618	|
 	JSR CODE_00962C				;$00961B	|
 CODE_00961E:
 	LDX.b #$15
@@ -2605,7 +2611,7 @@ CODE_009660:
 	JSR CODE_00922F				;$009675	|
 	LDA.b #$D5				;$009678	|
 	STA $12					;$00967A	|
-	JSR LoadScrnImage			;$00967C	|
+	JSR _load_stripe_image_			;$00967C	|
 	JSL CODE_0CAADF				;$00967F	|
 	JSR CODE_008494				;$009683	|
 	LDX.b #$14				;$009686	|
@@ -2653,7 +2659,7 @@ CODE_0096CF:
 	STY.w $1F11				;$0096D2	|
 CODE_0096D5:
 	STZ.w $4200
-	JSR NoButtons				;$0096D8	|
+	JSR disable_controls			;$0096D8	|
 	LDA.w $141A				;$0096DB	|
 	BNE CODE_0096E9				;$0096DE	|
 	LDA.w $141D				;$0096E0	|
@@ -3031,7 +3037,7 @@ CODE_009A07:
 	LDA.w #$00FF
 	STA.l $7F837D,X				;$009A0A	|
 	SEP #$30				;$009A0E	|
-	JSR LoadScrnImage			;$009A10	|
+	JSR _load_stripe_image_			;$009A10	|
 	LDX.b #$B0				;$009A13	|
 	LDA.b #$90				;$009A15	|
 CODE_009A17:
@@ -3108,7 +3114,7 @@ CODE_009A8B:
 	JSR CODE_0085FA				;$009A94	|
 	LDA.b #$03				;$009A97	|
 	STA $12					;$009A99	|
-	JSR LoadScrnImage			;$009A9B	|
+	JSR _load_stripe_image_			;$009A9B	|
 	JSR CODE_00ADA6				;$009A9E	|
 	JSR CODE_00922F				;$009AA1	|
 	JSL CODE_04F675				;$009AA4	|
@@ -3359,7 +3365,7 @@ GAMEMODE_07:
 	JSR SetUp0DA0GM4
 	JSR CODE_009CBE				;$009C67	|
 	BNE CODE_009C9F				;$009C6A	|
-	JSR NoButtons				;$009C6C	|
+	JSR disable_controls			;$009C6C	|
 	LDX.w $1DF4				;$009C6F	|
 	DEC.w $1DF5				;$009C72	|
 	BNE CODE_009C82				;$009C75	|
@@ -3878,7 +3884,7 @@ CODE_00A01F:
 	STA $01					;$00A039	|
 	LDA.l Layer3Ptr+2,X			;$00A03B	|
 	STA $02					;$00A03F	|
-	JSR CODE_00871E				;$00A041	|
+	JSR DMA_stripe_image			;$00A041	|
 Return00A044:
 	RTS
 
@@ -4002,15 +4008,15 @@ CODE_00A11B:
 	JSR CODE_00922F				;$00A150	|
 	LDA.b #$06				;$00A153	|
 	STA $12					;$00A155	|
-	JSR LoadScrnImage			;$00A157	|
+	JSR _load_stripe_image_			;$00A157	|
 	JSL CODE_05DBF2				;$00A15A	|
-	JSR LoadScrnImage			;$00A15E	|
+	JSR _load_stripe_image_			;$00A15E	|
 	JSL CODE_048D91				;$00A161	|
 	JSL CODE_04D6E9				;$00A165	|
 	LDA.b #$F0				;$00A169	|
 	STA $3F					;$00A16B	|
 	JSR CODE_008494				;$00A16D	|
-	JSR LoadScrnImage			;$00A170	|
+	JSR _load_stripe_image_			;$00A170	|
 	STZ.w $13D9				;$00A173	|
 	JSR KeepModeActive			;$00A176	|
 	LDA.b #$02				;$00A179	|
@@ -4083,7 +4089,7 @@ CODE_00A1E4:
 	BEQ CODE_00A200				;$00A1EC	|
 	CMP.b #$40				;$00A1EE	|
 	BCS CODE_00A200				;$00A1F0	|
-	JSR NoButtons				;$00A1F2	|
+	JSR disable_controls			;$00A1F2	|
 	CMP.b #$1C				;$00A1F5	|
 	BCS CODE_00A200				;$00A1F7	|
 	JSR SetMarioPeaceImg			;$00A1F9	|
@@ -4528,7 +4534,7 @@ CODE_00A594:
 
 GM04Load:
 	JSR CODE_0085FA
-	JSR NoButtons				;$00A59F	|
+	JSR disable_controls			;$00A59F	|
 	STZ.w $143A				;$00A5A2	|
 	JSR SetUpScreen				;$00A5A5	|
 	JSR GM04DoDMA				;$00A5A8	|
@@ -7504,7 +7510,7 @@ CODE_00C5D1:
 	STA.w $1B88				;$00C5D3	|
 	LDA.b #$07				;$00C5D6	|
 	STA.w $1928				;$00C5D8	|
-	JSR NoButtons				;$00C5DB	|
+	JSR disable_controls			;$00C5DB	|
 	JMP CODE_00CD24				;$00C5DE	|
 
 DATA_00C5E1:
@@ -7550,7 +7556,7 @@ DATA_00C6DF:
 	db $01,$00,$10,$A0,$84,$50,$BC,$D8
 
 castle_destroy_animation:
-	JSR NoButtons
+	JSR disable_controls
 	STZ.w $13DE				;$00C6EA	|
 	JSR CODE_00DC2D				;$00C6ED	|
 	LDA $7D					;$00C6F0	|
@@ -7716,7 +7722,7 @@ DATA_00C7F9:
 	db $C0,$FF,$A0,$00
 
 yoshi_wings_animation:
-	JSR NoButtons
+	JSR disable_controls
 	LDA.b #$0B				;$00C800	|
 	STA $72					;$00C802	|
 	JSR CODE_00D7E4				;$00C804	|
@@ -7784,7 +7790,7 @@ CODE_00C88D:
 	LDX $88
 	LDA $16					;$00C88F	|
 	ORA $18					;$00C891	|
-	JSR NoButtons				;$00C893	|
+	JSR disable_controls			;$00C893	|
 	BMI CODE_00C8FB				;$00C896	|
 	STZ.w $13DE				;$00C898	|
 	DEC $89					;$00C89B	|
@@ -7792,22 +7798,22 @@ CODE_00C88D:
 	INX					;$00C89F	|
 	INX					;$00C8A0	|
 	STX $88					;$00C8A1	|
-	LDA.w $C847,X				;$00C8A3	|
+	LDA.w DATA_00C848-1,X			;$00C8A3	|
 	STA $89					;$00C8A6	|
 CODE_00C8A8:
-	LDA.w $C846,X
+	LDA.w DATA_00C848-2,X
 	CMP.b #$FF				;$00C8AB	|
 	BEQ CODE_00C8FB				;$00C8AD	|
 	AND.b #$DF				;$00C8AF	|
 	STA $15					;$00C8B1	|
-	CMP.w $C846,X				;$00C8B3	|
+	CMP.w DATA_00C848-2,X			;$00C8B3	|
 	BEQ CODE_00C8BC				;$00C8B6	|
 	LDY.b #$80				;$00C8B8	|
 	STY $18					;$00C8BA	|
 CODE_00C8BC:
 	ASL
 	BPL CODE_00C8D1				;$00C8BD	|
-	JSR NoButtons				;$00C8BF	|
+	JSR disable_controls			;$00C8BF	|
 	LDY.b #$B0				;$00C8C2	|
 	LDX.w $1931				;$00C8C4	|
 	BIT.w DATA_00A625,X			;$00C8C7	|
@@ -7854,7 +7860,7 @@ CODE_00C90A:
 	RTS					;$00C914	|
 
 CODE_00C915:
-	JSR NoButtons
+	JSR disable_controls
 	STZ.w $18C2				;$00C918	|
 	STZ.w $13DE				;$00C91B	|
 	STZ.w $13ED				;$00C91E	|
@@ -7983,7 +7989,7 @@ CODE_00CA12:
 	CMP.b #$31
 	BEQ CODE_00CA20				;$00CA14	|
 CODE_00CA16:
-	CMP.w $C9A6,X
+	CMP.w DATA_00C9A7-1,X
 	BEQ CODE_00CA20				;$00CA19	|
 	DEX					;$00CA1B	|
 	BNE CODE_00CA16				;$00CA1C	|
@@ -8035,7 +8041,7 @@ CODE_00CA4A:
 
 CODE_00CA61:
 	REP #$20
-	LDA.w #$CB12				;$00CA63	|
+	LDA.w #DATA_00CB12			;$00CA63	|
 	STA $04					;$00CA66	|
 	STA $06					;$00CA68	|
 	SEP #$20				;$00CA6A	|
@@ -8955,10 +8961,10 @@ CODE_00D187:
 	BEQ CODE_00D158				;$00D18A	|
 	RTS					;$00D18C	|
 
-PipeSpeedX:
+pipe_x_speeds:
 	db $F8,$08
 
-PipeSpeedY:
+pipe_y_speeds:
 	db $00,$00,$F0
 
 DATA_00D192:
@@ -8968,7 +8974,7 @@ DATA_00D193:
 	db $00,$63,$1C,$00
 
 horizontal_pipe_animation:
-	JSR NoButtons
+	JSR disable_controls
 	STZ.w $13DE				;$00D19A	|
 	JSL CODE_00CEB1				;$00D19D	|
 	JSL CODE_00CFBC				;$00D1A1	|
@@ -9027,7 +9033,7 @@ PipeCntringSpeed:
 	db $FF,$01
 
 vertical_pipe_animation:
-	JSR NoButtons
+	JSR disable_controls
 	STZ.w $13DF				;$00D206	|
 	LDA.b #$0F				;$00D209	|
 	LDY.w $187A				;$00D20B	|
@@ -9073,9 +9079,9 @@ CODE_00D24E:
 	LDA.b #$04				;$00D254	|
 	STA.w $1DF9				;$00D256	|
 CODE_00D259:
-	LDA.w PipeSpeedX,Y
+	LDA.w pipe_x_speeds,Y
 	STA $7B					;$00D25C	|
-	LDA.w PipeSpeedY,Y			;$00D25E	|
+	LDA.w pipe_y_speeds,Y			;$00D25E	|
 	STA $7D					;$00D261	|
 	STZ $72					;$00D263	|
 	JMP CODE_00DC2D				;$00D265	|
@@ -9102,7 +9108,7 @@ CODE_00D273:
 	RTS					;$00D286	|
 
 slanted_pipe_animation:
-	JSR NoButtons
+	JSR disable_controls
 	LDA.b #$02				;$00D28A	|
 	STA.w $13F9				;$00D28C	|
 	LDA.b #$0C				;$00D28F	|
@@ -11356,7 +11362,7 @@ CODE_00EC06:
 	JSR CODE_00D273				;$00EC15	|
 	LDA.b #$0D				;$00EC18	|
 	STA $71					;$00EC1A	|
-	JSR NoButtons				;$00EC1C	|
+	JSR disable_controls			;$00EC1C	|
 	BRA CODE_00EC24				;$00EC1F	|
 
 CODE_00EC21:
@@ -12507,7 +12513,7 @@ CODE_00F430:
 	INX
 	STX.w $1419				;$00F431	|
 	STY $71					;$00F434	|
-	JSR NoButtons				;$00F436	|
+	JSR disable_controls			;$00F436	|
 	LDA.b #$04				;$00F439	|
 	STA.w $1DF9				;$00F43B	|
 CODE_00F43E:
@@ -12809,7 +12815,7 @@ Return00F628:
 
 CODE_00F629:
 	JSL kill_mario
-NoButtons:
+disable_controls:
 	STZ $15
 	STZ $16					;$00F62F	|
 	STZ $17					;$00F631	|
@@ -14121,10 +14127,8 @@ DATA_00FF93:
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 	db $FF,$FF,$FF,$FF,$FF
 	
-InternalSNESHeader:
-	db $53,$55,$50,$45,$52,$20,$4D		;		\ "SUPER M"
-	db $41,$52,$49,$4F,$57,$4F,$52		;		 | "ARIOWOR"
-	db $4C,$44,$20,$20,$20,$20,$20		;		 | "LD     "
+snes_header:
+	db "SUPER MARIOWORLD     "		;		\ ROM name
 	db $20					;		 | slow LOROM
 	db $02					;		 | ROM with SRAM
 	db $09					;		 | ROM size: 512 KB

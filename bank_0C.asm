@@ -3019,7 +3019,7 @@ CODE_0CADF6:
 	STA $12					;$0CAE06	|
 	PHY					;$0CAE08	|
 	PHX					;$0CAE09	|
-	JSL CODE_0084C8				;$0CAE0A	|
+	JSL load_stripe_image			;$0CAE0A	|
 	LDA.w $1EEB				;$0CAE0E	|
 	BPL CODE_0CAE48				;$0CAE11	|
 	LDA.w $1DE9				;$0CAE13	|
