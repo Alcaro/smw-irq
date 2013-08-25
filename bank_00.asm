@@ -123,11 +123,11 @@ send_SPC_block:					;		 |
 	RTS					;$0080E7	/
 
 upload_SPC_engine:
-	LDA.b #$00				;$0080E8	\
+	LDA.b #SPC_engine			;$0080E8	\
 	STA.w $0000				;$0080EA	 | Set up pointer at $00 to the SPC data ($0E8000)
-	LDA.b #$80				;$0080ED	 |
+	LDA.b #SPC_engine>>8			;$0080ED	 |
 	STA.w $0001				;$0080EF	 |
-	LDA.b #$0E				;$0080F2	 |
+	LDA.b #SPC_engine>>16			;$0080F2	 |
 	STA.w $0002				;$0080F4	 |
 upload_data_to_SPC:				;		/
 	SEI					;$0080F7	\ Prevent interrupts from interrupting SPC upload
@@ -136,20 +136,20 @@ upload_data_to_SPC:				;		/
 	RTS					;$0080FC	/
 
 upload_samples:
-	LDA.b #$00				;$0080FD	\ Set up pointer at $00 to the SPC data ($0F8000)
+	LDA.b #sample_table			;$0080FD	\ Set up pointer at $00 to the SPC data ($0F8000)
 	STA.w $0000				;$0080FF	 |
-	LDA.b #$80				;$008102	 |
+	LDA.b #sample_table>>8			;$008102	 |
 	STA.w $0001				;$008104	 |
-	LDA.b #$0F				;$008107	 |
+	LDA.b #sample_table>>16			;$008107	 |
 	STA.w $0002				;$008109	 |
 	BRA start_SPC_upload			;$00810C	/
 
 upload_music_bank_1:
-	LDA.b #$B1				;$00810E	\ Set up pointer at $00 to the SPC data ($0E98B1)
+	LDA.b #music_bank_1			;$00810E	\ Set up pointer at $00 to the SPC data ($0E98B1)
 	STA.w $0000				;$008110	 |
-	LDA.b #$98				;$008113	 | Map Music
+	LDA.b #music_bank_1>>8			;$008113	 | Map Music
 	STA.w $0001				;$008115	 |
-	LDA.b #$0E				;$008118	 |
+	LDA.b #music_bank_1>>16			;$008118	 |
 	STA.w $0002				;$00811A	/
 start_SPC_upload:				;		\
 	LDA.b #$FF				;$00811D	 |\ Tell the SPC to enable the upload routine
@@ -175,20 +175,20 @@ upload_level_music:
 	ORA.w $141D				;$008143	 |
 	BNE SPC_upload_return			;$008146	/
 upload_music_bank_2:
-	LDA.b #$D6				;$008148	\ Set up pointer at $00 to the SPC data ($0EAED6)
+	LDA.b #music_bank_2			;$008148	\ Set up pointer at $00 to the SPC data ($0EAED6)
 	STA.w $0000				;$00814A	 |
-	LDA.b #$AE				;$00814D	 |
+	LDA.b #music_bank_2>>8			;$00814D	 |
 	STA.w $0001				;$00814F	 | Level music
-	LDA.b #$0E				;$008152	 |
+	LDA.b #music_bank_2>>16			;$008152	 |
 	STA.w $0002				;$008154	 |
 	BRA start_SPC_upload			;$008157	/
 
 upload_music_bank_3:
-	LDA.b #$00				;$008159	\ Set up pointer at $00 to the SPC data ($03E400)
+	LDA.b #music_bank_3			;$008159	\ Set up pointer at $00 to the SPC data ($03E400)
 	STA.w $0000				;$00815B	 |
-	LDA.b #$E4				;$00815E	 |
+	LDA.b #music_bank_3>>8			;$00815E	 |
 	STA.w $0001				;$008160	 | Credits music
-	LDA.b #$03				;$008163	 |
+	LDA.b #music_bank_3>>16			;$008163	 |
 	STA.w $0002				;$008165	 |
 	BRA start_SPC_upload			;$008168	/
 
@@ -254,10 +254,10 @@ NMI_start:					;		\
 	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
 	LDA.w $0D9B				;$0081EC	 |
 	LSR					;$0081EF	 |
-	BNE .overworld_NMI			;$0081F0	 |
+	BNE overworld_NMI			;$0081F0	 | Replace with . after other CODE_x labels are done
 	BCS .mario_start_NMI			;$0081F2	 |
 	JSR draw_status_bar			;$0081F4	 |
-.mario_start_NMI:				;		 |
+.mario_start_NMI				;		 |
 	LDA.w $13C6				;$0081F7	 |
 	CMP.b #$08				;$0081FA	 |
 	BNE CODE_008209				;$0081FC	 |
@@ -277,7 +277,7 @@ CODE_00821A:					;		 |
 	JSR CODE_00A436				;$00821A	 |
 	JSR MarioGFXDMA				;$00821D	 |
 	BRA CODE_00823D				;$008220	 |
-.overworld_NMI:					;		 |
+overworld_NMI:					;		 |
 	LDA.w $13D9				;$008222	 |
 	CMP.b #$0A				;$008225	 |
 	BNE CODE_008237				;$008227	 |

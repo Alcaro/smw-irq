@@ -1,16 +1,57 @@
 ORG $0F8000
-BankF:
-	db $50,$00,$00,$80,$00,$81,$24,$81
-	db $3F,$81,$63,$81,$7E,$81,$68,$82
-	db $83,$82,$AC,$83,$C7,$83,$EB,$83
-	db $06,$84,$2F,$85,$3D,$86,$3D,$86
-	db $AB,$8A,$D2,$90,$11,$91,$35,$91
-	db $50,$91,$7A,$9D,$95,$9D,$95,$9D
-	db $13,$B0,$13,$B0,$AF,$B6,$D3,$B6
-	db $EE,$B6,$88,$B9,$C7,$B9,$38,$C4
-	db $53,$C4,$53,$C4,$D2,$C6,$D2,$C6
-	db $B7,$CF,$C7,$D4,$21,$D5,$21,$D5
-	db $7B,$DE,$7B,$DE,$20,$6F,$00,$81
+
+sample_table:
+	dw .end-.start				;		| Length of sample table
+	dw $8000				;		| Location of sample table in ARAM
+	
+.start
+	dw $8100
+	dw $8124
+	dw $813F
+	dw $8163
+	dw $817E
+	dw $8268
+	dw $8283
+	dw $83AC
+	dw $83C7
+	dw $83EB
+	dw $8406
+	dw $852F
+	dw $863D
+	dw $863D
+	dw $8AAB
+	dw $90D2
+	dw $9111
+	dw $9135
+	dw $9150
+	dw $9D7A
+	dw $9D95
+	dw $9D95
+	dw $B013
+	dw $B013
+	dw $B6AF
+	dw $B6D3
+	dw $B6EE
+	dw $B988
+	dw $B9C7
+	dw $C438
+	dw $C453
+	dw $C453
+	dw $C6D2
+	dw $C6D2
+	dw $CFB7
+	dw $D4C7
+	dw $D521
+	dw $D521
+	dw $DE7B
+	dw $DE7B
+.end
+
+samples:
+	dw .end-.start				;		| Length of sample data
+	dw $8100				;		| Location of sample data in ARAM
+
+.start
 	db $02,$00,$00,$00,$00,$00,$00,$00
 	db $00,$96,$00,$00,$00,$07,$55,$54
 	db $43,$43,$9E,$00,$10,$00,$00,$F0
@@ -3567,9 +3608,15 @@ BankF:
 	db $00,$00,$00,$00,$00,$00,$00,$01
 	db $00,$00,$00,$00,$00,$00,$00,$00
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-	db $00,$00,$00,$05,$18,$00,$00,$00
+.end
+	
+	dw $0000				;		| Stop uploading data
+	dw $0500				;		|
+	
+unused_0FEF7C:
+	db $18,$00,$00,$00,$00,$00,$00,$00
 	db $00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00
+	db $00,$00,$00,$00,$FF,$FF,$FF,$FF
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -4095,4 +4142,4 @@ BankF:
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-	db $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+	db $FF,$FF,$FF,$FF
