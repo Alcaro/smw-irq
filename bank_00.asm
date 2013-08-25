@@ -251,13 +251,13 @@ NMI_start:					;		\
 	JMP special_level_NMI			;$0081E4	 |/ Otherwise process as a special level
 .no_lag						;		 |
 	INC $10					;$0081E7	 | Allow the game loop to run after NMI
-	JSR CODE_00A488				;$0081E9	 |
+	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
 	LDA.w $0D9B				;$0081EC	 |
 	LSR					;$0081EF	 |
-	BNE CODE_008222				;$0081F0	 |
-	BCS CODE_0081F7				;$0081F2	 |
+	BNE .overworld_NMI			;$0081F0	 |
+	BCS .mario_start_NMI			;$0081F2	 |
 	JSR draw_status_bar			;$0081F4	 |
-CODE_0081F7:					;		 |
+.mario_start_NMI:				;		 |
 	LDA.w $13C6				;$0081F7	 |
 	CMP.b #$08				;$0081FA	 |
 	BNE CODE_008209				;$0081FC	 |
@@ -277,7 +277,7 @@ CODE_00821A:					;		 |
 	JSR CODE_00A436				;$00821A	 |
 	JSR MarioGFXDMA				;$00821D	 |
 	BRA CODE_00823D				;$008220	 |
-CODE_008222:					;		 |
+.overworld_NMI:					;		 |
 	LDA.w $13D9				;$008222	 |
 	CMP.b #$0A				;$008225	 |
 	BNE CODE_008237				;$008227	 |
@@ -374,7 +374,7 @@ CODE_0082D4:					;		 |
 CODE_0082E8:					;		 |
 	JSR draw_status_bar			;$0082E8	 |
 CODE_0082EB:					;		 |
-	JSR CODE_00A488				;$0082ED	 |
+	JSR upload_palette			;$0082ED	 |
 	JSR _load_stripe_image_			;$0082EE	 |
 	JSR DMA_OAM				;$0082F1	 |
 	JSR update_controls			;$0082F4	 |
@@ -4390,55 +4390,55 @@ CODE_00A436:
 Return00A47E:
 	RTS
 
-RAMColorPointers:
+RAM_color_pointers:
 	db $82,$06,$00,$05,$09,$00,$03,$07,$00
 
-CODE_00A488:
-	LDY.w $0680				;$00A488	\ \
-	LDX.w RAMColorPointers+2,Y		;$00A48B	 |/
-	STX $02					;$00A48E	 | Store the pointers bank
+upload_palette:
+	LDY.w $0680				;$00A488	\ Load the RAM palette pointer index
+	LDX.w RAM_color_pointers+2,Y		;$00A48B	 |\ Load and store the pointers bank
+	STX $02					;$00A48E	 |/
 	STZ $01					;$00A490	 |\ Zero out the low and high byte of the pointer
 	STZ $00					;$00A492	 |/
-	STZ $04					;$00A494	 | Clear $04 for no reason
-	LDA.w RAMColorPointers+1,Y		;$00A496	 |\ Load the low and high byte into A
+	STZ $04					;$00A494	 | Clear $04 for 16 bit access of $03
+	LDA.w RAM_color_pointers+1,Y		;$00A496	 |\ Load the low and high byte into A
 	XBA					;$00A499	 | |
-	LDA.w RAMColorPointers,Y		;$00A49A	 | |
+	LDA.w RAM_color_pointers,Y		;$00A49A	 | |
 	REP #$10				;$00A49D	 | | 16 bit X/Y
-	TAY					;$00A49F	 |/
-CODE_00A4A0:					;		 |
-	LDA [$00],Y				;$00A4A0	 |
-	BEQ CODE_00A4CF				;$00A4A2	 |
-	STX.w $4324				;$00A4A4	 |
-	STA.w $4325				;$00A4A7	 |
-	STA $03					;$00A4AA	 |
-	STZ.w $4326				;$00A4AC	 |
-	INY					;$00A4AF	 |
-	LDA [$00],Y				;$00A4B0	 |
-	STA.w $2121				;$00A4B2	 |
-	REP #$20				;$00A4B5	 |
-	LDA.w #$2200				;$00A4B7	 |
-	STA.w $4320				;$00A4BA	 |
-	INY					;$00A4BD	 |
-	TYA					;$00A4BE	 |
-	STA.w $4322				;$00A4BF	 |
-	CLC					;$00A4C2	 |
-	ADC $03					;$00A4C3	 |
-	TAY					;$00A4C5	 |
+	TAY					;$00A49F	 |/ Use Y as the pointer index
+.continue_upload				;		 |
+	LDA [$00],Y				;$00A4A0	 |\ If number of bytes to transfer is zero
+	BEQ .finished_upload			;$00A4A2	 |/ then the transfer is complete
+	STX.w $4324				;$00A4A4	 | Set the source address bank
+	STA.w $4325				;$00A4A7	 |\ Store the DMA size to the DMA register
+	STA $03					;$00A4AA	 |/ and set the DMA size to a scratch RAM address
+	STZ.w $4326				;$00A4AC	 | Clear the high size byte -- it is unneeded
+	INY					;$00A4AF	 | Increase Y to the destination CGRAM address
+	LDA [$00],Y				;$00A4B0	 |\ Set the CGRAM write address
+	STA.w $2121				;$00A4B2	 |/
+	REP #$20				;$00A4B5	 | 
+	LDA.w #$2200				;$00A4B7	 |\ set DMA transfer mode #$00
+	STA.w $4320				;$00A4BA	 |/ and set B-Bus destination to $2122
+	INY					;$00A4BD	 |\ Increment Y to data
+	TYA					;$00A4BE	 | | Move pointer to A
+	STA.w $4322				;$00A4BF	 |/ Store the pointer as Source high/low byte.
+	CLC					;$00A4C2	 |\ Add number of bytes transfered to pointer
+	ADC $03					;$00A4C3	 | |
+	TAY					;$00A4C5	 |/ Return pointer to Y
 	SEP #$20				;$00A4C6	 |
-	LDA.b #$04				;$00A4C8	 |
-	STA.w $420B				;$00A4CA	 |
-	BRA CODE_00A4A0				;$00A4CD	 |
-CODE_00A4CF:					;		 |
-	SEP #$10				;$00A4CF	 |
-	JSR CODE_00AE47				;$00A4D1	 |
-	LDA.w $0680				;$00A4D4	 |
-	BNE CODE_00A4DF				;$00A4D7	 |
-	STZ.w $0681				;$00A4D9	 |
-	STZ.w $0682				;$00A4DC	 |
-CODE_00A4DF:					;		 |
-	STZ.w $0680				;$00A4DF	 |
-Return00A4E2:					;		 |
-	RTS					;$00A4E2	/
+	LDA.b #$04				;$00A4C8	 |\ Run DMA on channel 2
+	STA.w $420B				;$00A4CA	 |/
+	BRA .continue_upload			;$00A4CD	 | continue the transfer until there is no more data
+.finished_upload:				;		 |
+	SEP #$10				;$00A4CF	 | 
+	JSR set_background_color		;$00A4D1	 | Upload the background color
+	LDA.w $0680				;$00A4D4	 |\ if not special upload, don't clear the special
+	BNE .skip_special_clear			;$00A4D7	 |/ upload index or number of bytes to transfer
+	STZ.w $0681				;$00A4D9	 |\ Reset special palette index
+	STZ.w $0682				;$00A4DC	 | | Clear number of bytes to transfer
+.skip_special_clear				;		 | |
+	STZ.w $0680				;$00A4DF	 |/ Return to special upload mode
+palette_upload_return:				;		 |
+	RTS					;$00A4E2	/ Finished uploading palettes
 
 CODE_00A4E3:					;		\
 	REP #$10				;$00A4E3	 |
@@ -4458,7 +4458,7 @@ CODE_00A4E3:					;		\
 	SEP #$10				;$00A50A	 |
 	LDA.w $13D9				;$00A50C	 |
 	CMP.b #$0A				;$00A50F	 |
-	BEQ Return00A4E2			;$00A511	 |
+	BEQ palette_upload_return		;$00A511	 |
 	LDA.b #$6D				;$00A513	 |
 	JSR CODE_00A41C				;$00A515	 |
 	LDA.b #$10				;$00A518	 |
@@ -5551,32 +5551,31 @@ CODE_00AE15:
 	SEP #$30				;$00AE3E	|
 	RTS					;$00AE40	|
 
-DATA_00AE41:
+RGB_offsets:
 	db $00,$05,$0A
 
-DATA_00AE44:
+channel_intensity:
 	db $20,$40,$80
 
-CODE_00AE47:
-	LDX.b #$02
-CODE_00AE49:
-	REP #$20
-	LDA.w $0701				;$00AE4B	|
-	LDY.w DATA_00AE41,X			;$00AE4E	|
-CODE_00AE51:
-	DEY
-	BMI CODE_00AE57				;$00AE52	|
-	LSR					;$00AE54	|
-	BRA CODE_00AE51				;$00AE55	|
-
-CODE_00AE57:
-	SEP #$20
-	AND.b #$1F				;$00AE59	|
-	ORA.w DATA_00AE44,X			;$00AE5B	|
-	STA.w $2132				;$00AE5E	|
-	DEX					;$00AE61	|
-	BPL CODE_00AE49				;$00AE62	|
-	RTS					;$00AE64	|
+set_background_color:
+	LDX.b #$02				;$00AE47	|\ Load number of color channels to process
+.next_channel					;		| |
+	REP #$20				;$00AE49	| | Use 16 bit A to get the full color
+	LDA.w $0701				;$00AE4B	| | Load the current background color
+	LDY.w RGB_offsets,X			;$00AE4E	| | Get the number of bits to shift
+.loop						;		| |\ Get the current channel to the last 5 bits of A
+	DEY					;$00AE51	| | |
+	BMI .set_channel_intensity		;$00AE52	| | |
+	LSR					;$00AE54	| | |
+	BRA .loop				;$00AE55	| |/
+.set_channel_intensity				;		| |
+	SEP #$20				;$00AE57	| |\ Isolate color channel bits
+	AND.b #$1F				;$00AE59	| |/
+	ORA.w channel_intensity,X		;$00AE5B	| | Set which color channel to set
+	STA.w $2132				;$00AE5E	| | Store color intensity
+	DEX					;$00AE61	| |\ Decrement to do the next color channel
+	BPL .next_channel			;$00AE62	| |/
+	RTS					;$00AE64	|/ Return after background set
 
 DATA_00AE65:
 	db $1F,$00,$E0,$03,$00,$7C
