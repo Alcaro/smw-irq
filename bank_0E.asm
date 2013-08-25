@@ -6,6 +6,8 @@ SPC_engine:
 	dw .end-.start				;		| Length of SPC engine
 	dw $0500				;		| Location of SPC engine in ARAM
 
+base $0500
+
 .start
 	clrp					;$0500		|
 	mov x, #$CF				;$0501		|
@@ -32,10 +34,10 @@ CODE_0521:
 	bne CODE_0521				;$0525		|
 	mov x, #$0B				;$0527		|
 CODE_0529:
-	mov a, $12A1+x
+	mov a, DATA_12A1+x
 	mov y, a				;$052C		|
-	mov a, $1295+x				;$052D		|
-	call $0697				;$0530		|
+	mov a, DATA_1295+x			;$052D		|
+	call CODE_0697				;$0530		|
 	dec x					;$0533		|
 	bpl CODE_0529				;$0534		|
 	mov a, #$F0				;$0536		|
@@ -58,15 +60,15 @@ CODE_0549:
 	mov $44, a				;$0555		|
 	bcc CODE_0573				;$0557		|
 	inc $45					;$0559		|
-	call $06AE				;$055B		|
+	call CODE_06AE				;$055B		|
 	mov x, #$00				;$055E		|
-	call $05A5				;$0560		|
-	call $09E5				;$0563		|
+	call CODE_05A5				;$0560		|
+	call CODE_09E5				;$0563		|
 	mov x, #$01				;$0566		|
-	call $05A5				;$0568		|
-	call $0816				;$056B		|
+	call CODE_05A5				;$0568		|
+	call CODE_0816				;$056B		|
 	mov x, #$03				;$056E		|
-	call $05A5				;$0570		|
+	call CODE_05A5				;$0570		|
 CODE_0573:
 	mov a, $51
 	pop y					;$0575		|
@@ -77,10 +79,10 @@ CODE_0573:
 	bcc CODE_058D				;$057C		|
 	mov a, $0388				;$057E		|
 	bne CODE_0586				;$0581		|
-	call $0BC0				;$0583		|
+	call CODE_0BC0				;$0583		|
 CODE_0586:
 	mov x, #$02
-	call $05A5				;$0588		|
+	call CODE_05A5				;$0588		|
 	bra CODE_0549				;$058B		|
 CODE_058D:
 	mov a, $06
@@ -90,7 +92,7 @@ CODE_058D:
 CODE_0596:
 	mov a, $31+x
 	beq CODE_059D				;$0598		|
-	call $1198				;$059A		|
+	call CODE_1198				;$059A		|
 CODE_059D:
 	lsr $48
 	dec x					;$059F		|
@@ -135,7 +137,7 @@ CODE_05CE:
 	mov y, #$06				;$05D3		|
 	mov $14, #$A5				;$05D5		|
 	mov $15, #$5F				;$05D8		|
-	call $0D56				;$05DB		|
+	call CODE_0D56				;$05DB		|
 	bne CODE_05CD				;$05DE		|
 	inc y					;$05E0		|
 	mov a, ($14)+y				;$05E1		|
@@ -169,7 +171,7 @@ CODE_0621:
 	mov a, $0321+x
 	clrc					;$0624		|
 	adc a, $02B1+x				;$0625		|
-	call $0F5D				;$0628		|
+	call CODE_0F5D				;$0628		|
 CODE_062B:
 	mov a, $02B1+x
 	mov y, a				;$062E		|
@@ -194,11 +196,11 @@ CODE_0646:
 CODE_064A:
 	push x
 	mov a, $11				;$064B		|
-	call $12BD				;$064D		|
+	call CODE_12BD				;$064D		|
 	movw $14, ya				;$0650		|
 	mov a, $11				;$0652		|
 	inc a					;$0654		|
-	call $12BD				;$0655		|
+	call CODE_12BD				;$0655		|
 	pop x					;$0658		|
 	subw ya, $14				;$0659		|
 	push a					;$065B		|
@@ -229,7 +231,7 @@ CODE_064A:
 	or a, #$02				;$0684		|
 	mov y, a				;$0686		|
 	mov a, $16				;$0687		|
-	call $068F				;$0689		|
+	call CODE_068F				;$0689		|
 	inc y					;$068C		|
 	mov a, $17				;$068D		|
 
@@ -250,7 +252,7 @@ CODE_069E:
 	mov a, #$0A
 	mov $0387, a				;$06A0		|
 	mov a, $51				;$06A3		|
-	call $0E14				;$06A5		|
+	call CODE_0E14				;$06A5		|
 	mov a, #$1D				;$06A8		|
 	mov $03, a				;$06AA		|
 	bra CODE_06D2				;$06AC		|
@@ -291,11 +293,11 @@ CODE_06E7:
 	mov a, #$16
 	mov $62, a				;$06E9		|
 	mov $64, a				;$06EB		|
-	call $0EEB				;$06ED		|
+	call CODE_0EEB				;$06ED		|
 	mov a, #$00				;$06F0		|
 CODE_06F2:
 	mov y, #$6C
-	call $0697				;$06F4		|
+	call CODE_0697				;$06F4		|
 CODE_06F7:
 	mov a, #$02
 	mov $0382, a				;$06F9		|
@@ -304,11 +306,11 @@ CODE_06F7:
 	mov a, $0389				;$0701		|
 	beq CODE_070B				;$0704		|
 	mov a, #$00				;$0706		|
-	call $0F22				;$0708		|
+	call CODE_0F22				;$0708		|
 CODE_070B:
 	mov a, #$10
 	mov y, #$5C				;$070D		|
-	call $0697				;$070F		|
+	call CODE_0697				;$070F		|
 	set1 $1D.4				;$0712		|
 	mov a, #$00				;$0714		|
 	mov $0308, a				;$0716		|
@@ -334,14 +336,14 @@ CODE_072F:
 	mov a, #$60				;$0734		|
 	mov $0388, a				;$0736		|
 	mov y, #$6C				;$0739		|
-	call $0697				;$073B		|
+	call CODE_0697				;$073B		|
 CODE_073E:
 	mov $04, #$00
 	clr1 $1D.4				;$0741		|
 	mov x, #$08				;$0743		|
 	mov a, $C9				;$0745		|
 	beq CODE_074C				;$0747		|
-	jmp $0D4B				;$0749		|
+	jmp CODE_0D4B				;$0749		|
 CODE_074C:
 	ret
 
@@ -361,20 +363,20 @@ CODE_0754:
 	mov $10, a				;$0763		|
 	bmi CODE_0786				;$0765		|
 	mov y, #$40				;$0767		|
-	call $0697				;$0769		|
+	call CODE_0697				;$0769		|
 	incw $18				;$076C		|
 	mov a, ($18+x)				;$076E		|
 	bpl CODE_077D				;$0770		|
 	mov x, a				;$0772		|
 	mov a, $10				;$0773		|
 	mov y, #$41				;$0775		|
-	call $0697				;$0777		|
+	call CODE_0697				;$0777		|
 	mov a, x				;$077A		|
 	bra CODE_0786				;$077B		|
 
 CODE_077D:
 	mov y, #$41
-	call $0697				;$077F		|
+	call CODE_0697				;$077F		|
 	incw $18				;$0782		|
 	mov a, ($18+x)				;$0784		|
 CODE_0786:
@@ -387,9 +389,9 @@ CODE_0786:
 	cmp a, #$FF				;$0792		|
 	beq CODE_071F				;$0794		|
 	mov x, #$08				;$0796		|
-	call $05C5				;$0798		|
+	call CODE_05C5				;$0798		|
 	mov a, #$10				;$079B		|
-	call $0D32				;$079D		|
+	call CODE_0D32				;$079D		|
 CODE_07A0:
 	mov a, $0381
 	mov $0380, a				;$07A3		|
@@ -398,7 +400,7 @@ CODE_07A6:
 	mov x, #$08				;$07A8		|
 	mov a, $90+x				;$07AA		|
 	beq CODE_07B3				;$07AC		|
-	call $09CD				;$07AE		|
+	call CODE_09CD				;$07AE		|
 	bra CODE_07C1				;$07B1		|
 
 CODE_07B3:
@@ -407,7 +409,7 @@ CODE_07B3:
 	bne CODE_07C1				;$07B8		|
 	mov a, #$10				;$07BA		|
 	mov y, #$5C				;$07BC		|
-	call $0697				;$07BE		|
+	call CODE_0697				;$07BE		|
 CODE_07C1:
 	ret
 
@@ -417,9 +419,9 @@ CODE_07C2:
 	mov a, ($18+x)				;$07C6		|
 	mov $46, #$08				;$07C8		|
 	mov x, #$08				;$07CB		|
-	call $05C5				;$07CD		|
+	call CODE_05C5				;$07CD		|
 	mov a, #$10				;$07D0		|
-	call $0D32				;$07D2		|
+	call CODE_0D32				;$07D2		|
 CODE_07D5:
 	mov x, #$00
 	incw $18				;$07D7		|
@@ -434,7 +436,7 @@ CODE_07D5:
 	pop y					;$07E8		|
 	mov $46, #$08				;$07E9		|
 	mov x, #$08				;$07EC		|
-	call $0F5D				;$07EE		|
+	call CODE_0F5D				;$07EE		|
 	bra CODE_07A0				;$07F1		|
 
 CODE_07F3:
@@ -448,13 +450,13 @@ CODE_07F3:
 	mov $12, #$08				;$07FF		|
 CODE_0802:
 	mov a, $5570+x
-	call $0697				;$0805		|
+	call CODE_0697				;$0805		|
 	inc x					;$0808		|
 	inc y					;$0809		|
 	dbnz $12, CODE_0802			;$080A		|
 	mov a, $5570+x				;$080D		|
 	mov $0218, a				;$0810		|
-	jmp $0752				;$0813		|
+	jmp CODE_0752				;$0813		|
 
 CODE_0816:
 	cmp $07, #$24
@@ -481,7 +483,7 @@ CODE_0837:
 	mov $0D, #$02				;$0839		|
 	mov a, #$40				;$083C		|
 	mov y, #$5C				;$083E		|
-	call $0697				;$0840		|
+	call CODE_0697				;$0840		|
 	set1 $1D.6				;$0843		|
 	mov a, #$00				;$0845		|
 	mov $030C, a				;$0847		|
@@ -504,11 +506,11 @@ CODE_085E:
 	mov a, #$00				;$0863		|
 	mov $2F, a				;$0865		|
 	mov y, #$3D				;$0867		|
-	call $0697				;$0869		|
+	call CODE_0697				;$0869		|
 	mov x, #$0C				;$086C		|
 	mov a, $CD				;$086E		|
 	beq CODE_0875				;$0870		|
-	jmp $0D4B				;$0872		|
+	jmp CODE_0D4B				;$0872		|
 CODE_0875:
 	ret
 
@@ -528,20 +530,20 @@ CODE_087D:
 	mov $10, a				;$088C		|
 	bmi CODE_08AF				;$088E		|
 	mov y, #$60				;$0890		|
-	call $0697				;$0892		|
+	call CODE_0697				;$0892		|
 	incw $1A				;$0895		|
 	mov a, ($1A+x)				;$0897		|
 	bpl CODE_08A6				;$0899		|
 	mov x, a				;$089B		|
 	mov a, $10				;$089C		|
 	mov y, #$61				;$089E		|
-	call $0697				;$08A0		|
+	call CODE_0697				;$08A0		|
 	mov a, x				;$08A3		|
 	bra CODE_08AF				;$08A4		|
 
 CODE_08A6:
 	mov y, #$61
-	call $0697				;$08A8		|
+	call CODE_0697				;$08A8		|
 	incw $1A				;$08AB		|
 	mov a, ($1A+x)				;$08AD		|
 CODE_08AF:
@@ -558,9 +560,9 @@ CODE_08AF:
 
 CODE_08C3:
 	mov x, #$0C
-	call $05C5				;$08C5		|
+	call CODE_05C5				;$08C5		|
 	mov a, #$40				;$08C8		|
-	call $0D32				;$08CA		|
+	call CODE_0D32				;$08CA		|
 CODE_08CD:
 	mov a, $0385
 	mov $0384, a				;$08D0		|
@@ -569,7 +571,7 @@ CODE_08D3:
 	mov x, #$0C				;$08D5		|
 	mov a, $90+x				;$08D7		|
 	beq CODE_08E0				;$08D9		|
-	call $09CD				;$08DB		|
+	call CODE_09CD				;$08DB		|
 	bra CODE_08EE				;$08DE		|
 
 CODE_08E0:
@@ -578,7 +580,7 @@ CODE_08E0:
 	bne CODE_08EE				;$08E5		|
 	mov a, #$40				;$08E7		|
 	mov y, #$5C				;$08E9		|
-	call $0697				;$08EB		|
+	call CODE_0697				;$08EB		|
 CODE_08EE:
 	ret
 
@@ -588,9 +590,9 @@ CODE_08EF:
 	mov a, ($1A+x)				;$08F3		|
 	mov $46, #$0C				;$08F5		|
 	mov x, #$0C				;$08F8		|
-	call $05C5				;$08FA		|
+	call CODE_05C5				;$08FA		|
 	mov a, #$40				;$08FD		|
-	call $0D32				;$08FF		|
+	call CODE_0D32				;$08FF		|
 CODE_0902:
 	mov x, #$00
 	incw $1A				;$0904		|
@@ -605,14 +607,14 @@ CODE_0902:
 	pop y					;$0915		|
 	mov $46, #$0C				;$0916		|
 	mov x, #$0C				;$0919		|
-	call $0F5D				;$091B		|
+	call CODE_0F5D				;$091B		|
 	bra CODE_08CD				;$091E		|
 
 CODE_0920:
 	mov a, #$00
 	mov $2F, a				;$0922		|
 	mov y, #$3D				;$0924		|
-	call $0697				;$0926		|
+	call CODE_0697				;$0926		|
 CODE_0929:
 	mov x, #$00
 	incw $1A				;$092B		|
@@ -625,22 +627,22 @@ CODE_0929:
 	mov $12, #$08				;$0937		|
 CODE_093A:
 	mov a, $5570+x
-	call $0697				;$093D		|
+	call CODE_0697				;$093D		|
 	inc x					;$0940		|
 	inc y					;$0941		|
 	dbnz $12, CODE_093A			;$0942		|
 	mov a, $5570+x				;$0945		|
 	mov $021C, a				;$0948		|
-	jmp $087B				;$094B		|
+	jmp CODE_087B				;$094B		|
 CODE_094E:
 	and a, #$1F
 	mov $2E, a				;$0950		|
 	mov y, #$6C				;$0952		|
-	call $0697				;$0954		|
+	call CODE_0697				;$0954		|
 	mov a, #$40				;$0957		|
 	mov $2F, a				;$0959		|
 	mov y, #$3D				;$095B		|
-	call $0697				;$095D		|
+	call CODE_0697				;$095D		|
 	bra CODE_0929				;$0960		|
 
 CODE_0962:
@@ -651,7 +653,7 @@ CODE_0962:
 	mov $12, #$08				;$0968		|
 CODE_096B:
 	mov a, $5570+x
-	call $0697				;$096E		|
+	call CODE_0697				;$096E		|
 	inc x					;$0971		|
 	inc y					;$0972		|
 	dbnz $12, CODE_096B			;$0973		|
@@ -669,7 +671,7 @@ CODE_0987:
 	mov a, $0386
 	bne CODE_099A				;$098A		|
 	mov a, #$09				;$098C		|
-	call $0962				;$098E		|
+	call CODE_0962				;$098E		|
 	mov a, #$01				;$0991		|
 	bne CODE_0997				;$0993		|
 CODE_0995:
@@ -682,11 +684,11 @@ CODE_099A:
 CODE_099C:
 	mov a, #$60
 	mov y, #$6C				;$099E		|
-	call $0697				;$09A0		|
+	call CODE_0697				;$09A0		|
 	mov a, #$FF				;$09A3		|
 	mov y, #$5C				;$09A5		|
-	call $0697				;$09A7		|
-	call $12F2				;$09AA		|
+	call CODE_0697				;$09A7		|
+	call CODE_12F2				;$09AA		|
 	mov a, #$00				;$09AD		|
 	mov $04, a				;$09AF		|
 	mov $05, a				;$09B1		|
@@ -699,20 +701,20 @@ CODE_099C:
 	mov $0389, a				;$09C2		|
 	mov a, #$20				;$09C5		|
 	mov y, #$6C				;$09C7		|
-	call $0697				;$09C9		|
+	call CODE_0697				;$09C9		|
 	ret					;$09CC		|
 
 CODE_09CD:
 	mov a, #$B0
 	mov y, #$02				;$09CF		|
 	dec $90+x				;$09D1		|
-	call $1075				;$09D3		|
+	call CODE_1075				;$09D3		|
 	mov a, $02B1+x				;$09D6		|
 	mov y, a				;$09D9		|
 	mov a, $02B0+x				;$09DA		|
 	movw $10, ya				;$09DD		|
 	mov $48, #$00				;$09DF		|
-	jmp $0634				;$09E2		|
+	jmp CODE_0634				;$09E2		|
 
 CODE_09E5:
 	mov a, $01
@@ -740,10 +742,10 @@ CODE_0A0D:
 	ret
 
 CODE_0A0E:
-	jmp $0ACE
+	jmp CODE_0ACE
 
 CODE_0A11:
-	jmp $0B08
+	jmp CODE_0B08
 
 CODE_0A14:
 	mov $05, a
@@ -751,7 +753,7 @@ CODE_0A14:
 	mov $0383, a				;$0A18		|
 	mov a, #$80				;$0A1B		|
 	mov y, #$5C				;$0A1D		|
-	call $0697				;$0A1F		|
+	call CODE_0697				;$0A1F		|
 	set1 $1D.7				;$0A22		|
 	mov a, #$00				;$0A24		|
 	mov y, #$20				;$0A26		|
@@ -775,7 +777,7 @@ CODE_0A38:
 	mov y, #$12				;$0A46		|
 	mov $9E, y				;$0A48		|
 	mov a, #$B9				;$0A4A		|
-	call $0F5D				;$0A4C		|
+	call CODE_0F5D				;$0A4C		|
 	bra CODE_0A99				;$0A4F		|
 
 CODE_0A51:
@@ -787,44 +789,44 @@ CODE_0A51:
 	mov x, #$0E				;$0A5E		|
 	mov a, $CF				;$0A60		|
 	beq CODE_0A67				;$0A62		|
-	jmp $0D4B				;$0A64		|
+	jmp CODE_0D4B				;$0A64		|
 CODE_0A67:
 	ret
 
 CODE_0A68:
-	call $0AB1
+	call CODE_0AB1
 	mov a, #$B2				;$0A6B		|
 	mov $46, #$0E				;$0A6D		|
 	mov x, #$0E				;$0A70		|
-	call $05C5				;$0A72		|
+	call CODE_05C5				;$0A72		|
 	mov y, #$00				;$0A75		|
 	mov $9F, y				;$0A77		|
 	mov y, #$05				;$0A79		|
 	mov $9E, y				;$0A7B		|
 	mov a, #$B5				;$0A7D		|
-	call $0F5D				;$0A7F		|
+	call CODE_0F5D				;$0A7F		|
 	mov a, #$38				;$0A82		|
 	mov $10, a				;$0A84		|
 	mov y, #$70				;$0A86		|
-	call $0697				;$0A88		|
+	call CODE_0697				;$0A88		|
 	mov a, #$38				;$0A8B		|
 	mov $10, a				;$0A8D		|
 	mov y, #$71				;$0A8F		|
-	call $0697				;$0A91		|
+	call CODE_0697				;$0A91		|
 	mov a, #$80				;$0A94		|
-	call $0D32				;$0A96		|
+	call CODE_0D32				;$0A96		|
 CODE_0A99:
 	mov a, #$02
 	cbne $1C, CODE_0AA5			;$0A9B		|
 	mov a, #$80				;$0A9E		|
 	mov y, #$5C				;$0AA0		|
-	call $0697				;$0AA2		|
+	call CODE_0697				;$0AA2		|
 CODE_0AA5:
 	clr1 $13.7
 	mov a, $9E				;$0AA7		|
 	beq CODE_0AB0				;$0AA9		|
 	mov x, #$0E				;$0AAB		|
-	call $09CD				;$0AAD		|
+	call CODE_09CD				;$0AAD		|
 CODE_0AB0:
 	ret
 
@@ -838,7 +840,7 @@ CODE_0AB3:
 	mov $12, #$08				;$0AB9		|
 CODE_0ABC:
 	mov a, $5570+x
-	call $0697				;$0ABF		|
+	call CODE_0697				;$0ABF		|
 	inc x					;$0AC2		|
 	inc y					;$0AC3		|
 	dbnz $12, CODE_0ABC			;$0AC4		|
@@ -852,7 +854,7 @@ CODE_0ACE:
 	mov $0383, a				;$0AD2		|
 	mov a, #$80				;$0AD5		|
 	mov y, #$5C				;$0AD7		|
-	call $0697 				;$0AD9		|
+	call CODE_0697 				;$0AD9		|
 	set1 $1D.7				;$0ADC		|
 	mov a, #$00				;$0ADE		|
 	mov y, #$20				;$0AE0		|
@@ -873,11 +875,11 @@ CODE_0AF2:
 	bne CODE_0B33				;$0AF5		|
 CODE_0AF7:
 	mov a, #$07
-	call $0AB3				;$0AF9		|
+	call CODE_0AB3				;$0AF9		|
 	mov a, #$A4				;$0AFC		|
 	mov $46, #$0E				;$0AFE		|
 	mov x, #$0E				;$0B01		|
-	call $05C5				;$0B03		|
+	call CODE_05C5				;$0B03		|
 	bra CODE_0B1C				;$0B06		|
 
 CODE_0B08:
@@ -888,24 +890,24 @@ CODE_0B08:
 	clr1 $1D.7				;$0B13		|
 	mov x, #$0E				;$0B15		|
 	mov a, $CF				;$0B17		|
-	jmp $0D4B				;$0B19		|
+	jmp CODE_0D4B				;$0B19		|
 CODE_0B1C:
 	mov a, #$28
 	mov $10, a				;$0B1E		|
 	mov y, #$70				;$0B20		|
-	call $0697				;$0B22		|
+	call CODE_0697				;$0B22		|
 	mov a, #$28				;$0B25		|
 	mov $10, a				;$0B27		|
 	mov y, #$71				;$0B29		|
-	call $0697				;$0B2B		|
+	call CODE_0697				;$0B2B		|
 	mov a, #$80				;$0B2E		|
-	call $0D32				;$0B30		|
+	call CODE_0D32				;$0B30		|
 CODE_0B33:
 	mov a, #$02
 	cbne $1C, CODE_0B3F			;$0B35		|
 	mov a, #$80				;$0B38		|
 	mov y, #$5C				;$0B3A		|
-	call $0697				;$0B3C		|
+	call CODE_0697				;$0B3C		|
 CODE_0B3F:
 	ret
 
@@ -968,7 +970,7 @@ CODE_0BA5:
 	mov a, $1D
 	eor a, #$FF				;$0BA7		|
 	mov y, #$5C				;$0BA9		|
-	jmp $0697				;$0BAB		|
+	jmp CODE_0697				;$0BAB		|
 
 CODE_0BAE:
 	mov x, #$F0
@@ -977,7 +979,7 @@ CODE_0BAE:
 	mov $59, a				;$0BB4		|
 	setc					;$0BB6		|
 	sbc a, $57				;$0BB7		|
-	call $0F76				;$0BB9		|
+	call CODE_0F76				;$0BB9		|
 	movw $5A, ya				;$0BBC		|
 	bra CODE_0BE7				;$0BBE		|
 
@@ -993,7 +995,7 @@ CODE_0BCC:
 	bne CODE_0BDC				;$0BCF		|
 	mov a, #$20				;$0BD1		|
 	mov y, #$5C				;$0BD3		|
-	call $0697				;$0BD5		|
+	call CODE_0697				;$0BD5		|
 	set1 $1D.5				;$0BD8		|
 	bra CODE_0BDE				;$0BDA		|
 
@@ -1003,7 +1005,7 @@ CODE_0BDE:
 	mov a, $02
 	bmi CODE_0BAE				;$0BE0		|
 	beq CODE_0BE7				;$0BE2		|
-	jmp $0B40				;$0BE4		|
+	jmp CODE_0B40				;$0BE4		|
 
 CODE_0BE7:
 	mov a, $0C
@@ -1027,7 +1029,7 @@ CODE_0BF0:
 CODE_0BFE:
 	dbnz $0C, CODE_0BEF
 CODE_0C01:
-	call $0BF0
+	call CODE_0BF0
 	movw $16, ya				;$0C04		|
 	mov a, y				;$0C06		|
 	bne CODE_0C22				;$0C07		|
@@ -1038,7 +1040,7 @@ CODE_0C01:
 	bpl CODE_0C15				;$0C11		|
 	mov $42, a				;$0C13		|
 CODE_0C15:
-	call $0BF0
+	call CODE_0BF0
 	movw $40, ya				;$0C18		|
 	bra CODE_0C01				;$0C1A		|
 
@@ -1062,7 +1064,7 @@ CODE_0C31:
 	mov $70+x, a				;$0C37		|
 	mov a, $C1+x				;$0C39		|
 	bne CODE_0C40				;$0C3B		|
-	call $0D4A				;$0C3D		|
+	call CODE_0D4A				;$0C3D		|
 CODE_0C40:
 	lsr $48
 	dec x					;$0C42		|
@@ -1079,7 +1081,7 @@ CODE_0C4D:
 	dec $70+x				;$0C53		|
 	bne CODE_0CC6				;$0C55		|
 CODE_0C57:
-	call $125E
+	call CODE_125E
 	bne CODE_0C7A				;$0C5A		|
 	mov a, $C0+x				;$0C5C		|
 	beq CODE_0C01				;$0C5E		|
@@ -1101,25 +1103,25 @@ CODE_0C76:
 CODE_0C7A:
 	bmi CODE_0C9F
 	mov $0200+x, a				;$0C7C		|
-	call $125E				;$0C7F		|
+	call CODE_125E				;$0C7F		|
 	bmi CODE_0C9F				;$0C82		|
 	push a					;$0C84		|
 	xcn a					;$0C85		|
 	and a, #$07				;$0C86		|
 	mov y, a				;$0C88		|
-	mov a, $1268+y				;$0C89		|
+	mov a, DATA_1268+y			;$0C89		|
 	mov $0201+x, a				;$0C8C		|
 	pop a					;$0C8F		|
 	and a, #$0F				;$0C90		|
 	mov y, a				;$0C92		|
-	mov a, $1270+y				;$0C93		|
+	mov a, DATA_1270+y			;$0C93		|
 	mov $0211+x, a				;$0C96		|
 	or ($5C), ($48)				;$0C99		|
-	call $125E				;$0C9C		|
+	call CODE_125E				;$0C9C		|
 CODE_0C9F:
 	cmp a, #$DA
 	bcc CODE_0CA8				;$0CA1		|
-	call $0D40				;$0CA3		|
+	call CODE_0D40				;$0CA3		|
 	bra CODE_0C57				;$0CA6		|
 
 CODE_0CA8:
@@ -1128,7 +1130,7 @@ CODE_0CA8:
 	and a, $1D				;$0CAB		|
 	pop a					;$0CAD		|
 	bne CODE_0CB3				;$0CAE		|
-	call $05C5				;$0CB0		|
+	call CODE_05C5				;$0CB0		|
 CODE_0CB3:
 	mov a, $0200+x
 	mov $70+x, a				;$0CB6		|
@@ -1143,13 +1145,13 @@ CODE_0CC1:
 	bra CODE_0CC9				;$0CC4		|
 
 CODE_0CC6:
-	call $10A1
+	call CODE_10A1
 CODE_0CC9:
 	inc x
 	inc x					;$0CCA		|
 	asl $48					;$0CCB		|
 	bcs CODE_0CD2				;$0CCD		|
-	jmp $0C4D				;$0CCF		|
+	jmp CODE_0C4D				;$0CCF		|
 CODE_0CD2:
 	mov a, $52
 	beq CODE_0CE3				;$0CD4		|
@@ -1180,7 +1182,7 @@ CODE_0CF4:
 	addw ya, $63				;$0CFC		|
 CODE_0CFE:
 	movw $63, ya
-	call $0EEB				;$0D00		|
+	call CODE_0EEB				;$0D00		|
 CODE_0D03:
 	mov a, $58
 	beq CODE_0D17				;$0D05		|
@@ -1200,7 +1202,7 @@ CODE_0D17:
 CODE_0D1C:
 	mov a, $31+x
 	beq CODE_0D23				;$0D1E		|
-	call $0FDB				;$0D20		|
+	call CODE_0FDB				;$0D20		|
 CODE_0D23:
 	lsr $48
 	dec x					;$0D25		|
@@ -1215,19 +1217,19 @@ CODE_0D32:
 	push a
 	mov y, #$5C				;$0D33		|
 	mov a, #$00				;$0D35		|
-	call $0697				;$0D37		|
+	call CODE_0697				;$0D37		|
 	pop a					;$0D3A		|
 	mov y, #$4C				;$0D3B		|
-	jmp $0697				;$0D3D		|
+	jmp CODE_0697				;$0D3D		|
 
 CODE_0D40:
 	asl a
 	mov x, a				;$0D41		|
 	mov a, #$00				;$0D42		|
-	jmp ($0F90-$B4+x)			;$0D44		|
+	jmp (CODE_0F90-$B4+x)			;$0D44		|
 
 CODE_0D47:
-	call $125C
+	call CODE_125C
 
 CODE_0D4A:
 	inc a
@@ -1256,7 +1258,7 @@ CODE_0D56:
 	and a, $2F				;$0D6C		|
 	mov $2F, a				;$0D6E		|
 	mov y, #$3D				;$0D70		|
-	call $0697				;$0D72		|
+	call CODE_0697				;$0D72		|
 	mov y, #$00				;$0D75		|
 CODE_0D77:
 	mov a, ($14)+y
@@ -1274,7 +1276,7 @@ CODE_0D8D:
 	ret
 
 CODE_0D8E:
-	call $125C
+	call CODE_125C
 	and a, #$1F				;$0D91		|
 	mov $0281+x, a				;$0D93		|
 	mov a, y				;$0D96		|
@@ -1286,36 +1288,36 @@ CODE_0D8E:
 	ret					;$0DA4		|
 
 CODE_0DA5:
-	call $125C
+	call CODE_125C
 	mov $81+x, a				;$0DA8		|
 	push a					;$0DAA		|
-	call $125E				;$0DAB		|
+	call CODE_125E				;$0DAB		|
 	mov $02A0+x, a				;$0DAE		|
 	setc					;$0DB1		|
 	sbc a, $0281+x				;$0DB2		|
 	pop x					;$0DB5		|
-	call $0F76				;$0DB6		|
+	call CODE_0F76				;$0DB6		|
 	mov $0290+x, a				;$0DB9		|
 	mov a, y				;$0DBC		|
 	mov $0291+x, a				;$0DBD		|
 	ret					;$0DC0		|
 
 CODE_0DC1:
-	call $125C
+	call CODE_125C
 	mov $0340+x, a				;$0DC4		|
 	mov a, #$00				;$0DC7		|
 	mov $0341+x, a				;$0DC9		|
-	call $125E				;$0DCC		|
+	call CODE_125E				;$0DCC		|
 	mov $0331+x, a				;$0DCF		|
 
-	call $125E				;$0DD2		|
+	call CODE_125E				;$0DD2		|
 CODE_0DD5:
 	mov x, $46
 	mov $A1+x, a				;$0DD7		|
 	ret					;$0DD9		|
 
 CODE_0DDA:
-	call $125C
+	call CODE_125C
 	mov $0341+x, a				;$0DDD		|
 	push a					;$0DE0		|
 	mov a, $A1+x				;$0DE1		|
@@ -1328,26 +1330,26 @@ CODE_0DDA:
 	ret					;$0DEF		|
 
 CODE_0DF0:
-	call $125C
+	call CODE_125C
 	mov $57, a				;$0DF3		|
 	mov $56, #$00				;$0DF5		|
 	mov $5C, #$FF				;$0DF8		|
 	ret					;$0DFB		|
 
 CODE_0DFC:
-	call $125C
+	call CODE_125C
 	mov $58, a				;$0DFF		|
-	call $125E				;$0E01		|
+	call CODE_125E				;$0E01		|
 	mov $59, a				;$0E04		|
 	mov x, $58				;$0E06		|
 	setc					;$0E08		|
 	sbc a, $57				;$0E09		|
-	call $0F76				;$0E0B		|
+	call CODE_0F76				;$0E0B		|
 	movw $5A, ya				;$0E0E		|
 	ret					;$0E10		|
 
 CODE_0E11:
-	call $125C
+	call CODE_125C
 
 CODE_0E14:
 	adc a, $0387
@@ -1356,29 +1358,29 @@ CODE_0E14:
 	ret					;$0E1C		|
 
 CODE_0E1D:
-	call $125C
+	call CODE_125C
 	mov $52, a				;$0E20		|
-	call $125E				;$0E22		|
+	call CODE_125E				;$0E22		|
 	adc a, $0387				;$0E25		|
 	mov $53, a				;$0E28		|
 	mov x, $52				;$0E2A		|
 	setc					;$0E2C		|
 	sbc a, $51				;$0E2D		|
-	call $0F76				;$0E2F		|
+	call CODE_0F76				;$0E2F		|
 	movw $54, ya				;$0E32		|
 	ret					;$0E34		|
 
 CODE_0E35:
-	call $125C
+	call CODE_125C
 	mov $43, a				;$0E38		|
 	ret					;$0E3A		|
 
 CODE_0E3B:
-	call $125C
+	call CODE_125C
 	mov $0370+x, a				;$0E3E		|
-	call $125E				;$0E41		|
+	call CODE_125E				;$0E41		|
 	mov $0362+x, a				;$0E44		|
-	call $125E				;$0E47		|
+	call CODE_125E				;$0E47		|
 
 CODE_0E4A:
 	mov x, $46
@@ -1394,11 +1396,11 @@ CODE_0E53:
 CODE_0E55:
 	mov x, $46
 	mov $0320+x, a				;$0E57		|
-	call $125C				;$0E5A		|
+	call CODE_125C				;$0E5A		|
 	mov $0301+x, a				;$0E5D		|
-	call $125E				;$0E60		|
+	call CODE_125E				;$0E60		|
 	mov $0300+x, a				;$0E63		|
-	call $125E				;$0E66		|
+	call CODE_125E				;$0E66		|
 	mov $0321+x, a				;$0E69		|
 	ret					;$0E6C		|
 
@@ -1407,7 +1409,7 @@ CODE_0E55:
 	ret					;$0E72		|
 
 CODE_0E73:
-	call $125C
+	call CODE_125C
 	mov $0241+x, a				;$0E76		|
 	mov a, #$00				;$0E79		|
 	mov $0240+x, a				;$0E7B		|
@@ -1415,31 +1417,31 @@ CODE_0E73:
 	ret					;$0E81		|
 
 CODE_0E82:
-	call $125C
+	call CODE_125C
 	mov $80+x, a				;$0E85		|
 	push a					;$0E87		|
-	call $125E				;$0E88		|
+	call CODE_125E				;$0E88		|
 	mov $0260+x, a				;$0E8B		|
 	setc					;$0E8E		|
 	sbc a, $0241+x				;$0E8F		|
 	pop x					;$0E92		|
-	call $0F76				;$0E93		|
+	call CODE_0F76				;$0E93		|
 	mov $0250+x, a				;$0E96		|
 	mov a, y				;$0E99		|
 	mov $0251+x, a				;$0E9A		|
 	ret					;$0E9D		|
 
 CODE_0E9E:
-	call $125C
+	call CODE_125C
 	mov $02D1+x, a				;$0EA1		|
 	ret					;$0EA4		|
 
 CODE_0EA5:
-	call $125C
+	call CODE_125C
 	push a					;$0EA8		|
-	call $125E				;$0EA9		|
+	call CODE_125E				;$0EA9		|
 	push a					;$0EAC		|
-	call $125E				;$0EAD		|
+	call CODE_125E				;$0EAD		|
 	mov $C0+x, a				;$0EB0		|
 	mov a, $30+x				;$0EB2		|
 	mov $03E0+x, a				;$0EB4		|
@@ -1454,45 +1456,45 @@ CODE_0EA5:
 	ret					;$0EC8		|
 
 CODE_0EC9:
-	call $125C
+	call CODE_125C
 	mov $0389, a				;$0ECC		|
 	mov y, #$4D				;$0ECF		|
-	call $0697				;$0ED1		|
-	call $125E				;$0ED4		|
+	call CODE_0697				;$0ED1		|
+	call CODE_125E				;$0ED4		|
 	mov a, #$00				;$0ED7		|
 	movw $61, ya				;$0ED9		|
-	call $125E				;$0EDB		|
+	call CODE_125E				;$0EDB		|
 	mov a, #$00				;$0EDE		|
 	movw $63, ya				;$0EE0		|
 	mov $2E, a				;$0EE2		|
 	and a, #$1F				;$0EE4		|
 	mov y, #$6C				;$0EE6		|
-	call $0697				;$0EE8		|
+	call CODE_0697				;$0EE8		|
 
 CODE_0EEB:
 	mov a, $62
 	mov y, #$2C				;$0EED		|
-	call $0697				;$0EEF		|
+	call CODE_0697				;$0EEF		|
 	mov a, $64				;$0EF2		|
 	mov y, #$3C				;$0EF4		|
-	jmp $0697				;$0EF6		|
+	jmp CODE_0697				;$0EF6		|
 
 CODE_0EF9:
-	call $125C
+	call CODE_125C
 	mov $60, a				;$0EFC		|
-	call $125E				;$0EFE		|
+	call CODE_125E				;$0EFE		|
 	mov $69, a				;$0F01		|
 	mov x, $60				;$0F03		|
 	setc					;$0F05		|
 	sbc a, $62				;$0F06		|
-	call $0F76				;$0F08		|
+	call CODE_0F76				;$0F08		|
 	movw $65, ya				;$0F0B		|
-	call $125E				;$0F0D		|
+	call CODE_125E				;$0F0D		|
 	mov $6A, a				;$0F10		|
 	mov x, $60				;$0F12		|
 	setc					;$0F14		|
 	sbc a, $64				;$0F15		|
-	call $0F76				;$0F17		|
+	call CODE_0F76				;$0F17		|
 	movw $67, ya				;$0F1A		|
 	ret					;$0F1C		|
 
@@ -1503,27 +1505,27 @@ CODE_0F22:
 	mov y, a
 	movw $61, ya				;$0F23		|
 	movw $63, ya				;$0F25		|
-	call $0EEB				;$0F27		|
+	call CODE_0EEB				;$0F27		|
 	mov $2E, a				;$0F2A		|
 	or a, #$20				;$0F2C		|
 	mov y, #$6C				;$0F2E		|
-	jmp $0697				;$0F30		|
+	jmp CODE_0697				;$0F30		|
 
 CODE_0F33:
-	call $125C
+	call CODE_125C
 	mov y, #$7D				;$0F36		|
-	call $0697				;$0F38		|
-	call $125E				;$0F3B		|
+	call CODE_0697				;$0F38		|
+	call CODE_125E				;$0F3B		|
 	mov y, #$0D				;$0F3E		|
-	call $0697				;$0F40		|
-	call $125E				;$0F43		|
+	call CODE_0697				;$0F40		|
+	call CODE_125E				;$0F43		|
 	mov y, #$08				;$0F46		|
 	mul ya					;$0F48		|
 	mov x, a				;$0F49		|
 	mov y, #$0F				;$0F4A		|
 CODE_0F4C:
-	mov a, $12AD+x
-	call $0697				;$0F4F		|
+	mov a, DATA_12AD+x
+	call CODE_0697				;$0F4F		|
 	inc x					;$0F52		|
 	mov a, y				;$0F53		|
 	clrc					;$0F54		|
@@ -1542,7 +1544,7 @@ CODE_0F5D:
 	mov a, $90+x				;$0F67		|
 	mov x, a				;$0F69		|
 	pop a					;$0F6A		|
-	call $0F76				;$0F6B		|
+	call CODE_0F76				;$0F6B		|
 	mov $02C0+x, a				;$0F6E		|
 	mov a, y				;$0F71		|
 	mov $02C1+x, a				;$0F72		|
@@ -1552,7 +1554,7 @@ CODE_0F76:
 	bcs CODE_0F85
 	eor a, #$FF				;$0F78		|
 	inc a					;$0F7A		|
-	call $0F85				;$0F7B		|
+	call CODE_0F85				;$0F7B		|
 	movw $14, ya				;$0F7E		|
 	movw ya, $0E				;$0F80		|
 	subw ya, $14				;$0F82		|
@@ -1569,31 +1571,31 @@ CODE_0F85:
 	ret					;$0F8F		|
 
 CODE_0F90:
-	dw $0D47
-	dw $0D8E				;$0F92		|
-	dw $0DA5				;$0F94		|
+	dw CODE_0D47
+	dw CODE_0D8E				;$0F92		|
+	dw CODE_0DA5				;$0F94		|
 	dw $0000				;$0F96		|
-	dw $0DC1				;$0F98		|
-	dw $0DD5				;$0F9A		|
-	dw $0DF0				;$0F9C		|
-	dw $0DFC				;$0F9E		|
-	dw $0E11				;$0FA0		|
-	dw $0E1D				;$0FA2		|
-	dw $0E35				;$0FA4		|
-	dw $0E3B				;$0FA6		|
-	dw $0E4A				;$0FA8		|
-	dw $0E73				;$0FAA		|
-	dw $0E82				;$0FAC		|
-	dw $0EA5				;$0FAE		|
-	dw $0DDA				;$0FB0		|
-	dw $0E4F				;$0FB2		|
-	dw $0E53				;$0FB4		|
+	dw CODE_0DC1				;$0F98		|
+	dw CODE_0DD5				;$0F9A		|
+	dw CODE_0DF0				;$0F9C		|
+	dw CODE_0DFC				;$0F9E		|
+	dw CODE_0E11				;$0FA0		|
+	dw CODE_0E1D				;$0FA2		|
+	dw CODE_0E35				;$0FA4		|
+	dw CODE_0E3B				;$0FA6		|
+	dw CODE_0E4A				;$0FA8		|
+	dw CODE_0E73				;$0FAA		|
+	dw CODE_0E82				;$0FAC		|
+	dw CODE_0EA5				;$0FAE		|
+	dw CODE_0DDA				;$0FB0		|
+	dw CODE_0E4F				;$0FB2		|
+	dw CODE_0E53				;$0FB4		|
 	dw $0000				;$0FB6		|
-	dw $0E9E				;$0FB8		|
-	dw $0EC9				;$0FBA		|
-	dw $0F1D				;$0FBC		|
-	dw $0F33				;$0FBE		|
-	dw $0EF9				;$0FC0		|
+	dw CODE_0E9E				;$0FB8		|
+	dw CODE_0EC9				;$0FBA		|
+	dw CODE_0F1D				;$0FBC		|
+	dw CODE_0F33				;$0FBE		|
+	dw CODE_0EF9				;$0FC0		|
 
 DATA_0FC2:
 	db $02,$02,$03,$04,$04,$01,$02,$03
@@ -1608,7 +1610,7 @@ CODE_0FDB:
 	mov a, #$40				;$0FE2		|
 	mov y, #$02				;$0FE4		|
 	dec $80+x				;$0FE6		|
-	call $1075				;$0FE8		|
+	call CODE_1075				;$0FE8		|
 CODE_0FEB:
 	mov a, $B1+x
 	mov y, a				;$0FED		|
@@ -1627,14 +1629,14 @@ CODE_1005:
 	adc a, $0362+x				;$1006		|
 CODE_1009:
 	mov $0360+x, a
-	call $123A				;$100C		|
+	call CODE_123A				;$100C		|
 	bra CODE_1019				;$100F		|
 
 CODE_1011:
 	inc $B0+x
 CODE_1013:
 	mov a, $0211+x
-	call $124D				;$1016		|
+	call CODE_124D				;$1016		|
 CODE_1019:
 	mov a, $81+x
 	bne CODE_1024				;$101B		|
@@ -1647,7 +1649,7 @@ CODE_1024:
 	mov a, #$80
 	mov y, #$02				;$1026		|
 	dec $81+x				;$1028		|
-	call $1075				;$102A		|
+	call CODE_1075				;$102A		|
 CODE_102D:
 	mov a, $0281+x
 	mov y, a				;$1030		|
@@ -1661,15 +1663,15 @@ CODE_1036:
 	mov $12, a				;$1039		|
 CODE_103B:
 	mov y, $11
-	mov a, $1281+y				;$103D		|
+	mov a, DATA_1280+1+y			;$103D		|
 	setc					;$1040		|
-	sbc a, $1280+y				;$1041		|
+	sbc a, DATA_1280+y			;$1041		|
 	mov y, $10				;$1044		|
 	mul ya					;$1046		|
 	mov a, y				;$1047		|
 	mov y, $11				;$1048		|
 	clrc					;$104A		|
-	adc a, $1280+y				;$104B		|
+	adc a, DATA_1280+y			;$104B		|
 	mov y, a				;$104E		|
 	mov a, $0371+x				;$104F		|
 	mul ya					;$1052		|
@@ -1685,7 +1687,7 @@ CODE_105A:
 CODE_1061:
 	mov a, y
 	mov y, $12				;$1062		|
-	call $068F				;$1064		|
+	call CODE_068F				;$1064		|
 	mov a, #$00				;$1067		|
 	mov y, #$14				;$1069		|
 	subw ya, $10				;$106B		|
@@ -1757,14 +1759,14 @@ CODE_10BF:
 	mov y, a				;$10C8		|
 	pop a					;$10C9		|
 	clrc					;$10CA		|
-	adc a, $0EE8+y				;$10CB		|
+	adc a, CODE_0F90-$A8+y			;$10CB		|
 	mov y, a				;$10CE		|
 	bra CODE_10B4				;$10CF		|
 
 CODE_10D1:
 	mov a, $48
 	mov y, #$5C				;$10D3		|
-	call $068F				;$10D5		|
+	call CODE_068F				;$10D5		|
 CODE_10D8:
 	clr1 $13.7
 	mov a, $90+x				;$10DA		|
@@ -1781,20 +1783,20 @@ CODE_10E4:
 	beq CODE_10FB				;$10EE		|
 	mov $10, #$04				;$10F0		|
 CODE_10F3:
-	call $1260
+	call CODE_1260
 	dbnz $10, CODE_10F3			;$10F6		|
 	bra CODE_1111				;$10F9		|
 
 CODE_10FB:
-	call $1260
-	call $125E				;$10FE		|
+	call CODE_1260
+	call CODE_125E				;$10FE		|
 	mov $91+x, a				;$1101		|
-	call $125E				;$1103		|
+	call CODE_125E				;$1103		|
 	mov $90+x, a				;$1106		|
-	call $125E				;$1108		|
+	call CODE_125E				;$1108		|
 	clrc					;$110B		|
 	adc a, $43				;$110C		|
-	call $0F5D				;$110E		|
+	call CODE_0F5D				;$110E		|
 CODE_1111:
 	mov a, $91+x
 	beq CODE_1119				;$1113		|
@@ -1809,7 +1811,7 @@ CODE_1119:
 	mov a, #$B0				;$1121		|
 	mov y, #$02				;$1123		|
 	dec $90+x				;$1125		|
-	call $1075				;$1127		|
+	call CODE_1075				;$1127		|
 CODE_112A:
 	mov a, $02B1+x
 	mov y, a				;$112D		|
@@ -1879,7 +1881,7 @@ CODE_1191:
 	addw ya, $10
 	movw $10, ya				;$1193		|
 CODE_1195:
-	jmp $0634
+	jmp CODE_0634
 
 CODE_1198:
 	clr1 $13.7
@@ -1887,7 +1889,7 @@ CODE_1198:
 	beq CODE_11A7				;$119C		|
 	mov a, $0370+x				;$119E		|
 	cbne $B0+x, CODE_11A7			;$11A1		|
-	call $122D				;$11A4		|
+	call CODE_122D				;$11A4		|
 CODE_11A7:
 	mov a, $0281+x
 	mov y, a				;$11AA		|
@@ -1902,9 +1904,9 @@ CODE_11B9:
 	mov a, $0291+x
 	mov y, a				;$11BC		|
 	mov a, $0290+x				;$11BD		|
-	call $1201				;$11C0		|
+	call CODE_1201				;$11C0		|
 CODE_11C3:
-	call $1036
+	call CODE_1036
 CODE_11C6:
 	clr1 $13.7
 	mov a, $02B1+x				;$11C8		|
@@ -1918,7 +1920,7 @@ CODE_11C6:
 	mov a, $02C1+x				;$11D9		|
 	mov y, a				;$11DC		|
 	mov a, $02C0+x				;$11DD		|
-	call $11FF				;$11E0		|
+	call CODE_11FF				;$11E0		|
 CODE_11E3:
 	mov a, $A1+x
 	bne CODE_11EB				;$11E5		|
@@ -1935,7 +1937,7 @@ CODE_11EB:
 	mov a, y				;$11F7		|
 	clrc					;$11F8		|
 	adc a, $0330+x				;$11F9		|
-	jmp $1170				;$11FC		|
+	jmp CODE_1170				;$11FC		|
 
 CODE_11FF:
 	set1 $13.7
@@ -2037,9 +2039,9 @@ CODE_12BD:
 	mov x, #$18				;$12C0		|
 	div ya, x				;$12C2		|
 	mov x, a				;$12C3		|
-	mov a, $12DA+y				;$12C4		|
+	mov a, DATA_12D9+1+y			;$12C4		|
 	mov $16, a				;$12C7		|
-	mov a, $12D9+y				;$12C9		|
+	mov a, DATA_12D9+y			;$12C9		|
 	bra CODE_12D2				;$12CC		|
 CODE_12CE:
 	lsr $16
@@ -2097,6 +2099,8 @@ CODE_1325:
 	ret					;$133D		|
 
 SPC_engine_end:
+
+base off
 
 sound_effects:
 	dw .end-.start				;		| Length of sound effect data
