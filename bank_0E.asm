@@ -34,9 +34,9 @@ base $0500
 	bne .clear_03XX				;$0525		 |/
 	mov x, #$0B				;$0527		 |\ Initialize various DSP registers
 .initialize_DSP					;		 | |
-	mov a, initial_DSP_data+x		;$0529		 | |
+	mov a, initial_DSP_registers+x		;$0529		 | |
 	mov y, a				;$052C		 | | Y gets the register to write to
-	mov a, initial_DSP_registers+x		;$052D		 | | A gets the value to write
+	mov a, initial_DSP_data+x		;$052D		 | | A gets the value to write
 	call write_DSP				;$0530		 | |
 	dec x					;$0533		 | |
 	bpl .initialize_DSP			;$0534		 |/
@@ -234,17 +234,16 @@ CODE_064A:
 	call write_DSP_safe			;$0689		|
 	inc y					;$068C		|
 	mov a, $17				;$068D		|
-
 write_DSP_safe:
 	push a					;$068F		\ Preserve value to write
 	mov a, $48				;$0690		 |\ If a sound effect is playing in the current channel
-	and a, $1D				;$0692		 | | don't write to the DSP
+	and a, $1D				;$0692		 | | Don't write to the DSP
 	pop a					;$0694		 | |
 	bne write_DSP_return			;$0695		 |/
 write_DSP:					;		 |
 	mov $00F2, y				;$0697		 |\ Write A to DSP register Y
 	mov $00F3, a				;$069A		 |/
-.write_DSP_return:				;		 |
+.return						;		 |
 	ret					;		/
 
 CODE_069E:
@@ -314,7 +313,6 @@ CODE_070B:
 	mov a, #$00				;$0714		|
 	mov $0308, a				;$0716		|
 	ret					;$0719		|
-
 
 CODE_071A:
 	dec $0382
@@ -1575,8 +1573,8 @@ command_pointers:
 	dw fade_pan				;$0F94		|
 	dw $0000				;$0F96		|
 	dw enable_vibrato			;$0F98		|
-	dw set_global_volume			;$0F9C		|
 	dw disable_vibrato			;$0F9A		|
+	dw set_global_volume			;$0F9C		|
 	dw fade_global_volume			;$0F9E		|
 	dw set_tempo				;$0FA0		|
 	dw fade_tempo				;$0FA2		|

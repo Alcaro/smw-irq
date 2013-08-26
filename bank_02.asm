@@ -2931,7 +2931,7 @@ CODE_02960D:
 	STA.w $1693				;$029613	|
 	INC $07					;$029616	|
 	LDA [$05]				;$029618	|
-	JSL CODE_00F545				;$02961A	|
+	JSL conditional_map16			;$02961A	|
 	CMP.b #$00				;$02961E	|
 	BEQ Return029630			;$029620	|
 	LDA $0F					;$029622	|
@@ -5222,7 +5222,7 @@ CODE_02A6DB:
 	STA.w $1693				;$02A6E4	|
 	INC $07					;$02A6E7	|
 	LDA [$05]				;$02A6E9	|
-	JSL CODE_00F545				;$02A6EB	|
+	JSL conditional_map16			;$02A6EB	|
 	CMP.b #$00				;$02A6EF	|
 	BEQ CODE_02A729				;$02A6F1	|
 	LDA.w $1693				;$02A6F3	|

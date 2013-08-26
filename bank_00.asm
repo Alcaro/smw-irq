@@ -10887,41 +10887,30 @@ DATA_00E632:
 	db $00,$02,$04,$06,$08,$0A,$0C,$0E
 	db $10,$10,$10,$10,$10,$10,$10,$10
 	db $F0,$F2,$F4,$F6,$F8,$FA,$FC,$FE
-	db $00,$02,$04,$06,$08,$0A
+	db $00,$02,$04,$06,$08,$0A,$0C,$0E
 
-DATA_00E830:
-	db $0C,$0E,$08,$00,$0E,$00,$0E,$00
-	db $08,$00,$05,$00,$0B,$00,$08,$00
-	db $02,$00,$02,$00,$08,$00,$0B,$00
-	db $05,$00,$08,$00,$0E,$00,$0E,$00
-	db $08,$00,$05,$00,$0B,$00,$08,$00
-	db $02,$00,$02,$00,$08,$00,$0B,$00
-	db $05,$00,$08,$00,$0E,$00,$0E,$00
-	db $08,$00,$05,$00,$0B,$00,$08,$00
-	db $02,$00,$02,$00,$08,$00,$0B,$00
-	db $05,$00,$08,$00,$0E,$00,$0E,$00
-	db $08,$00,$05,$00,$0B,$00,$08,$00
-	db $02,$00,$02,$00,$08,$00,$0B,$00
-	db $05,$00,$10,$00,$20,$00,$07,$00
-	db $00,$00,$F0,$FF
-
-DATA_00E89C:
-	db $08,$00,$18,$00,$1A,$00,$16,$00
-DATA_00E8A4:
-	db $10,$00,$20,$00,$20,$00,$18,$00
-	db $1A,$00,$16,$00,$10,$00,$20,$00
-	db $20,$00,$12,$00,$1A,$00,$0F,$00
-	db $08,$00,$20,$00,$20,$00,$12,$00
-	db $1A,$00,$0F,$00,$08,$00,$20,$00
-	db $20,$00,$1D,$00,$28,$00,$19,$00
-	db $13,$00,$30,$00,$30,$00,$1D,$00
-	db $28,$00,$19,$00,$13,$00,$30,$00
-	db $30,$00,$1A,$00,$28,$00,$16,$00
-	db $10,$00,$30,$00,$30,$00,$1A,$00
-	db $28,$00,$16,$00,$10,$00,$30,$00
-	db $30,$00,$18,$00,$18,$00,$18,$00
-	db $18,$00,$18,$00,$18,$00
-
+collision_x_offsets:
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Small
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Small, walking
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Big
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Big, walking
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Small, on yoshi
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Small, on yoshi, walking
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Big, on yoshi
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Big, on yoshi, walking
+	dw $0010,$0020,$0007,$0000,$FFF0,$0008	;		| Wall-running
+	
+collision_y_offsets:
+	dw $0018,$001A,$0016,$0010,$0020,$0020	;		| Small
+	dw $0018,$001A,$0016,$0010,$0020,$0020	;		| Small, walking
+	dw $0012,$001A,$000F,$0008,$0020,$0020	;		| Big
+	dw $0012,$001A,$000F,$0008,$0020,$0020	;		| Big, walking
+	dw $001D,$0028,$0019,$0013,$0030,$0030	;		| Small, on yoshi
+	dw $001D,$0028,$0019,$0013,$0030,$0030	;		| Small, on yoshi, walking
+	dw $001A,$0028,$0016,$0010,$0030,$0030	;		| Big, on yoshi
+	dw $001A,$0028,$0016,$0010,$0030,$0030	;		| Big, on yoshi, walking
+	dw $0018,$0018,$0018,$0018,$0018,$0018	;		| Wall-running
+	
 DATA_00E90A:
 	db $01,$02,$11
 
@@ -11225,7 +11214,7 @@ CODE_00EB29:
 CODE_00EB34:
 	JSR CODE_00EFE8
 CODE_00EB37:
-	JSR CODE_00F44D
+	JSR collision
 	BNE CODE_00EB19				;$00EB3A	|
 	LDA.b #$02				;$00EB3C	|
 	TRB.w $13E3				;$00EB3E	|
@@ -11296,10 +11285,10 @@ CODE_00EB8D:
 CODE_00EBA5:
 	LDA $90
 	CLC					;$00EBA7	|
-	ADC.w DATA_00E8A4,X			;$00EBA8	|
+	ADC.w collision_y_offsets+6,X		;$00EBA8	|
 	AND.b #$0F				;$00EBAB	|
 	STA $91					;$00EBAD	|
-	JSR CODE_00F44D				;$00EBAF	|
+	JSR collision				;$00EBAF	|
 	BEQ CODE_00EBDD				;$00EBB2	|
 	CPY.b #$11				;$00EBB4	|
 	BCC CODE_00EC24				;$00EBB6	|
@@ -11367,7 +11356,7 @@ CODE_00EC06:
 CODE_00EC21:
 	JSR CODE_00F28C
 CODE_00EC24:
-	JSR CODE_00F44D
+	JSR collision
 	BEQ CODE_00EC35				;$00EC27	|
 	CPY.b #$11				;$00EC29	|
 	BCC CODE_00EC3A				;$00EC2B	|
@@ -11381,7 +11370,7 @@ CODE_00EC35:
 	LDA.b #$10
 	JSR CODE_00F2C9				;$00EC37	|
 CODE_00EC3A:
-	JSR CODE_00F44D
+	JSR collision
 	BNE CODE_00EC46				;$00EC3D	|
 	LDA.b #$08				;$00EC3F	|
 	JSR CODE_00F2C9				;$00EC41	|
@@ -11423,7 +11412,7 @@ CODE_00EC7B:
 	LDA.w $1693				;$00EC83	|
 	JSL CODE_00F127				;$00EC86	|
 CODE_00EC8A:
-	JSR CODE_00F44D
+	JSR collision
 	BNE CODE_00ECB1				;$00EC8D	|
 	LDA.b #$02				;$00EC8F	|
 	JSR CODE_00F2C2				;$00EC91	|
@@ -11456,7 +11445,7 @@ CODE_00ECB1:
 	CLC					;$00ECC1	|
 	ADC.w #$0010				;$00ECC2	|
 	STA $98					;$00ECC5	|
-	JSR CODE_00F461				;$00ECC7	|
+	JSR process_collision			;$00ECC7	|
 	BEQ CODE_00ECF8				;$00ECCA	|
 	CPY.b #$6E				;$00ECCC	|
 	BCC CODE_00ED4A				;$00ECCE	|
@@ -11534,7 +11523,7 @@ CODE_00ED3B:
 	INC A					;$00ED46	|
 	STA.w $1DF9				;$00ED47	|
 CODE_00ED4A:
-	JSR CODE_00F44D
+	JSR collision
 	BNE CODE_00ED52				;$00ED4D	|
 	JMP CODE_00EDDB				;$00ED4F	|
 
@@ -11558,7 +11547,7 @@ CODE_00ED69:
 	SEC					;$00ED6D	|
 	SBC.w #$0010				;$00ED6E	|
 	STA $98					;$00ED71	|
-	JSR CODE_00F461				;$00ED73	|
+	JSR process_collision			;$00ED73	|
 	BEQ CODE_00EDE9				;$00ED76	|
 	CPY.b #$6E				;$00ED78	|
 	BCC CODE_00EDE9				;$00ED7A	|
@@ -11628,7 +11617,7 @@ CODE_00EDE4:
 	LDA.b #$04
 	JSR CODE_00F2C2				;$00EDE6	|
 CODE_00EDE9:
-	JSR CODE_00F44D
+	JSR collision
 	BNE CODE_00EDF3				;$00EDEC	|
 	JSR CODE_00F309				;$00EDEE	|
 	BRA CODE_00EE1D				;$00EDF1	|
@@ -11917,7 +11906,7 @@ Return00EFE7:
 	RTS
 
 CODE_00EFE8:
-	JSR CODE_00F44D
+	JSR collision
 	BNE ADDR_00EFF0				;$00EFEB	|
 	JMP CODE_00F309				;$00EFED	|
 
@@ -12530,115 +12519,115 @@ CODE_00F443:
 	CMP.b #$08				;$00F44A	|
 	RTS					;$00F44C	|
 
-CODE_00F44D:
-	INX
-	INX					;$00F44E	|
-	REP #$20				;$00F44F	|
-	LDA $94					;$00F451	|
-	CLC					;$00F453	|
-	ADC.w DATA_00E830,X			;$00F454	|
-	STA $9A					;$00F457	|
-	LDA $96					;$00F459	|
-	CLC					;$00F45B	|
-	ADC.w DATA_00E89C,X			;$00F45C	|
-	STA $98					;$00F45F	|
-CODE_00F461:
-	JSR CODE_00F465
+collision:
+	INX					;$00F44D	\ Prepare to process the next player collision point
+	INX					;$00F44E	 |
+	REP #$20				;$00F44F	 |\ Enable 16 bit A
+	LDA $94					;$00F451	 | | Get the player's X position
+	CLC					;$00F453	 | |
+	ADC.w collision_x_offsets-2,X		;$00F454	 | | Add the collision X offset
+	STA $9A					;$00F457	 |/ And set that as the collision X to process
+	LDA $96					;$00F459	 |\ Get the player's Y position
+	CLC					;$00F45B	 | |
+	ADC.w collision_y_offsets-2,X		;$00F45C	 | | Add the collision Y offset
+	STA $98					;$00F45F	 |/ And set that as the collision Y to process
+process_collision:				;		/
+	JSR process_collision_point		;$00F461	| Process the collision point
 	RTS					;$00F464	|
 
-CODE_00F465:
-	SEP #$20
-	STZ.w $1423				;$00F467	|
-	PHX					;$00F46A	|
-	LDA $8E					;$00F46B	|
-	BPL CODE_00F472				;$00F46D	|
-	JMP CODE_00F4EC				;$00F46F	|
+process_collision_point:
+	SEP #$20				;$00F465	\ Enable 8 bit A
+	STZ.w $1423				;$00F467	 | Clear switch palace switch flag
+	PHX					;$00F46A	 | Preserve collision point index
+	LDA $8E					;$00F46B	 |
+	BPL .not_layer_2			;$00F46D	 |
+	JMP .layer_2				;$00F46F	/ Process layer 2 collision
 
-CODE_00F472:
-	BNE CODE_00F4A6
-	REP #$20				;$00F474	|
-	LDA $98					;$00F476	|
-	CMP.w #$01B0				;$00F478	|
-	SEP #$20				;$00F47B	|
-	BCS CODE_00F4A0				;$00F47D	|
-	AND.b #$F0				;$00F47F	|
-	STA $00					;$00F481	|
-	LDX $9B					;$00F483	|
-	CPX $5D					;$00F485	|
-	BCS CODE_00F4A0				;$00F487	|
-	LDA $9A					;$00F489	|
-	LSR					;$00F48B	|
-	LSR					;$00F48C	|
-	LSR					;$00F48D	|
-	LSR					;$00F48E	|
-	ORA $00					;$00F48F	|
-	CLC					;$00F491	|
-	ADC.l DATA_00BA60,X			;$00F492	|
-	STA $00					;$00F496	|
-	LDA $99					;$00F498	|
-	ADC.l DATA_00BA9C,X			;$00F49A	|
-	BRA CODE_00F4CD				;$00F49E	|
+.not_layer_2
+	BNE .vertical_level			;$00F472	| Process vertical level collision
+	REP #$20				;$00F474	\
+	LDA $98					;$00F476	 |
+	CMP.w #$01B0				;$00F478	 | If collision Y position > $01B0,
+	SEP #$20				;$00F47B	 |
+	BCS .air_tile				;$00F47D	 | Act like air
+	AND.b #$F0				;$00F47F	 |\
+	STA $00					;$00F481	 | | Set upper nybble of map16 table index
+	LDX $9B					;$00F483	 | |
+	CPX $5D					;$00F485	 | | If collision X position > end of level,
+	BCS .air_tile				;$00F487	 | | Act like air
+	LDA $9A					;$00F489	 | | Get collision X position
+	LSR					;$00F48B	 | |
+	LSR					;$00F48C	 | |
+	LSR					;$00F48D	 | |
+	LSR					;$00F48E	 | | Divide by 16
+	ORA $00					;$00F48F	 | | Set lower nybble of map16 table index
+	CLC					;$00F491	 | |
+	ADC.l DATA_00BA60,X			;$00F492	 | |
+	STA $00					;$00F496	 | |
+	LDA $99					;$00F498	 | |
+	ADC.l DATA_00BA9C,X			;$00F49A	 |/ Add by $C800 + $01B0 * screen number
+	BRA .process_map16			;$00F49E	/ Process map16
 
-CODE_00F4A0:
-	PLX
-	LDY.b #$25				;$00F4A1	|
-CODE_00F4A3:
-	LDA.b #$00
-	RTS					;$00F4A5	|
+.air_tile
+	PLX					;$00F4A0	\ Restore collision point index
+	LDY.b #$25				;$00F4A1	 | Set the low byte to $25
+.high_byte_00					;		 |
+	LDA.b #$00				;$00F4A3	 | Set the high byte to $00
+	RTS					;$00F4A5	/
 
-CODE_00F4A6:
-	LDA $9B
-	CMP.b #$02				;$00F4A8	|
-	BCS CODE_00F4E7				;$00F4AA	|
-	LDX $99					;$00F4AC	|
-	CPX $5D					;$00F4AE	|
-	BCS CODE_00F4E7				;$00F4B0	|
-	LDA $98					;$00F4B2	|
-	AND.b #$F0				;$00F4B4	|
-	STA $00					;$00F4B6	|
-	LDA $9A					;$00F4B8	|
-	LSR					;$00F4BA	|
-	LSR					;$00F4BB	|
-	LSR					;$00F4BC	|
-	LSR					;$00F4BD	|
-	ORA $00					;$00F4BE	|
-	CLC					;$00F4C0	|
-	ADC.l DATA_00BA80,X			;$00F4C1	|
-	STA $00					;$00F4C5	|
-	LDA $9B					;$00F4C7	|
-	ADC.l DATA_00BABC,X			;$00F4C9	|
-CODE_00F4CD:
-	STA $01
-	LDA.b #$7E				;$00F4CF	|
-	STA $02					;$00F4D1	|
-	LDA [$00]				;$00F4D3	|
-	STA.w $1693				;$00F4D5	|
-	INC $02					;$00F4D8	|
-	PLX					;$00F4DA	|
-	LDA [$00]				;$00F4DB	|
-	JSL CODE_00F545				;$00F4DD	|
-	LDY.w $1693				;$00F4E1	|
-	CMP.b #$00				;$00F4E4	|
-	RTS					;$00F4E6	|
+.vertical_level
+	LDA $9B					;$00F4A6	\
+	CMP.b #$02				;$00F4A8	 | If collision X position > $0200,
+	BCS .air_tile_2				;$00F4AA	 | Act like air
+	LDX $99					;$00F4AC	 |
+	CPX $5D					;$00F4AE	 | If collision Y position > end of level,
+	BCS .air_tile_2				;$00F4B0	 | Act like air
+	LDA $98					;$00F4B2	 |\
+	AND.b #$F0				;$00F4B4	 | |
+	STA $00					;$00F4B6	 | | Set upper nybble of map16 table index
+	LDA $9A					;$00F4B8	 | | Get collision X position
+	LSR					;$00F4BA	 | |
+	LSR					;$00F4BB	 | |
+	LSR					;$00F4BC	 | |
+	LSR					;$00F4BD	 | | Divide by 16
+	ORA $00					;$00F4BE	 | | Set lower nybble of map16 table index
+	CLC					;$00F4C0	 | |
+	ADC.l DATA_00BA80,X			;$00F4C1	 | |
+	STA $00					;$00F4C5	 | |
+	LDA $9B					;$00F4C7	 | |
+	ADC.l DATA_00BABC,X			;$00F4C9	 |/ Add by $C800 + $01B0 * screen number
+.process_map16					;		 |
+	STA $01					;$00F4CD	 |\ Set pointer to map16 low byte table
+	LDA.b #$7E				;$00F4CF	 | |
+	STA $02					;$00F4D1	 |/
+	LDA [$00]				;$00F4D3	 |\ Set $1693 to low byte of map16 tile
+	STA.w $1693				;$00F4D5	 |/
+	INC $02					;$00F4D8	 | Set pointer to map16 high byte table
+	PLX					;$00F4DA	 | Restore collision point index
+	LDA [$00]				;$00F4DB	 |
+	JSL conditional_map16			;$00F4DD	 | Process "conditional" map16
+	LDY.w $1693				;$00F4E1	 | Set Y to low byte of map16 tile
+	CMP.b #$00				;$00F4E4	 | Check if high byte is $00
+	RTS					;$00F4E6	/
 
-CODE_00F4E7:
-	PLX
-	LDY.b #$25				;$00F4E8	|
-	BRA CODE_00F4A3				;$00F4EA	|
+.air_tile_2
+	PLX					;$00F4E7	\ Restore collision point index
+	LDY.b #$25				;$00F4E8	 | Set the low byte to $25
+	BRA .high_byte_00			;$00F4EA	/ Set the high byte to $00
 
-CODE_00F4EC:
-	ASL
-	BNE CODE_00F51B				;$00F4ED	|
+.layer_2
+	ASL					;$00F4EC	|
+	BNE .vertical_layer_2			;$00F4ED	|
 	REP #$20				;$00F4EF	|
 	LDA $98					;$00F4F1	|
 	CMP.w #$01B0				;$00F4F3	|
 	SEP #$20				;$00F4F6	|
-	BCS CODE_00F4E7				;$00F4F8	|
+	BCS .air_tile_2				;$00F4F8	|
 	AND.b #$F0				;$00F4FA	|
 	STA $00					;$00F4FC	|
 	LDX $9B					;$00F4FE	|
 	CPX.b #$10				;$00F500	|
-	BCS CODE_00F4E7				;$00F502	|
+	BCS .air_tile_2				;$00F502	|
 	LDA $9A					;$00F504	|
 	LSR					;$00F506	|
 	LSR					;$00F507	|
@@ -12650,15 +12639,15 @@ CODE_00F4EC:
 	STA $00					;$00F511	|
 	LDA $99					;$00F513	|
 	ADC.l DATA_00BAAC,X			;$00F515	|
-	BRA CODE_00F4CD				;$00F519	|
+	BRA .process_map16			;$00F519	|
 
-CODE_00F51B:
-	LDA $9B
+.vertical_layer_2
+	LDA $9B					;$00F51B	|
 	CMP.b #$02				;$00F51D	|
-	BCS CODE_00F4E7				;$00F51F	|
+	BCS .air_tile_2				;$00F51F	|
 	LDX $99					;$00F521	|
 	CPX.b #$0E				;$00F523	|
-	BCS CODE_00F4E7				;$00F525	|
+	BCS .air_tile_2				;$00F525	|
 	LDA $98					;$00F527	|
 	AND.b #$F0				;$00F529	|
 	STA $00					;$00F52B	|
@@ -12673,63 +12662,63 @@ CODE_00F51B:
 	STA $00					;$00F53A	|
 	LDA $9B					;$00F53C	|
 	ADC.l DATA_00BACA,X			;$00F53E	|
-	JMP CODE_00F4CD				;$00F542	|
+	JMP .process_map16			;$00F542	|
 
-CODE_00F545:
-	TAY
-	BNE CODE_00F577				;$00F546	|
+conditional_map16:
+	TAY					;$00F545	|
+	BNE .map16_page_01			;$00F546	|
 	LDY.w $1693				;$00F548	|
 	CPY.b #$29				;$00F54B	|
-	BNE PSwitchNotInvQBlk			;$00F54D	|
+	BNE .not_0029				;$00F54D	|
 	LDY.w $14AD				;$00F54F	|
-	BEQ Return00F594			;$00F552	|
+	BEQ .return				;$00F552	|
 	LDA.b #$24				;$00F554	|
 	STA.w $1693				;$00F556	|
 	RTL					;$00F559	|
 
-PSwitchNotInvQBlk:
-	CPY.b #$2B
-	BEQ PSwitchCoinBrown			;$00F55C	|
+.not_0029
+	CPY.b #$2B				;$00F55A	|
+	BEQ .is_002B				;$00F55C	|
 	TYA					;$00F55E	|
 	SEC					;$00F55F	|
 	SBC.b #$EC				;$00F560	|
 	CMP.b #$10				;$00F562	|
-	BCS CODE_00F592				;$00F564	|
+	BCS .not_switch				;$00F564	|
 	INC A					;$00F566	|
 	STA.w $1423				;$00F567	|
-	BRA CODE_00F571				;$00F56A	|
+	BRA .act_like_used_block		;$00F56A	|
 
-PSwitchCoinBrown:
-	LDY.w $14AD
-	BEQ Return00F594			;$00F56F	|
-CODE_00F571:
-	LDA.b #$32
+.is_002B
+	LDY.w $14AD				;$00F56C	|
+	BEQ .return				;$00F56F	|
+.act_like_used_block
+	LDA.b #$32				;$00F571	|
 	STA.w $1693				;$00F573	|
 	RTL					;$00F576	|
 
-CODE_00F577:
-	LDY.w $1693
+.map16_page_01
+	LDY.w $1693				;$00F577	|
 	CPY.b #$32				;$00F57A	|
-	BNE CODE_00F584				;$00F57C	|
+	BNE .not_0132				;$00F57C	|
 	LDY.w $14AD				;$00F57E	|
-	BNE CODE_00F58D				;$00F581	|
+	BNE .act_like_coin			;$00F581	|
 	RTL					;$00F583	|
 
-CODE_00F584:
-	CPY.b #$2F
-	BNE Return00F594			;$00F586	|
+.not_0132
+	CPY.b #$2F				;$00F584	|
+	BNE .return				;$00F586	|
 	LDY.w $14AE				;$00F588	|
-	BEQ Return00F594			;$00F58B	|
-CODE_00F58D:
-	LDY.b #$2B
+	BEQ .return				;$00F58B	|
+.act_like_coin
+	LDY.b #$2B				;$00F58D	|
 	STY.w $1693				;$00F58F	|
-CODE_00F592:
-	LDA.b #$00
-Return00F594:
-	RTL
+.not_switch
+	LDA.b #$00				;$00F592	|
+.return
+	RTL					;$00F594	|
 
 CODE_00F595:
-	REP #$20
+	REP #$20				;$00F595	|
 	LDA.w #$FF80				;$00F597	|
 	CLC					;$00F59A	|
 	ADC $1C					;$00F59B	|
