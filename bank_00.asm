@@ -254,18 +254,18 @@ NMI_start:					;		\
 	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
 	LDA.w $0D9B				;$0081EC	 |
 	LSR					;$0081EF	 |
-	BNE overworld_NMI			;$0081F0	 | Replace with . after other CODE_x labels are done
+	BNE overworld_NMI			;$0081F0	 |
 	BCS .mario_start_NMI			;$0081F2	 |
 	JSR draw_status_bar			;$0081F4	 |
 .mario_start_NMI				;		 |
 	LDA.w $13C6				;$0081F7	 |
 	CMP.b #$08				;$0081FA	 |
-	BNE CODE_008209				;$0081FC	 |
+	BNE .not_end_credits			;$0081FC	 |
 	LDA.w $1FFE				;$0081FE	 |
 	BEQ CODE_00821A				;$008201	 |
 	JSL CODE_0C9567				;$008203	 |
 	BRA CODE_00821A				;$008207	 |
-CODE_008209:					;		 |
+.not_end_credits				;		 |
 	JSL CODE_0087AD				;$008209	 |
 	LDA.w $143A				;$00820D	 |
 	BEQ CODE_008217				;$008210	 |
@@ -327,32 +327,32 @@ special_level_NMI:				;		 |
 	STY.w $2100				;$008286	 |
 	LDY.w $0D9F				;$008289	 |
 	STY.w $420C				;$00828C	 |
-	JMP IRQNMIEnding			;$00828F	 |
+	JMP IRQNMIEnding			;$00828F	 | Finish off NMI
 CODE_008292:					;		 |
-	LDY.b #$24				;$008292	 |
+	LDY.b #$24				;$008292	 | Load the V timer scanline
 CODE_008294:					;		 |
-	LDA.w $4211				;$008294	 |
-	STY.w $4209				;$008297	 |
-	STZ.w $420A				;$00829A	 |
-	STZ $11					;$00829D	 |
-	LDA.b #$A1				;$00829F	 |
+	LDA.w $4211				;$008294	 | Read to clear the IRQ flag
+	STY.w $4209				;$008297	 | Set the V timer low byte (generally #$24)
+	STZ.w $420A				;$00829A	 | Clear the V timer high byte
+	STZ $11					;$00829D	 | Set IRQ id flag to 0 (IRQ #1)
+	LDA.b #$A1				;$00829F	 | Load Enable NMI, vertical IRQ, and autojoy enabled
 NotCredits:					;		 |
-	STA.w $4200				;$0082A1	 |
-	STZ.w $2111				;$0082A4	 |
-	STZ.w $2111				;$0082A7	 |
-	STZ.w $2112				;$0082AA	 |
-	STZ.w $2112				;$0082AD	 |
-	LDA.w $0DAE				;$0082B0	 |
-	STA.w $2100				;$0082B3	 |
-	LDA.w $0D9F				;$0082B6	 |
-	STA.w $420C				;$0082B9	 |
-	REP #$30				;$0082BC	 |
-	PLB					;$0082BE	 |
-	PLY					;$0082BF	 |
-	PLX					;$0082C0	 |
-	PLA					;$0082C1	 |
-	PLP					;$0082C2	 |
-	RTI					;$0082C3	/
+	STA.w $4200				;$0082A1	 | Store NMI/IRQ/autojoy enabled status
+	STZ.w $2111				;$0082A4	 |\ Reset layer X three scroll position
+	STZ.w $2111				;$0082A7	 |/
+	STZ.w $2112				;$0082AA	 |\ Reset layer Y three scroll position
+	STZ.w $2112				;$0082AD	 |/
+	LDA.w $0DAE				;$0082B0	 |\ Mirror brightness and force blank settings
+	STA.w $2100				;$0082B3	 |/ to the display register
+	LDA.w $0D9F				;$0082B6	 |\ Enable HDMA channels based off the HDMA mirror
+	STA.w $420C				;$0082B9	 |/
+	REP #$30				;$0082BC	 |\ Restore everything saved at the beginning of NMI
+	PLB					;$0082BE	 | |
+	PLY					;$0082BF	 | |
+	PLX					;$0082C0	 | |
+	PLA					;$0082C1	 | |
+	PLP					;$0082C2	 |/
+	RTI					;$0082C3	/ Return from NMI
 
 mode7_NMI:					;		\
 	LDA $10					;$0082C4	 |
