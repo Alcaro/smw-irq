@@ -9,66 +9,66 @@ SPC_engine:
 base $0500
 
 .start
-	clrp					;$0500		|
-	mov x, #$CF				;$0501		|
-	mov sp, x				;$0503		|
-	mov a, #$00				;$0504		|
-	mov $0386, a				;$0506		|
-	mov $0387, a				;$0509		|
-	mov $0388, a				;$050C		|
-	mov $0389, a				;$050F		|
-	mov x, a				;$0512		|
-CODE_0513:
-	mov (x+), a
-	cmp x, #$E8				;$0514		|
-	bne CODE_0513				;$0516		|
-	mov a, #$00				;$0518		|
-	mov x, a				;$051A		|
-CODE_051B:
-	mov $0200+x, a
-	inc x					;$051E		|
-	bne CODE_051B				;$051F		|
-CODE_0521:
-	mov $0300+x, a
-	inc x					;$0524		|
-	bne CODE_0521				;$0525		|
-	mov x, #$0B				;$0527		|
-CODE_0529:
-	mov a, DATA_12A1+x
-	mov y, a				;$052C		|
-	mov a, DATA_1295+x			;$052D		|
-	call CODE_0697				;$0530		|
-	dec x					;$0533		|
-	bpl CODE_0529				;$0534		|
-	mov a, #$F0				;$0536		|
-	mov $00F1, a				;$0538		|
-	mov a, #$10				;$053B		|
-	mov $00FA, a				;$053D		|
-	mov a, #$36				;$0540		|
-	mov $51, a				;$0542		|
-	mov a, #$01				;$0544		|
-	mov $00F1, a				;$0546		|
+	clrp					;$0500		\ Clear the direct page bit
+	mov x, #$CF				;$0501		 |\ Initialize the stack pointer to $01CF
+	mov sp, x				;$0503		 |/
+	mov a, #$00				;$0504		 |\
+	mov $0386, a				;$0506		 | |
+	mov $0387, a				;$0509		 | |
+	mov $0388, a				;$050C		 | |
+	mov $0389, a				;$050F		 |/
+	mov x, a				;$0512		 |\ Clear the $0000-$00E8 range of ARAM
+.clear_first_page				;		 | |
+	mov (x+), a				;$0513		 | | X is a pointer to the current address being cleared
+	cmp x, #$E8				;$0514		 | |
+	bne .clear_first_page			;$0516		 |/
+	mov a, #$00				;$0518		 |\ Clear the $0200-$02FF range
+	mov x, a				;$051A		 | |
+.clear_02XX					;		 | |
+	mov $0200+x, a				;$051B		 | |
+	inc x					;$051E		 | |
+	bne .clear_02XX				;$051F		 |/
+.clear_03XX					;		 |\ Clear the $0300-$03FF range
+	mov $0300+x, a				;$0521		 | |
+	inc x					;$0524		 | |
+	bne .clear_03XX				;$0525		 |/
+	mov x, #$0B				;$0527		 |\ Initialize various DSP registers
+.initialize_DSP					;		 | |
+	mov a, initial_DSP_data+x		;$0529		 | |
+	mov y, a				;$052C		 | | Y gets the register to write to
+	mov a, initial_DSP_registers+x		;$052D		 | | A gets the value to write
+	call write_DSP				;$0530		 | |
+	dec x					;$0533		 | |
+	bpl .initialize_DSP			;$0534		 |/
+	mov a, #$F0				;$0536		 |\ Clear the I/O ports
+	mov $00F1, a				;$0538		 |/
+	mov a, #$10				;$053B		 |\ Set timer 0 to 16 ticks
+	mov $00FA, a				;$053D		 |/ Thus, each 16 timer 0 ticks, counter 0 ($FD) will increase
+	mov a, #$36				;$0540		 |\ Initialize tempo
+	mov $51, a				;$0542		 |/
+	mov a, #$01				;$0544		 | Enable timer 0 ($FA)
+	mov $00F1, a				;$0546		/
 
-CODE_0549:
-	mov y, $00FD
-	beq CODE_0549				;$054C		|
-	push y					;$054E		|
-	mov a, #$38				;$054F		|
-	mul ya					;$0551		|
-	clrc					;$0552		|
-	adc a, $44				;$0553		|
-	mov $44, a				;$0555		|
-	bcc CODE_0573				;$0557		|
-	inc $45					;$0559		|
-	call CODE_06AE				;$055B		|
-	mov x, #$00				;$055E		|
-	call CODE_05A5				;$0560		|
-	call CODE_09E5				;$0563		|
-	mov x, #$01				;$0566		|
-	call CODE_05A5				;$0568		|
-	call CODE_0816				;$056B		|
-	mov x, #$03				;$056E		|
-	call CODE_05A5				;$0570		|
+main_loop:					;		\
+	mov y, $00FD				;$0549		 |\ Wait for counter 0 to increment
+	beq main_loop				;$054C		 |/
+	push y					;$054E		 |
+	mov a, #$38				;$054F		 |\ Increase the "sub-ticks" for each counter 0 tick passed
+	mul ya					;$0551		 | |
+	clrc					;$0552		 | |
+	adc a, $44				;$0553		 | |
+	mov $44, a				;$0555		 |/
+	bcc CODE_0573				;$0557		 | Check if didn't reach $100 sub-ticks
+	inc $45					;$0559		 | Otherwise, increase the tick counter
+	call CODE_06AE				;$055B		 |
+	mov x, #$00				;$055E		 |\ Read/write APU 0
+	call read_write_IO			;$0560		 |/
+	call CODE_09E5				;$0563		 |
+	mov x, #$01				;$0566		 |\ Read/write APU 1
+	call read_write_IO			;$0568		 |/
+	call CODE_0816				;$056B		 |
+	mov x, #$03				;$056E		 |\ Read/write APU 3
+	call read_write_IO			;$0570		 |/
 CODE_0573:
 	mov a, $51
 	pop y					;$0575		|
@@ -82,11 +82,11 @@ CODE_0573:
 	call CODE_0BC0				;$0583		|
 CODE_0586:
 	mov x, #$02
-	call CODE_05A5				;$0588		|
-	bra CODE_0549				;$058B		|
+	call read_write_IO			;$0588		|
+	bra main_loop				;$058B		|
 CODE_058D:
 	mov a, $06
-	beq CODE_0549				;$058F		|
+	beq main_loop				;$058F		|
 	mov x, #$0E				;$0591		|
 	mov $48, #$80				;$0593		|
 CODE_0596:
@@ -98,29 +98,29 @@ CODE_059D:
 	dec x					;$059F		|
 	dec x					;$05A0		|
 	bpl CODE_0596				;$05A1		|
-	bra CODE_0549				;$05A3		|
+	bra main_loop				;$05A3		|
 
-CODE_05A5:
-	mov a, x
-	mov y, a				;$05A6		|
-	mov a, $04+x				;$05A7		|
-	mov $00F4+x, a				;$05A9		|
-CODE_05AC:
-	mov a, $00F4+x
-	cmp a, $00F4+x				;$05AF		|
-	bne CODE_05AC				;$05B2		|
-	mov y, a				;$05B4		|
-	mov a, $08+x				;$05B5		|
-	mov $08+x, y				;$05B7		|
-	cbne $08+x, CODE_05C1			;$05B9		|
-	mov y, #$00				;$05BC		|
-	mov $00+x, y				;$05BE		|
-	ret					;$05C0		|
-
-CODE_05C1:
-	mov $00+x, y
-	mov a, y				;$05C3		|
-	ret					;$05C4		|
+read_write_IO:					;		\ 
+	mov a, x				;$05A5		 |\ X contains the port number to process
+	mov y, a				;$05A6		 |/ which is copied into A and Y for no reason
+	mov a, $04+x				;$05A7		 |\ Send output
+	mov $00F4+x, a				;$05A9		 |/
+.read						;		 |
+	mov a, $00F4+x				;$05AC		 |\ Read input
+	cmp a, $00F4+x				;$05AF		 | | Keep reading, until it's stable
+	bne .read				;$05B2		 |/
+	mov y, a				;$05B4		 |\ Update the last value read from the port
+	mov a, $08+x				;$05B5		 | | and check if it's not the same as the previous read
+	mov $08+x, y				;$05B7		 | |
+	cbne $08+x, .new_input			;$05B9		 |/
+	mov y, #$00				;$05BC		 |\ Otherwise, there's no new input to process
+	mov $00+x, y				;$05BE		 |/
+	ret					;$05C0		/
+	
+.new_input					;		\
+	mov $00+x, y				;$05C1		 | Update the input to be processed for the port
+	mov a, y				;$05C3		 | And copy it to A
+	ret					;$05C4		/
 
 CODE_05C5:
 	cmp a, #$D0
@@ -231,22 +231,21 @@ CODE_064A:
 	or a, #$02				;$0684		|
 	mov y, a				;$0686		|
 	mov a, $16				;$0687		|
-	call CODE_068F				;$0689		|
+	call write_DSP_safe			;$0689		|
 	inc y					;$068C		|
 	mov a, $17				;$068D		|
 
-CODE_068F:
-	push a
-	mov a, $48				;$0690		|
-	and a, $1D				;$0692		|
-	pop a					;$0694		|
-	bne CODE_069D				;$0695		|
-
-CODE_0697:
-	mov $00F2, y
-	mov $00F3, a				;$069A		|
-CODE_069D:
-	ret
+write_DSP_safe:
+	push a					;$068F		\ Preserve value to write
+	mov a, $48				;$0690		 |\ If a sound effect is playing in the current channel
+	and a, $1D				;$0692		 | | don't write to the DSP
+	pop a					;$0694		 | |
+	bne write_DSP_return			;$0695		 |/
+write_DSP:					;		 |
+	mov $00F2, y				;$0697		 |\ Write A to DSP register Y
+	mov $00F3, a				;$069A		 |/
+.write_DSP_return:				;		 |
+	ret					;		/
 
 CODE_069E:
 	mov a, #$0A
@@ -297,7 +296,7 @@ CODE_06E7:
 	mov a, #$00				;$06F0		|
 CODE_06F2:
 	mov y, #$6C
-	call CODE_0697				;$06F4		|
+	call write_DSP				;$06F4		|
 CODE_06F7:
 	mov a, #$02
 	mov $0382, a				;$06F9		|
@@ -310,7 +309,7 @@ CODE_06F7:
 CODE_070B:
 	mov a, #$10
 	mov y, #$5C				;$070D		|
-	call CODE_0697				;$070F		|
+	call write_DSP				;$070F		|
 	set1 $1D.4				;$0712		|
 	mov a, #$00				;$0714		|
 	mov $0308, a				;$0716		|
@@ -336,7 +335,7 @@ CODE_072F:
 	mov a, #$60				;$0734		|
 	mov $0388, a				;$0736		|
 	mov y, #$6C				;$0739		|
-	call CODE_0697				;$073B		|
+	call write_DSP				;$073B		|
 CODE_073E:
 	mov $04, #$00
 	clr1 $1D.4				;$0741		|
@@ -363,20 +362,20 @@ CODE_0754:
 	mov $10, a				;$0763		|
 	bmi CODE_0786				;$0765		|
 	mov y, #$40				;$0767		|
-	call CODE_0697				;$0769		|
+	call write_DSP				;$0769		|
 	incw $18				;$076C		|
 	mov a, ($18+x)				;$076E		|
 	bpl CODE_077D				;$0770		|
 	mov x, a				;$0772		|
 	mov a, $10				;$0773		|
 	mov y, #$41				;$0775		|
-	call CODE_0697				;$0777		|
+	call write_DSP				;$0777		|
 	mov a, x				;$077A		|
 	bra CODE_0786				;$077B		|
 
 CODE_077D:
 	mov y, #$41
-	call CODE_0697				;$077F		|
+	call write_DSP				;$077F		|
 	incw $18				;$0782		|
 	mov a, ($18+x)				;$0784		|
 CODE_0786:
@@ -409,7 +408,7 @@ CODE_07B3:
 	bne CODE_07C1				;$07B8		|
 	mov a, #$10				;$07BA		|
 	mov y, #$5C				;$07BC		|
-	call CODE_0697				;$07BE		|
+	call write_DSP				;$07BE		|
 CODE_07C1:
 	ret
 
@@ -450,7 +449,7 @@ CODE_07F3:
 	mov $12, #$08				;$07FF		|
 CODE_0802:
 	mov a, $5570+x
-	call CODE_0697				;$0805		|
+	call write_DSP				;$0805		|
 	inc x					;$0808		|
 	inc y					;$0809		|
 	dbnz $12, CODE_0802			;$080A		|
@@ -483,7 +482,7 @@ CODE_0837:
 	mov $0D, #$02				;$0839		|
 	mov a, #$40				;$083C		|
 	mov y, #$5C				;$083E		|
-	call CODE_0697				;$0840		|
+	call write_DSP				;$0840		|
 	set1 $1D.6				;$0843		|
 	mov a, #$00				;$0845		|
 	mov $030C, a				;$0847		|
@@ -506,7 +505,7 @@ CODE_085E:
 	mov a, #$00				;$0863		|
 	mov $2F, a				;$0865		|
 	mov y, #$3D				;$0867		|
-	call CODE_0697				;$0869		|
+	call write_DSP				;$0869		|
 	mov x, #$0C				;$086C		|
 	mov a, $CD				;$086E		|
 	beq CODE_0875				;$0870		|
@@ -530,20 +529,20 @@ CODE_087D:
 	mov $10, a				;$088C		|
 	bmi CODE_08AF				;$088E		|
 	mov y, #$60				;$0890		|
-	call CODE_0697				;$0892		|
+	call write_DSP				;$0892		|
 	incw $1A				;$0895		|
 	mov a, ($1A+x)				;$0897		|
 	bpl CODE_08A6				;$0899		|
 	mov x, a				;$089B		|
 	mov a, $10				;$089C		|
 	mov y, #$61				;$089E		|
-	call CODE_0697				;$08A0		|
+	call write_DSP				;$08A0		|
 	mov a, x				;$08A3		|
 	bra CODE_08AF				;$08A4		|
 
 CODE_08A6:
 	mov y, #$61
-	call CODE_0697				;$08A8		|
+	call write_DSP				;$08A8		|
 	incw $1A				;$08AB		|
 	mov a, ($1A+x)				;$08AD		|
 CODE_08AF:
@@ -580,7 +579,7 @@ CODE_08E0:
 	bne CODE_08EE				;$08E5		|
 	mov a, #$40				;$08E7		|
 	mov y, #$5C				;$08E9		|
-	call CODE_0697				;$08EB		|
+	call write_DSP				;$08EB		|
 CODE_08EE:
 	ret
 
@@ -614,7 +613,7 @@ CODE_0920:
 	mov a, #$00
 	mov $2F, a				;$0922		|
 	mov y, #$3D				;$0924		|
-	call CODE_0697				;$0926		|
+	call write_DSP				;$0926		|
 CODE_0929:
 	mov x, #$00
 	incw $1A				;$092B		|
@@ -627,7 +626,7 @@ CODE_0929:
 	mov $12, #$08				;$0937		|
 CODE_093A:
 	mov a, $5570+x
-	call CODE_0697				;$093D		|
+	call write_DSP				;$093D		|
 	inc x					;$0940		|
 	inc y					;$0941		|
 	dbnz $12, CODE_093A			;$0942		|
@@ -638,11 +637,11 @@ CODE_094E:
 	and a, #$1F
 	mov $2E, a				;$0950		|
 	mov y, #$6C				;$0952		|
-	call CODE_0697				;$0954		|
+	call write_DSP				;$0954		|
 	mov a, #$40				;$0957		|
 	mov $2F, a				;$0959		|
 	mov y, #$3D				;$095B		|
-	call CODE_0697				;$095D		|
+	call write_DSP				;$095D		|
 	bra CODE_0929				;$0960		|
 
 CODE_0962:
@@ -653,7 +652,7 @@ CODE_0962:
 	mov $12, #$08				;$0968		|
 CODE_096B:
 	mov a, $5570+x
-	call CODE_0697				;$096E		|
+	call write_DSP				;$096E		|
 	inc x					;$0971		|
 	inc y					;$0972		|
 	dbnz $12, CODE_096B			;$0973		|
@@ -684,10 +683,10 @@ CODE_099A:
 CODE_099C:
 	mov a, #$60
 	mov y, #$6C				;$099E		|
-	call CODE_0697				;$09A0		|
+	call write_DSP				;$09A0		|
 	mov a, #$FF				;$09A3		|
 	mov y, #$5C				;$09A5		|
-	call CODE_0697				;$09A7		|
+	call write_DSP				;$09A7		|
 	call CODE_12F2				;$09AA		|
 	mov a, #$00				;$09AD		|
 	mov $04, a				;$09AF		|
@@ -701,7 +700,7 @@ CODE_099C:
 	mov $0389, a				;$09C2		|
 	mov a, #$20				;$09C5		|
 	mov y, #$6C				;$09C7		|
-	call CODE_0697				;$09C9		|
+	call write_DSP				;$09C9		|
 	ret					;$09CC		|
 
 CODE_09CD:
@@ -753,7 +752,7 @@ CODE_0A14:
 	mov $0383, a				;$0A18		|
 	mov a, #$80				;$0A1B		|
 	mov y, #$5C				;$0A1D		|
-	call CODE_0697				;$0A1F		|
+	call write_DSP				;$0A1F		|
 	set1 $1D.7				;$0A22		|
 	mov a, #$00				;$0A24		|
 	mov y, #$20				;$0A26		|
@@ -808,11 +807,11 @@ CODE_0A68:
 	mov a, #$38				;$0A82		|
 	mov $10, a				;$0A84		|
 	mov y, #$70				;$0A86		|
-	call CODE_0697				;$0A88		|
+	call write_DSP				;$0A88		|
 	mov a, #$38				;$0A8B		|
 	mov $10, a				;$0A8D		|
 	mov y, #$71				;$0A8F		|
-	call CODE_0697				;$0A91		|
+	call write_DSP				;$0A91		|
 	mov a, #$80				;$0A94		|
 	call CODE_0D32				;$0A96		|
 CODE_0A99:
@@ -820,7 +819,7 @@ CODE_0A99:
 	cbne $1C, CODE_0AA5			;$0A9B		|
 	mov a, #$80				;$0A9E		|
 	mov y, #$5C				;$0AA0		|
-	call CODE_0697				;$0AA2		|
+	call write_DSP				;$0AA2		|
 CODE_0AA5:
 	clr1 $13.7
 	mov a, $9E				;$0AA7		|
@@ -840,7 +839,7 @@ CODE_0AB3:
 	mov $12, #$08				;$0AB9		|
 CODE_0ABC:
 	mov a, $5570+x
-	call CODE_0697				;$0ABF		|
+	call write_DSP				;$0ABF		|
 	inc x					;$0AC2		|
 	inc y					;$0AC3		|
 	dbnz $12, CODE_0ABC			;$0AC4		|
@@ -854,7 +853,7 @@ CODE_0ACE:
 	mov $0383, a				;$0AD2		|
 	mov a, #$80				;$0AD5		|
 	mov y, #$5C				;$0AD7		|
-	call CODE_0697 				;$0AD9		|
+	call write_DSP 				;$0AD9		|
 	set1 $1D.7				;$0ADC		|
 	mov a, #$00				;$0ADE		|
 	mov y, #$20				;$0AE0		|
@@ -895,11 +894,11 @@ CODE_0B1C:
 	mov a, #$28
 	mov $10, a				;$0B1E		|
 	mov y, #$70				;$0B20		|
-	call CODE_0697				;$0B22		|
+	call write_DSP				;$0B22		|
 	mov a, #$28				;$0B25		|
 	mov $10, a				;$0B27		|
 	mov y, #$71				;$0B29		|
-	call CODE_0697				;$0B2B		|
+	call write_DSP				;$0B2B		|
 	mov a, #$80				;$0B2E		|
 	call CODE_0D32				;$0B30		|
 CODE_0B33:
@@ -907,7 +906,7 @@ CODE_0B33:
 	cbne $1C, CODE_0B3F			;$0B35		|
 	mov a, #$80				;$0B38		|
 	mov y, #$5C				;$0B3A		|
-	call CODE_0697				;$0B3C		|
+	call write_DSP				;$0B3C		|
 CODE_0B3F:
 	ret
 
@@ -970,7 +969,7 @@ CODE_0BA5:
 	mov a, $1D
 	eor a, #$FF				;$0BA7		|
 	mov y, #$5C				;$0BA9		|
-	jmp CODE_0697				;$0BAB		|
+	jmp write_DSP				;$0BAB		|
 
 CODE_0BAE:
 	mov x, #$F0
@@ -995,7 +994,7 @@ CODE_0BCC:
 	bne CODE_0BDC				;$0BCF		|
 	mov a, #$20				;$0BD1		|
 	mov y, #$5C				;$0BD3		|
-	call CODE_0697				;$0BD5		|
+	call write_DSP				;$0BD5		|
 	set1 $1D.5				;$0BD8		|
 	bra CODE_0BDE				;$0BDA		|
 
@@ -1217,18 +1216,18 @@ CODE_0D32:
 	push a
 	mov y, #$5C				;$0D33		|
 	mov a, #$00				;$0D35		|
-	call CODE_0697				;$0D37		|
+	call write_DSP				;$0D37		|
 	pop a					;$0D3A		|
 	mov y, #$4C				;$0D3B		|
-	jmp CODE_0697				;$0D3D		|
+	jmp write_DSP				;$0D3D		|
 
 CODE_0D40:
 	asl a
 	mov x, a				;$0D41		|
 	mov a, #$00				;$0D42		|
-	jmp (CODE_0F90-$B4+x)			;$0D44		|
+	jmp (command_pointers-$B4+x)		;$0D44		|
 
-CODE_0D47:
+set_instrument:
 	call CODE_125C
 
 CODE_0D4A:
@@ -1258,7 +1257,7 @@ CODE_0D56:
 	and a, $2F				;$0D6C		|
 	mov $2F, a				;$0D6E		|
 	mov y, #$3D				;$0D70		|
-	call CODE_0697				;$0D72		|
+	call write_DSP				;$0D72		|
 	mov y, #$00				;$0D75		|
 CODE_0D77:
 	mov a, ($14)+y
@@ -1275,7 +1274,7 @@ CODE_0D77:
 CODE_0D8D:
 	ret
 
-CODE_0D8E:
+set_pan:
 	call CODE_125C
 	and a, #$1F				;$0D91		|
 	mov $0281+x, a				;$0D93		|
@@ -1287,7 +1286,7 @@ CODE_0D8E:
 	or ($5C), ($48)				;$0DA1		|
 	ret					;$0DA4		|
 
-CODE_0DA5:
+fade_pan:
 	call CODE_125C
 	mov $81+x, a				;$0DA8		|
 	push a					;$0DAA		|
@@ -1302,7 +1301,7 @@ CODE_0DA5:
 	mov $0291+x, a				;$0DBD		|
 	ret					;$0DC0		|
 
-CODE_0DC1:
+enable_vibrato:
 	call CODE_125C
 	mov $0340+x, a				;$0DC4		|
 	mov a, #$00				;$0DC7		|
@@ -1311,12 +1310,12 @@ CODE_0DC1:
 	mov $0331+x, a				;$0DCF		|
 
 	call CODE_125E				;$0DD2		|
-CODE_0DD5:
+disable_vibrato:
 	mov x, $46
 	mov $A1+x, a				;$0DD7		|
 	ret					;$0DD9		|
 
-CODE_0DDA:
+fade_vibrato:
 	call CODE_125C
 	mov $0341+x, a				;$0DDD		|
 	push a					;$0DE0		|
@@ -1329,14 +1328,14 @@ CODE_0DDA:
 	mov $0350+x, a				;$0DEC		|
 	ret					;$0DEF		|
 
-CODE_0DF0:
+set_global_volume:
 	call CODE_125C
 	mov $57, a				;$0DF3		|
 	mov $56, #$00				;$0DF5		|
 	mov $5C, #$FF				;$0DF8		|
 	ret					;$0DFB		|
 
-CODE_0DFC:
+fade_global_volume:
 	call CODE_125C
 	mov $58, a				;$0DFF		|
 	call CODE_125E				;$0E01		|
@@ -1348,7 +1347,7 @@ CODE_0DFC:
 	movw $5A, ya				;$0E0E		|
 	ret					;$0E10		|
 
-CODE_0E11:
+set_tempo:
 	call CODE_125C
 
 CODE_0E14:
@@ -1357,7 +1356,7 @@ CODE_0E14:
 	mov $50, #$00				;$0E19		|
 	ret					;$0E1C		|
 
-CODE_0E1D:
+fade_tempo:
 	call CODE_125C
 	mov $52, a				;$0E20		|
 	call CODE_125E				;$0E22		|
@@ -1370,28 +1369,28 @@ CODE_0E1D:
 	movw $54, ya				;$0E32		|
 	ret					;$0E34		|
 
-CODE_0E35:
+set_global_transposition:
 	call CODE_125C
 	mov $43, a				;$0E38		|
 	ret					;$0E3A		|
 
-CODE_0E3B:
+enable_tremolo:
 	call CODE_125C
 	mov $0370+x, a				;$0E3E		|
 	call CODE_125E				;$0E41		|
 	mov $0362+x, a				;$0E44		|
 	call CODE_125E				;$0E47		|
 
-CODE_0E4A:
+disable_tremolo:
 	mov x, $46
 	mov $B1+x, a				;$0E4C		|
 	ret					;$0E4E		|
 
-CODE_0E4F:
+pitch_envelope_to_note:
 	mov a, #$01
 	bra CODE_0E55				;$0E51		|
 
-CODE_0E53:
+pitch_envelope_from_note:
 	mov a, #$00
 CODE_0E55:
 	mov x, $46
@@ -1408,7 +1407,7 @@ CODE_0E55:
 	mov $0300+x, a				;$0E6F		|
 	ret					;$0E72		|
 
-CODE_0E73:
+set_channel_volume:
 	call CODE_125C
 	mov $0241+x, a				;$0E76		|
 	mov a, #$00				;$0E79		|
@@ -1416,7 +1415,7 @@ CODE_0E73:
 	or ($5C), ($48)				;$0E7E		|
 	ret					;$0E81		|
 
-CODE_0E82:
+fade_channel_volume:
 	call CODE_125C
 	mov $80+x, a				;$0E85		|
 	push a					;$0E87		|
@@ -1431,12 +1430,12 @@ CODE_0E82:
 	mov $0251+x, a				;$0E9A		|
 	ret					;$0E9D		|
 
-CODE_0E9E:
+set_channel_fine_tuning:
 	call CODE_125C
 	mov $02D1+x, a				;$0EA1		|
 	ret					;$0EA4		|
 
-CODE_0EA5:
+call_loop:
 	call CODE_125C
 	push a					;$0EA8		|
 	call CODE_125E				;$0EA9		|
@@ -1455,11 +1454,11 @@ CODE_0EA5:
 	mov $03F0+x, a				;$0EC5		|
 	ret					;$0EC8		|
 
-CODE_0EC9:
+enable_echo:
 	call CODE_125C
 	mov $0389, a				;$0ECC		|
 	mov y, #$4D				;$0ECF		|
-	call CODE_0697				;$0ED1		|
+	call write_DSP				;$0ED1		|
 	call CODE_125E				;$0ED4		|
 	mov a, #$00				;$0ED7		|
 	movw $61, ya				;$0ED9		|
@@ -1469,17 +1468,17 @@ CODE_0EC9:
 	mov $2E, a				;$0EE2		|
 	and a, #$1F				;$0EE4		|
 	mov y, #$6C				;$0EE6		|
-	call CODE_0697				;$0EE8		|
+	call write_DSP				;$0EE8		|
 
 CODE_0EEB:
 	mov a, $62
 	mov y, #$2C				;$0EED		|
-	call CODE_0697				;$0EEF		|
+	call write_DSP				;$0EEF		|
 	mov a, $64				;$0EF2		|
 	mov y, #$3C				;$0EF4		|
-	jmp CODE_0697				;$0EF6		|
+	jmp write_DSP				;$0EF6		|
 
-CODE_0EF9:
+fade_echo_volume:
 	call CODE_125C
 	mov $60, a				;$0EFC		|
 	call CODE_125E				;$0EFE		|
@@ -1498,7 +1497,7 @@ CODE_0EF9:
 	movw $67, ya				;$0F1A		|
 	ret					;$0F1C		|
 
-CODE_0F1D:
+disable_echo:
 	mov x, $46
 	mov $0389, a				;$0F1F		|
 CODE_0F22:
@@ -1509,15 +1508,15 @@ CODE_0F22:
 	mov $2E, a				;$0F2A		|
 	or a, #$20				;$0F2C		|
 	mov y, #$6C				;$0F2E		|
-	jmp CODE_0697				;$0F30		|
+	jmp write_DSP				;$0F30		|
 
-CODE_0F33:
+set_echo_parameters:
 	call CODE_125C
 	mov y, #$7D				;$0F36		|
-	call CODE_0697				;$0F38		|
+	call write_DSP				;$0F38		|
 	call CODE_125E				;$0F3B		|
 	mov y, #$0D				;$0F3E		|
-	call CODE_0697				;$0F40		|
+	call write_DSP				;$0F40		|
 	call CODE_125E				;$0F43		|
 	mov y, #$08				;$0F46		|
 	mul ya					;$0F48		|
@@ -1525,7 +1524,7 @@ CODE_0F33:
 	mov y, #$0F				;$0F4A		|
 CODE_0F4C:
 	mov a, DATA_12AD+x
-	call CODE_0697				;$0F4F		|
+	call write_DSP				;$0F4F		|
 	inc x					;$0F52		|
 	mov a, y				;$0F53		|
 	clrc					;$0F54		|
@@ -1570,32 +1569,32 @@ CODE_0F85:
 	mov x, $46				;$0F8D		|
 	ret					;$0F8F		|
 
-CODE_0F90:
-	dw CODE_0D47
-	dw CODE_0D8E				;$0F92		|
-	dw CODE_0DA5				;$0F94		|
+command_pointers:
+	dw set_instrument			;$0F90		|		
+	dw set_pan				;$0F92		|
+	dw fade_pan				;$0F94		|
 	dw $0000				;$0F96		|
-	dw CODE_0DC1				;$0F98		|
-	dw CODE_0DD5				;$0F9A		|
-	dw CODE_0DF0				;$0F9C		|
-	dw CODE_0DFC				;$0F9E		|
-	dw CODE_0E11				;$0FA0		|
-	dw CODE_0E1D				;$0FA2		|
-	dw CODE_0E35				;$0FA4		|
-	dw CODE_0E3B				;$0FA6		|
-	dw CODE_0E4A				;$0FA8		|
-	dw CODE_0E73				;$0FAA		|
-	dw CODE_0E82				;$0FAC		|
-	dw CODE_0EA5				;$0FAE		|
-	dw CODE_0DDA				;$0FB0		|
-	dw CODE_0E4F				;$0FB2		|
-	dw CODE_0E53				;$0FB4		|
+	dw enable_vibrato			;$0F98		|
+	dw set_global_volume			;$0F9C		|
+	dw disable_vibrato			;$0F9A		|
+	dw fade_global_volume			;$0F9E		|
+	dw set_tempo				;$0FA0		|
+	dw fade_tempo				;$0FA2		|
+	dw set_global_transposition		;$0FA4		|
+	dw enable_tremolo			;$0FA6		|
+	dw disable_tremolo			;$0FA8		|
+	dw set_channel_volume			;$0FAA		|
+	dw fade_channel_volume			;$0FAC		|
+	dw call_loop				;$0FAE		|
+	dw fade_vibrato				;$0FB0		|
+	dw pitch_envelope_to_note		;$0FB2		|
+	dw pitch_envelope_from_note		;$0FB4		|
 	dw $0000				;$0FB6		|
-	dw CODE_0E9E				;$0FB8		|
-	dw CODE_0EC9				;$0FBA		|
-	dw CODE_0F1D				;$0FBC		|
-	dw CODE_0F33				;$0FBE		|
-	dw CODE_0EF9				;$0FC0		|
+	dw set_channel_fine_tuning		;$0FB8		| 
+	dw enable_echo				;$0FBA		| 
+	dw disable_echo				;$0FBC		| 
+	dw set_echo_parameters			;$0FBE		| 
+	dw fade_echo_volume			;$0FC0		|
 
 DATA_0FC2:
 	db $02,$02,$03,$04,$04,$01,$02,$03
@@ -1687,7 +1686,7 @@ CODE_105A:
 CODE_1061:
 	mov a, y
 	mov y, $12				;$1062		|
-	call CODE_068F				;$1064		|
+	call write_DSP_safe			;$1064		|
 	mov a, #$00				;$1067		|
 	mov y, #$14				;$1069		|
 	subw ya, $10				;$106B		|
@@ -1759,14 +1758,14 @@ CODE_10BF:
 	mov y, a				;$10C8		|
 	pop a					;$10C9		|
 	clrc					;$10CA		|
-	adc a, CODE_0F90-$A8+y			;$10CB		|
+	adc a, command_pointers-$A8+y		;$10CB		|
 	mov y, a				;$10CE		|
 	bra CODE_10B4				;$10CF		|
 
 CODE_10D1:
 	mov a, $48
 	mov y, #$5C				;$10D3		|
-	call CODE_068F				;$10D5		|
+	call write_DSP_safe			;$10D5		|
 CODE_10D8:
 	clr1 $13.7
 	mov a, $90+x				;$10DA		|
@@ -2023,12 +2022,14 @@ DATA_1280:
 	db $00,$01,$03,$07,$0D,$15,$1E,$29
 	db $34,$42,$51,$5E,$67,$6E,$73,$77
 	db $7A,$7C,$7D,$7E,$7F
-DATA_1295:
+	
+initial_DSP_data:
 	db $7F,$7F,$00,$00,$2F,$60,$00,$00
 	db $00,$80,$60,$02
-DATA_12A1:
+initial_DSP_registers:
 	db $0C,$1C,$2C,$3C,$6C,$0D,$2D,$3D
 	db $4D,$5D,$6D,$7D
+	
 DATA_12AD:
 	db $FF,$08,$17,$24,$24,$17,$08,$FF
 	db $7F,$00,$00,$00,$00,$00,$00,$00
