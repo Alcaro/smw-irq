@@ -6613,7 +6613,7 @@ LoadBlkTable2:
 	dw Ptrs00BE28
 	dw Ptrs00BE68
 
-GenerateTile:
+generate_tile:
 	PHP
 	REP #$30				;$00BEB1	|
 	PHX					;$00BEB3	|
@@ -7759,7 +7759,7 @@ CODE_00C827:
 	INY					;$00C83D	|
 	INY					;$00C83E	|
 	STY.w $1B95				;$00C83F	|
-	JSR CODE_00D273				;$00C842	|
+	JSR go_to_sublevel			;$00C842	|
 CODE_00C845:
 	JMP CODE_00CD8F
 
@@ -9086,17 +9086,17 @@ CODE_00D259:
 	JMP CODE_00DC2D				;$00D265	|
 
 CODE_00D268:
-	BCC CODE_00D273
+	BCC go_to_sublevel
 CODE_00D26A:
 	STZ.w $13F9
 	STZ.w $1419				;$00D26D	|
 	JMP CODE_00D158				;$00D270	|
 
-CODE_00D273:
-	INC.w $141A
-	LDA.b #$0F				;$00D276	|
-	STA.w $0100				;$00D278	|
-	RTS					;$00D27B	|
+go_to_sublevel:
+	INC.w $141A				;$00D273	\ Increase the sub-level counter,
+	LDA.b #$0F				;$00D276	 |
+	STA.w $0100				;$00D278	 | and fade in to another level.
+	RTS					;$00D27B	/
 
 	LDA $96					;$00D27C	|
 	SEC					;$00D27E	|
@@ -10890,25 +10890,25 @@ DATA_00E632:
 	db $00,$02,$04,$06,$08,$0A,$0C,$0E
 
 collision_x_offsets:
-	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Small
-	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Small, walking
-	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Big
-	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Big, walking
-	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Small, on yoshi
-	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Small, on yoshi, walking
-	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Big, on yoshi
-	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Big, on yoshi, walking
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Small, right side
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Small, left side
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Big, left side
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Big, right side
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Small, on yoshi, left side
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Small, on yoshi, right side
+	dw $0008,$000E,$000E,$0008,$0005,$000B	;		| Big, on yoshi, left side
+	dw $0008,$0002,$0002,$0008,$000B,$0005	;		| Big, on yoshi, right side
 	dw $0010,$0020,$0007,$0000,$FFF0,$0008	;		| Wall-running
 	
 collision_y_offsets:
 	dw $0018,$001A,$0016,$0010,$0020,$0020	;		| Small
-	dw $0018,$001A,$0016,$0010,$0020,$0020	;		| Small, walking
+	dw $0018,$001A,$0016,$0010,$0020,$0020	;		| Small
 	dw $0012,$001A,$000F,$0008,$0020,$0020	;		| Big
-	dw $0012,$001A,$000F,$0008,$0020,$0020	;		| Big, walking
+	dw $0012,$001A,$000F,$0008,$0020,$0020	;		| Big
 	dw $001D,$0028,$0019,$0013,$0030,$0030	;		| Small, on yoshi
-	dw $001D,$0028,$0019,$0013,$0030,$0030	;		| Small, on yoshi, walking
+	dw $001D,$0028,$0019,$0013,$0030,$0030	;		| Small, on yoshi
 	dw $001A,$0028,$0016,$0010,$0030,$0030	;		| Big, on yoshi
-	dw $001A,$0028,$0016,$0010,$0030,$0030	;		| Big, on yoshi, walking
+	dw $001A,$0028,$0016,$0010,$0030,$0030	;		| Big, on yoshi
 	dw $0018,$0018,$0018,$0018,$0018,$0018	;		| Wall-running
 	
 DATA_00E90A:
@@ -10934,18 +10934,18 @@ DATA_00E91F:
 CODE_00E92B:
 	JSR CODE_00EAA6
 	LDA.w $185C				;$00E92E	|
-	BEQ CODE_00E938				;$00E931	|
+	BEQ .collision				;$00E931	|
 	JSR CODE_00EE1D				;$00E933	|
-	BRA CODE_00E98C				;$00E936	|
+	BRA no_layer1_collision			;$00E936	|
 
-CODE_00E938:
-	LDA.w $13EF
+.collision
+	LDA.w $13EF				;$00E938	|
 	STA $8D					;$00E93B	|
 	STZ.w $13EF				;$00E93D	|
 	LDA $72					;$00E940	|
 	STA $8F					;$00E942	|
 	LDA $5B					;$00E944	|
-	BPL CODE_00E978				;$00E946	|
+	BPL .no_layer2_collision		;$00E946	|
 	AND.b #$82				;$00E948	|
 	STA $8E					;$00E94A	|
 	LDA.b #$01				;$00E94C	|
@@ -10960,7 +10960,7 @@ CODE_00E938:
 	ADC $28					;$00E95D	|
 	STA $96					;$00E95F	|
 	SEP #$20				;$00E961	|
-	JSR level_collision			;$00E963	|
+	JSR level_collision			;$00E963	| Process layer 2 level collision.
 	REP #$20				;$00E966	|
 	LDA $94					;$00E968	|
 	SEC					;$00E96A	|
@@ -10971,18 +10971,18 @@ CODE_00E938:
 	SBC $28					;$00E972	|
 	STA $96					;$00E974	|
 	SEP #$20				;$00E976	|
-CODE_00E978:
-	ASL.w $13EF
+.no_layer2_collision				;		|
+	ASL.w $13EF				;$00E978	|
 	LDA $5B					;$00E97B	|
 	AND.b #$41				;$00E97D	|
 	STA $8E					;$00E97F	|
 	ASL					;$00E981	|
-	BMI CODE_00E98C				;$00E982	|
+	BMI no_layer1_collision			;$00E982	|
 	STZ.w $1933				;$00E984	|
 	ASL $8D					;$00E987	|
-	JSR level_collision			;$00E989	|
-CODE_00E98C:
-	LDA.w $1B96
+	JSR level_collision			;$00E989	| Process layer 1 level collision.
+no_layer1_collision:				;		|
+	LDA.w $1B96				;$00E98C	|
 	BEQ CODE_00E9A1				;$00E98F	|
 	REP #$20				;$00E991	|
 	LDA $7E					;$00E993	|
@@ -11154,7 +11154,7 @@ DATA_00EABB:
 DATA_00EABD:
 	db $08,$00,$F8,$FF
 
-DATA_00EAC1:
+page_1_water_tiles:
 	db $71,$72,$76,$77,$7B,$7C,$81,$86
 	db $8A,$8B,$8F,$90,$94,$95,$99,$9A
 	db $9E,$9F,$A3,$A4,$A8,$A9,$AD,$AE
@@ -11268,112 +11268,112 @@ normal_collision:
 	ADC.b #$30				;$00EB8A	 | | use the Yoshi collision point indices.
 	TAX					;$00EB8C	 | |
 .not_on_yoshi					;		 |/
-	LDA $94					;$00EB8D	 |
-	AND.b #$0F				;$00EB8F	 |
-	TAY					;$00EB91	 |
-	CLC					;$00EB92	 |
-	ADC.b #$08				;$00EB93	 |
-	AND.b #$0F				;$00EB95	 |
-	STA $92					;$00EB97	 |
-	STZ $93					;$00EB99	 |
-	CPY.b #$08				;$00EB9B	 |
-	BCC CODE_00EBA5				;$00EB9D	 |
-	TXA					;$00EB9F	 |
-	ADC.b #$0B				;$00EBA0	 |
-	TAX					;$00EBA2	 |
-	INC $93					;$00EBA3	 |
-CODE_00EBA5:					;		 |
-	LDA $90					;$00EBA5	 |
-	CLC					;$00EBA7	 |
-	ADC.w collision_y_offsets+6,X		;$00EBA8	 |
-	AND.b #$0F				;$00EBAB	 |
-	STA $91					;$00EBAD	 |
+	LDA $94					;$00EB8D	 |\ Get the player X,
+	AND.b #$0F				;$00EB8F	 | | take the lower nybble,
+	TAY					;$00EB91	 | |
+	CLC					;$00EB92	 | |
+	ADC.b #$08				;$00EB93	 | |
+	AND.b #$0F				;$00EB95	 | |
+	STA $92					;$00EB97	 | | and set the position within a block.
+	STZ $93					;$00EB99	 |/
+	CPY.b #$08				;$00EB9B	 |\ If the player is on the left side of a block,
+	BCC CODE_00EBA5				;$00EB9D	 | |
+	TXA					;$00EB9F	 | |
+	ADC.b #$0B				;$00EBA0	 | | use the left side collision point indices.
+	TAX					;$00EBA2	 | |
+	INC $93					;$00EBA3	 | | Set the side of the block that the player is in.
+CODE_00EBA5:					;		 |/
+	LDA $90					;$00EBA5	 |\ Get the player Y,
+	CLC					;$00EBA7	 | |
+	ADC.w collision_y_offsets+6,X		;$00EBA8	 | | add the head offset,
+	AND.b #$0F				;$00EBAB	 | |
+	STA $91					;$00EBAD	 |/ and set the amount to move the player out of a block.
 	JSR process_collision_point		;$00EBAF	 | Process the center body collision point.
-	BEQ .center_page_0			;$00EBB2	 |
-	CPY.b #$11				;$00EBB4	 |
-	BCC .skip_center			;$00EBB6	 |
-	CPY.b #$6E				;$00EBB8	 |
-	BCC .solid_center			;$00EBBA	 |
-	TYA					;$00EBBC	 |
-	JSL CODE_00F04D				;$00EBBD	 |
-	BCC .skip_center			;$00EBC1	 |
-	LDA.b #$01				;$00EBC3	 |
-	TSB $8A					;$00EBC5	 |
+	BEQ .center_page_0			;$00EBB2	 |\ Process page 0 tiles, if applicable.
+	CPY.b #$11				;$00EBB4	 | | If it's tiles 100 - 110,
+	BCC .skip_center			;$00EBB6	 | | don't process them.
+	CPY.b #$6E				;$00EBB8	 | | If it's tiles 111 - 16D,
+	BCC .center_solid			;$00EBBA	 | | process being inside a solid block.
+	TYA					;$00EBBC	 | |
+	JSL is_page_1_water			;$00EBBD	 | | If the tile isn't a water tile,
+	BCC .skip_center			;$00EBC1	 | |
+	LDA.b #$01				;$00EBC3	 | |
+	TSB $8A					;$00EBC5	 |/ disable the center swimming flag.
 	BRA .skip_center			;$00EBC7	/
 
-.solid_center
-	INX					;$00EBC9	|
-	INX					;$00EBCA	|
-	INX					;$00EBCB	|
-	INX					;$00EBCC	|
-	TYA					;$00EBCD	|
-	LDY.b #$00				;$00EBCE	|
-	CMP.b #$1E				;$00EBD0	|
-	BEQ .CODE_00EBDA			;$00EBD2	|
-	CMP.b #$52				;$00EBD4	|
-	BEQ .CODE_00EBDA			;$00EBD6	|
-	LDY.b #$02				;$00EBD8	|
-.CODE_00EBDA
-	JMP .center_body_in_block
+.center_solid
+	INX					;$00EBC9	\
+	INX					;$00EBCA	 |
+	INX					;$00EBCB	 |
+	INX					;$00EBCC	 | Skip to the head collision point.
+	TYA					;$00EBCD	 |
+	LDY.b #$00				;$00EBCE	 |
+	CMP.b #$1E				;$00EBD0	 |\ If the tile is a turn block
+	BEQ .not_inside_block			;$00EBD2	 | |
+	CMP.b #$52				;$00EBD4	 | | or a temporary invisible block,
+	BEQ .not_inside_block			;$00EBD6	 | |
+	LDY.b #$02				;$00EBD8	 | | don't mark the player as being inside of a block.
+.not_inside_block				;		 |/
+	JMP .center_in_block			;$00EBDA	/ Run center body in block code.
 
 .center_page_0
-	CPY.b #$9C				;$00EBDD	|
-	BNE .not_castle_door			;$00EBDF	|
-	LDA.w $1931				;$00EBE1	|
-	CMP.b #$01				;$00EBE4	|
-	BEQ .castle_door			;$00EBE6	|
-.not_castle_door
-	CPY.b #$20
-	BEQ .door				;$00EBEA	|
-	CPY.b #$1F				;$00EBEC	|
-	BEQ .upper_door				;$00EBEE	|
-	LDA.w $14AD				;$00EBF0	|
-	BEQ .process_center			;$00EBF3	|
-	CPY.b #$28				;$00EBF5	|
-	BEQ .door				;$00EBF7	|
-	CPY.b #$27				;$00EBF9	|
-	BNE .process_center			;$00EBFB	|
-.upper_door
-	LDA $19					;$00EBFD	|
-	BNE .skip_center			;$00EBFF	|
-.door
-	JSR can_use_door			;$00EC01	|
-	BCS .skip_center			;$00EC04	|
-.castle_door
-	LDA $8F					;$00EC06	|
-	BNE .skip_center			;$00EC08	|
-	LDA $16					;$00EC0A	|
-	AND.b #$08				;$00EC0C	|
-	BEQ .skip_center			;$00EC0E	|
-	LDA.b #$0F				;$00EC10	|
-	STA.w $1DFC				;$00EC12	|
-	JSR CODE_00D273				;$00EC15	|
-	LDA.b #$0D				;$00EC18	|
-	STA $71					;$00EC1A	|
-	JSR disable_controls			;$00EC1C	|
-	BRA .skip_center			;$00EC1F	|
+	CPY.b #$9C				;$00EBDD	\
+	BNE .not_castle_door			;$00EBDF	 |\ If the tile is part of the castle door
+	LDA.w $1931				;$00EBE1	 | |
+	CMP.b #$01				;$00EBE4	 | | and the tileset is the castle tileset,
+	BEQ .castle_door			;$00EBE6	 |/ process castle door.
+.not_castle_door				;		 |
+	CPY.b #$20				;$00EBE8	 |\ Process lower half of door, if applicable.
+	BEQ .lower_door				;$00EBEA	 |/
+	CPY.b #$1F				;$00EBEC	 |\ Process upper half of door, if applicable.
+	BEQ .upper_door				;$00EBEE	 |/
+	LDA.w $14AD				;$00EBF0	 |\ If the blue P-switch is active,
+	BEQ .process_center			;$00EBF3	 | |
+	CPY.b #$28				;$00EBF5	 | | process lower half of P-switch door, if applicable.
+	BEQ .lower_door				;$00EBF7	 | |
+	CPY.b #$27				;$00EBF9	 | | Process upper half of P-switch door, if applicable.
+	BNE .process_center			;$00EBFB	 |/
+.upper_door					;		 |
+	LDA $19					;$00EBFD	 |\ If the player is big,
+	BNE .skip_center			;$00EBFF	 |/ don't let him use the upper half of the door.
+.lower_door					;		 |
+	JSR can_use_door			;$00EC01	 |\ If the player isn't positioned correctly,
+	BCS .skip_center			;$00EC04	 | |
+.castle_door					;		 | |
+	LDA $8F					;$00EC06	 | | or if the player isn't on the ground,
+	BNE .skip_center			;$00EC08	 | |
+	LDA $16					;$00EC0A	 | | or if the player isn't pressing up,
+	AND.b #$08				;$00EC0C	 | |
+	BEQ .skip_center			;$00EC0E	 |/ don't let him use the door.
+	LDA.b #$0F				;$00EC10	 |\ Play the door sound,
+	STA.w $1DFC				;$00EC12	 | |
+	JSR go_to_sublevel			;$00EC15	 | | go to the sublevel,
+	LDA.b #$0D				;$00EC18	 | |
+	STA $71					;$00EC1A	 | | set the door animation,
+	JSR disable_controls			;$00EC1C	 |/ and disable controls.
+	BRA .skip_center			;$00EC1F	/
 
 .process_center
-	JSR CODE_00F28C				;$00EC21	|
-.skip_center					;		|
-	JSR process_collision_point		;$00EC24	| Process the side body collision point.
-	BEQ .side_body_page_0			;$00EC27	|
-	CPY.b #$11				;$00EC29	|
-	BCC .skip_side_body			;$00EC2B	|
-	CPY.b #$6E				;$00EC2D	|
-	BCS .skip_side_body			;$00EC2F	|
-	INX					;$00EC31	|
-	INX					;$00EC32	|
-	BRA .side_body_in_block			;$00EC33	|
+	JSR process_center_page_0_tiles		;$00EC21	\ Process center body page 0 tile collision.
+.skip_center					;		 |
+	JSR process_collision_point		;$00EC24	 | Process the side body collision point.
+	BEQ .side_body_page_0			;$00EC27	 |
+	CPY.b #$11				;$00EC29	 |
+	BCC .skip_side_body			;$00EC2B	 |
+	CPY.b #$6E				;$00EC2D	 |
+	BCS .skip_side_body			;$00EC2F	 |
+	INX					;$00EC31	 |
+	INX					;$00EC32	 | Skip to the head collision point.
+	BRA .side_body_in_block			;$00EC33	/
 
 .side_body_page_0
 	LDA.b #$10				;$00EC35	|
-	JSR CODE_00F2C9				;$00EC37	|
+	JSR process_page_0_tiles_no_swim	;$00EC37	|
 .skip_side_body					;		|
 	JSR process_collision_point		;$00EC3A	| Process the side head collision point.
 	BNE .side_head_page_1			;$00EC3D	|
 	LDA.b #$08				;$00EC3F	|
-	JSR CODE_00F2C9				;$00EC41	|
+	JSR process_page_0_tiles_no_swim	;$00EC41	|
 	BRA .skip_side_head			;$00EC44	|
 
 .side_head_page_1
@@ -11398,7 +11398,7 @@ CODE_00EBA5:					;		 |
 	AND.b #$0F				;$00EC68	|
 	CMP.w DATA_00E911,Y			;$00EC6A	|
 	BEQ .skip_side_head			;$00EC6D	|
-.center_body_in_block
+.center_in_block
 	LDA.w $1402				;$00EC6F	|
 	BEQ .CODE_00EC7B			;$00EC72	|
 	LDA.w $1693				;$00EC74	|
@@ -11415,7 +11415,7 @@ CODE_00EBA5:					;		 |
 	JSR process_collision_point		;$00EC8A	| Process the head collision point.
 	BNE CODE_00ECB1				;$00EC8D	|
 	LDA.b #$02				;$00EC8F	|
-	JSR CODE_00F2C2				;$00EC91	|
+	JSR process_page_0_tiles		;$00EC91	|
 	LDY $7D					;$00EC94	|
 	BPL CODE_00ECA3				;$00EC96	|
 	LDA.w $1693				;$00EC98	|
@@ -11615,11 +11615,11 @@ CODE_00EDDB:
 
 CODE_00EDE4:
 	LDA.b #$04
-	JSR CODE_00F2C2				;$00EDE6	|
+	JSR process_page_0_tiles		;$00EDE6	|
 CODE_00EDE9:
 	JSR process_collision_point
 	BNE CODE_00EDF3				;$00EDEC	|
-	JSR CODE_00F309				;$00EDEE	|
+	JSR process_page_0_tiles_no_climb	;$00EDEE	|
 	BRA CODE_00EE1D				;$00EDF1	|
 
 CODE_00EDF3:
@@ -11908,7 +11908,7 @@ Return00EFE7:
 CODE_00EFE8:
 	JSR process_collision_point
 	BNE ADDR_00EFF0				;$00EFEB	|
-	JMP CODE_00F309				;$00EFED	|
+	JMP process_page_0_tiles_no_climb	;$00EFED	|
 
 ADDR_00EFF0:
 	CPY.b #$11
@@ -11968,18 +11968,18 @@ CODE_00F035:
 Return00F04C:
 	RTS
 
-CODE_00F04D:
-	PHX
-	LDX.b #$19				;$00F04E	|
-CODE_00F050:
-	CMP.l DATA_00EAC1,X
-	BEQ CODE_00F05A				;$00F054	|
-	DEX					;$00F056	|
-	BPL CODE_00F050				;$00F057	|
-	CLC					;$00F059	|
-CODE_00F05A:
-	PLX
-	RTL					;$00F05B	|
+is_page_1_water:
+	PHX					;$00F04D	\
+	LDX.b #$19				;$00F04E	 | Initialize the loop counter.
+.loop						;		 |\
+	CMP.l page_1_water_tiles,X		;$00F050	 | | If the tile is one of these water tiles,
+	BEQ .return				;$00F054	 | | set carry to indicate "true" and return.
+	DEX					;$00F056	 | | Otherwise, continue checking.
+	BPL .loop				;$00F057	 |/
+	CLC					;$00F059	 | Clear carry to indicate "false."
+.return						;		 |
+	PLX					;$00F05A	 |
+	RTL					;$00F05B	/
 
 DATA_00F05C:
 	db $01,$05,$01,$02,$01,$01,$00,$00
@@ -12219,7 +12219,7 @@ CODE_00F24E:
 	STA $9C					;$00F254	|
 	LDA.l DATA_00F0F8,X			;$00F256	|
 	STA $9A					;$00F25A	|
-	JSL GenerateTile			;$00F25C	|
+	JSL generate_tile			;$00F25C	|
 	PLA					;$00F260	|
 CODE_00F261:
 	DEX
@@ -12241,158 +12241,158 @@ CODE_00F267:
 	BMI CODE_00F289				;$00F27F	|
 	LDA.b #$02				;$00F281	|
 	STA $9C					;$00F283	|
-	JSL GenerateTile			;$00F285	|
+	JSL generate_tile			;$00F285	|
 CODE_00F289:
 	PHK
 	PLB					;$00F28A	|
 Return00F28B:
 	RTS
 
-CODE_00F28C:
-	TYA
-	SEC					;$00F28D	|
-	SBC.b #$6F				;$00F28E	|
-	CMP.b #$04				;$00F290	|
-	BCS CODE_00F2C0				;$00F292	|
-	CMP.w $1421				;$00F294	|
-	BEQ CODE_00F2A8				;$00F297	|
-	INC A					;$00F299	|
-	CMP.w $1421				;$00F29A	|
-	BEQ Return00F2BF			;$00F29D	|
-	LDA.w $1421				;$00F29F	|
-	CMP.b #$04				;$00F2A2	|
-	BCS Return00F2BF			;$00F2A4	|
-	LDA.b #$FF				;$00F2A6	|
-CODE_00F2A8:
-	INC A
-	STA.w $1421				;$00F2A9	|
-	CMP.b #$04				;$00F2AC	|
-	BNE Return00F2BF			;$00F2AE	|
-	PHX					;$00F2B0	|
-	JSL TriggerInivis1Up			;$00F2B1	|
-	JSR CODE_00F3B2				;$00F2B5	|
-	ORA.w $1F3C,Y				;$00F2B8	|
-	STA.w $1F3C,Y				;$00F2BB	|
-	PLX					;$00F2BE	|
-Return00F2BF:
-	RTS
+process_center_page_0_tiles:
+	TYA					;$00F28C	\
+	SEC					;$00F28D	 |\
+	SBC.b #$6F				;$00F28E	 | |
+	CMP.b #$04				;$00F290	 | | If it's an invisible 1up point, process it.
+	BCS .not_invisible_1up			;$00F292	 |/
+	CMP.w $1421				;$00F294	 |\ If it is the next 1up point,
+	BEQ .next_1up_point			;$00F297	 |/ increase the number of 1up points reached.
+	INC A					;$00F299	 |\ If it is the current 1up point,
+	CMP.w $1421				;$00F29A	 | | don't reset the sequence.
+	BEQ .return				;$00F29D	 |/
+	LDA.w $1421				;$00F29F	 |\ If the invisible 1up was already triggered,
+	CMP.b #$04				;$00F2A2	 | | don't try to trigger it again.
+	BCS .return				;$00F2A4	 |/
+	LDA.b #$FF				;$00F2A6	 | Reset the 1up point sequence.
+.next_1up_point					;		 |
+	INC A					;$00F2A8	 |\ Increase the number of 1up points reached.
+	STA.w $1421				;$00F2A9	 |/
+	CMP.b #$04				;$00F2AC	 |\ If four points have been reached,
+	BNE .return				;$00F2AE	 | |
+	PHX					;$00F2B0	 | |
+	JSL TriggerInivis1Up			;$00F2B1	 | | trigger an invisible 1up,
+	JSR get_level_bit_flag			;$00F2B5	 | |
+	ORA.w $1F3C,Y				;$00F2B8	 | |
+	STA.w $1F3C,Y				;$00F2BB	 | | and set the "triggered invisible 1up" flag.
+	PLX					;$00F2BE	 | |
+.return						;		 |/
+	RTS					;$00F2BF	/
 
-CODE_00F2C0:
-	LDA.b #$01
-CODE_00F2C2:
-	CPY.b #$06
-	BCS CODE_00F2C9				;$00F2C4	|
-	TSB $8A					;$00F2C6	|
-	RTS					;$00F2C8	|
+.not_invisible_1up
+	LDA.b #$01				;$00F2C0	\
+process_page_0_tiles:				;		 |
+	CPY.b #$06				;$00F2C2	 | If it's tiles 000 - 005,
+	BCS process_page_0_tiles_no_swim	;$00F2C4	 |
+	TSB $8A					;$00F2C6	 | set the water flag corresponding to the interaction point.
+	RTS					;$00F2C8	/
 
-CODE_00F2C9:
-	CPY.b #$38
-	BNE CODE_00F2EE				;$00F2CB	|
-	LDA.b #$02				;$00F2CD	|
-	STA $9C					;$00F2CF	|
-	JSL GenerateTile			;$00F2D1	|
-	JSR CODE_00FD5A				;$00F2D5	|
-	LDA.w $13CD				;$00F2D8	|
-	BEQ CODE_00F2E0				;$00F2DB	|
-	JSR CODE_00CA2B				;$00F2DD	|
-CODE_00F2E0:
-	LDA $19
-	BNE CODE_00F2E8				;$00F2E2	|
-	LDA.b #$01				;$00F2E4	|
-	STA $19					;$00F2E6	|
-CODE_00F2E8:
-	LDA.b #$05
-	STA.w $1DF9				;$00F2EA	|
-	RTS					;$00F2ED	|
+process_page_0_tiles_no_swim:
+	CPY.b #$38				;$00F2C9	\ If it's the midway point,
+	BNE .not_midway_point			;$00F2CB	 |
+	LDA.b #$02				;$00F2CD	 |
+	STA $9C					;$00F2CF	 |
+	JSL generate_tile			;$00F2D1	 | remove the midway point,
+	JSR smoke_sparkle			;$00F2D5	 | create the sparkle effect,
+	LDA.w $13CD				;$00F2D8	 |
+	BEQ .no_trigger				;$00F2DB	 |
+	JSR CODE_00CA2B				;$00F2DD	 | trigger the midway point,
+.no_trigger					;		 |
+	LDA $19					;$00F2E0	 |\
+	BNE .already_big			;$00F2E2	 | |
+	LDA.b #$01				;$00F2E4	 | |
+	STA $19					;$00F2E6	 | | make the player big if he isn't already,
+.already_big					;		 |/
+	LDA.b #$05				;$00F2E8	 |\
+	STA.w $1DF9				;$00F2EA	 |/ and play the midway point sound.
+	RTS					;$00F2ED	/
 
-CODE_00F2EE:
-	CPY.b #$06
-	BEQ CODE_00F2FC				;$00F2F0	|
-	CPY.b #$07				;$00F2F2	|
-	BCC CODE_00F309				;$00F2F4	|
-	CPY.b #$1D				;$00F2F6	|
-	BCS CODE_00F309				;$00F2F8	|
-	ORA.b #$80				;$00F2FA	|
-CODE_00F2FC:
-	CMP.b #$01
-	BNE CODE_00F302				;$00F2FE	|
-	ORA.b #$18				;$00F300	|
-CODE_00F302:
-	TSB $8B
-	LDA $93					;$00F304	|
-	STA $8C					;$00F306	|
-	RTS					;$00F308	|
+.not_midway_point
+	CPY.b #$06				;$00F2EF	\ If the tile is a vine,
+	BEQ .is_vine				;$00F2F0	 |\
+	CPY.b #$07				;$00F2F2	 | |
+	BCC process_page_0_tiles_no_climb	;$00F2F4	 | | or it is a climbing net tile,
+	CPY.b #$1D				;$00F2F6	 | |
+	BCS process_page_0_tiles_no_climb	;$00F2F8	 |/
+	ORA.b #$80				;$00F2FA	 | set the climbing flag.
+.is_vine					;		 |
+	CMP.b #$01				;$00F2FC	 |\
+	BNE .not_center				;$00F2FE	 | | If interacting via the center body collision point,
+	ORA.b #$18				;$00F300	 | | set a different climbing flag.
+.not_center					;		 |/
+	TSB $8B					;$00F302	 | Set the climbing flag corresponding to the interaction point.
+	LDA $93					;$00F304	 |
+	STA $8C					;$00F306	 |
+	RTS					;$00F308	/
 
-CODE_00F309:
-	CPY.b #$2F
-	BCS CODE_00F311				;$00F30B	|
-	CPY.b #$2A				;$00F30D	|
-	BCS CODE_00F32B				;$00F30F	|
-CODE_00F311:
-	CPY.b #$6E
-	BNE Return00F376			;$00F313	|
-	LDA.b #$0F				;$00F315	|
-	JSL CODE_00F38A				;$00F317	|
-	INC.w $13C5				;$00F31B	|
-	PHX					;$00F31E	|
-	JSR CODE_00F3B2				;$00F31F	|
-	ORA.w $1FEE,Y				;$00F322	|
-	STA.w $1FEE,Y				;$00F325	|
-	PLX					;$00F328	|
-	BRA CODE_00F36B				;$00F329	|
+process_page_0_tiles_no_climb:
+	CPY.b #$2F				;$00F309	\
+	BCS .not_coin				;$00F30B	 |
+	CPY.b #$2A				;$00F30D	 |
+	BCS .is_coin				;$00F30F	 | Process coin code, if applicable.
+.not_coin					;		 |
+	CPY.b #$6E				;$00F311	 |\ If the tile is a 3up moon,
+	BNE return_00F376			;$00F313	 | |
+	LDA.b #$0F				;$00F315	 | |
+	JSL CODE_00F38A				;$00F317	 | | give the player three lives,
+	INC.w $13C5				;$00F31B	 | | increase an unused 3up moon flag,
+	PHX					;$00F31E	 | |
+	JSR get_level_bit_flag			;$00F31F	 | |
+	ORA.w $1FEE,Y				;$00F322	 | |
+	STA.w $1FEE,Y				;$00F325	 | | set the "collected 3up moon" flag,
+	PLX					;$00F328	 |/
+	BRA .clear_tile				;$00F329	/ and clear the tile with item memory.
 
-CODE_00F32B:
-	BNE CODE_00F332
-	LDA.w $14AD				;$00F32D	|
-	BEQ Return00F376			;$00F330	|
-CODE_00F332:
-	CPY.b #$2D
-	BEQ CODE_00F33F				;$00F334	|
-	BCC CODE_00F367				;$00F336	|
-	LDA $98					;$00F338	|
-	SEC					;$00F33A	|
-	SBC.b #$10				;$00F33B	|
-	STA $98					;$00F33D	|
-CODE_00F33F:
-	JSL CODE_00F377
-	INC.w $1422				;$00F343	|
-	LDA.w $1422				;$00F346	|
-	CMP.b #$05				;$00F349	|
-	BCC CODE_00F358				;$00F34B	|
-	PHX					;$00F34D	|
-	JSR CODE_00F3B2				;$00F34E	|
-	ORA.w $1F2F,Y				;$00F351	|
-	STA.w $1F2F,Y				;$00F354	|
-	PLX					;$00F357	|
-CODE_00F358:
-	LDA.b #$1C
-	STA.w $1DF9				;$00F35A	|
-	LDA.b #$01				;$00F35D	|
-	JSL CODE_05B330				;$00F35F	|
-	LDY.b #$18				;$00F363	|
-	BRA CODE_00F36D				;$00F365	|
+.is_coin
+	BNE .is_visible_coin			;$00F32B	\ If the coin is invisible
+	LDA.w $14AD				;$00F32D	 | and the blue P-switch is inactive, stop.
+	BEQ return_00F376			;$00F330	 |
+.is_visible_coin				;		 |
+	CPY.b #$2D				;$00F332	 |
+	BEQ .is_upper_yoshi_coin		;$00F334	 |
+	BCC .is_regular_coin			;$00F336	 | Process regular coin code if it's not a yoshi coin.
+	LDA $98					;$00F338	 |\
+	SEC					;$00F33A	 | |
+	SBC.b #$10				;$00F33B	 | | Offset the tile Y position to erase the top half first.
+	STA $98					;$00F33D	 |/
+.is_upper_yoshi_coin				;		 |
+	JSL give_yoshi_coin_points		;$00F33F	 | Give yoshi coin points.
+	INC.w $1422				;$00F343	 |\ Increase the number of yoshi coins collected.
+	LDA.w $1422				;$00F346	 | |
+	CMP.b #$05				;$00F349	 | |
+	BCC .not_all_collected			;$00F34B	 | | If five have been collected,
+	PHX					;$00F34D	 | |
+	JSR get_level_bit_flag			;$00F34E	 | |
+	ORA.w $1F2F,Y				;$00F351	 | |
+	STA.w $1F2F,Y				;$00F354	 | | set the "collected five yoshi coins" flag.
+	PLX					;$00F357	 |/
+.not_all_collected				;		 |
+	LDA.b #$1C				;$00F358	 |\ Play the yoshi coin sound,
+	STA.w $1DF9				;$00F35A	 |/
+	LDA.b #$01				;$00F35D	 |
+	JSL CODE_05B330				;$00F35F	 | give the player a coin,
+	LDY.b #$18				;$00F363	 |
+	BRA .remove_yoshi_coin			;$00F365	/ and remove both yoshi coin tiles.
 
-CODE_00F367:
-	JSL CODE_05B34A
-CODE_00F36B:
-	LDY.b #$01
-CODE_00F36D:
-	STY $9C
-	JSL GenerateTile			;$00F36F	|
-	JSR CODE_00FD5A				;$00F373	|
-Return00F376:
-	RTS
+.is_regular_coin
+	JSL CODE_05B34A				;$00F367	\ Give the player a coin.
+.clear_tile					;		 |
+	LDY.b #$01				;$00F36B	 |
+.remove_yoshi_coin				;		 |
+	STY $9C					;$00F36D	 |
+	JSL generate_tile			;$00F36F	 | Remove the tile with item memory,
+	JSR smoke_sparkle			;$00F373	 | and create the sparkle effect.
+return_00F376:					;		 |
+	RTS					;$00F376	/
 
-CODE_00F377:
-	LDA.w $1420
-	INC.w $1420				;$00F37A	|
-	CLC					;$00F37D	|
-	ADC.b #$09				;$00F37E	|
-	CMP.b #$0D				;$00F380	|
-	BCC CODE_00F386				;$00F382	|
-	LDA.b #$0D				;$00F384	|
-CODE_00F386:
-	BRA CODE_00F38A
+give_yoshi_coin_points:
+	LDA.w $1420				;$00F377	\
+	INC.w $1420				;$00F37A	 |
+	CLC					;$00F37D	 |
+	ADC.b #$09				;$00F37E	 |
+	CMP.b #$0D				;$00F380	 |
+	BCC .reached_maximum			;$00F382	 |
+	LDA.b #$0D				;$00F384	 |
+.reached_maximum				;		 |
+	BRA CODE_00F38A				;$00F386	/
 
 CODE_00F388:
 	LDA.b #$0D
@@ -12415,21 +12415,21 @@ CODE_00F38A:
 	STA.w $1705,Y				;$00F3AE	|
 	RTL					;$00F3B1	|
 
-CODE_00F3B2:
-	LDA.w $13BF
-	LSR					;$00F3B5	|
-	LSR					;$00F3B6	|
-	LSR					;$00F3B7	|
-	TAY					;$00F3B8	|
-	LDA.w $13BF				;$00F3B9	|
-	AND.b #$07				;$00F3BC	|
-	TAX					;$00F3BE	|
-	LDA.l DATA_05B35B,X			;$00F3BF	|
-	RTS					;$00F3C3	|
+get_level_bit_flag:
+	LDA.w $13BF				;$00F3B2	\ Load the current level,
+	LSR					;$00F3B5	 |
+	LSR					;$00F3B6	 |
+	LSR					;$00F3B7	 | and divide by 8 for the index to the level bit flag table.
+	TAY					;$00F3B8	 |
+	LDA.w $13BF				;$00F3B9	 | Load the current level,
+	AND.b #$07				;$00F3BC	 |
+	TAX					;$00F3BE	 |
+	LDA.l level_bit_masks,X			;$00F3BF	 | and get the bit mask for the level bit flag table.
+	RTS					;$00F3C3	/
 
 CODE_00F3C4:
 	CPY.b #$3F
-	BNE Return00F376			;$00F3C6	|
+	BNE return_00F376			;$00F3C6	|
 	LDY $8F					;$00F3C8	|
 	BEQ CODE_00F3CF				;$00F3CA	|
 	JMP CODE_00F43F				;$00F3CC	|
@@ -13279,7 +13279,7 @@ CODE_00F997:
 	BMI CODE_00F9A5				;$00F9A0	|
 	JSR CODE_00F629				;$00F9A2	|
 CODE_00F9A5:
-	JMP CODE_00E98C
+	JMP no_layer1_collision
 
 CODE_00F9A8:
 	REP #$20
@@ -13780,20 +13780,20 @@ CODE_00FD49:
 	STZ.w $176F,X				;$00FD56	|
 	RTS					;$00FD59	|
 
-CODE_00FD5A:
-	LDA $7F
-	ORA $81					;$00FD5C	|
-	BNE Return00FD6A			;$00FD5E	|
-	LDY.b #$03				;$00FD60	|
-CODE_00FD62:
-	LDA.w $17C0,Y
-	BEQ CODE_00FD6B				;$00FD65	|
-	DEY					;$00FD67	|
-	BPL CODE_00FD62				;$00FD68	|
-Return00FD6A:
-	RTS
+smoke_sparkle:
+	LDA $7F					;$00FD5A	\ Don't draw the sparkle if the player is offscreen.
+	ORA $81					;$00FD5C	 |
+	BNE .return				;$00FD5E	 |
+	LDY.b #$03				;$00FD60	 |
+.loop						;		 |
+	LDA.w $17C0,Y				;$00FD62	 |
+	BEQ .found_smoke_slot			;$00FD65	 |
+	DEY					;$00FD67	 |
+	BPL .loop				;$00FD68	 |
+.return						;		 |
+	RTS					;$00FD6A	/
 
-CODE_00FD6B:
+.found_smoke_slot
 	LDA.b #$05
 	STA.w $17C0,Y				;$00FD6D	|
 	LDA $9A					;$00FD70	|

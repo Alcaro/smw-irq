@@ -2617,7 +2617,7 @@ CODE_019211:
 	LDA.w $1693				;$019221	|
 	CMP.b #$6E				;$019224	|
 	BCC CODE_01925B				;$019226	|
-	JSL CODE_00F04D				;$019228	|
+	JSL is_page_1_water			;$019228	|
 	LDA.w $1693				;$01922C	|
 	BCC CODE_01925B				;$01922F	|
 	BCS CODE_01923A				;$019231	|
@@ -8515,7 +8515,7 @@ StoreSpriteNum:
 	STA $D8,X				;$01BCAF	|
 	LDA.b #$02				;$01BCB1	|
 	STA $9C					;$01BCB3	|
-	JSL GenerateTile			;$01BCB5	|
+	JSL generate_tile			;$01BCB5	|
 CODE_01BCB9:
 	JSR CODE_01BD98
 	RTS					;$01BCBC	|
@@ -9236,7 +9236,7 @@ CODE_01C1CB:
 	STA $99					;$01C1E3	|
 	LDA.b #$03				;$01C1E5	|
 	STA $9C					;$01C1E7	|
-	JSL GenerateTile			;$01C1E9	|
+	JSL generate_tile			;$01C1E9	|
 Return01C1ED:
 	RTS
 
@@ -13790,7 +13790,7 @@ CODE_01E320:
 	STA $99					;$01E339	|
 	LDA.b #$08				;$01E33B	|
 	STA $9C					;$01E33D	|
-	JSL GenerateTile			;$01E33F	|
+	JSL generate_tile			;$01E33F	|
 CODE_01E343:
 	LDA $9E,X
 	CMP.b #$4D				;$01E345	|

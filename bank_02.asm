@@ -943,7 +943,7 @@ CODE_028773:
 CODE_028780:
 	LDA.b #$02
 	STA $9C					;$028782	|
-	JSL GenerateTile			;$028784	|
+	JSL generate_tile			;$028784	|
 	RTL					;$028788	|
 
 BlockBounce:
@@ -996,7 +996,7 @@ CODE_0287A6:
 	PHA					;$0287E4	|
 	LDA $07					;$0287E5	|
 	PHA					;$0287E7	|
-	JSL GenerateTile			;$0287E8	|
+	JSL generate_tile			;$0287E8	|
 	PLA					;$0287EC	|
 	STA $07					;$0287ED	|
 	PLA					;$0287EF	|
@@ -2370,7 +2370,7 @@ TileFromBounceSpr1:
 	ROL					;$0291E2	|
 	AND.b #$01				;$0291E3	|
 	STA.w $1933				;$0291E5	|
-	JSL GenerateTile			;$0291E8	|
+	JSL generate_tile			;$0291E8	|
 Return0291EC:
 	RTS
 
@@ -7832,7 +7832,7 @@ GenTileFromSpr0:
 	STA $98					;$02B9B1	|
 	LDA.w $14D4,X				;$02B9B3	|
 	STA $99					;$02B9B6	|
-	JSL GenerateTile			;$02B9B8	|
+	JSL generate_tile			;$02B9B8	|
 	RTL					;$02B9BC	|
 
 CODE_02B9BD:
@@ -8009,7 +8009,7 @@ CODE_02BAC0:
 	PLX					;$02BB01	|
 	LDA.b #$04				;$02BB02	|
 	STA $9C					;$02BB04	|
-	JSL GenerateTile			;$02BB06	|
+	JSL generate_tile			;$02BB06	|
 	RTL					;$02BB0A	|
 
 DATA_02BB0B:
@@ -9091,7 +9091,7 @@ CODE_02C2A6:
 	JSL ShatterBlock			;$02C2B9	|
 	LDA.b #$02				;$02C2BD	|
 	STA $9C					;$02C2BF	|
-	JSL GenerateTile			;$02C2C1	|
+	JSL generate_tile			;$02C2C1	|
 	PLA					;$02C2C5	|
 	SEC					;$02C2C6	|
 	SBC.b #$10				;$02C2C7	|
@@ -9106,7 +9106,7 @@ CODE_02C2A6:
 	JSL ShatterBlock			;$02C2D6	|
 	LDA.b #$02				;$02C2DA	|
 	STA $9C					;$02C2DC	|
-	JSL GenerateTile			;$02C2DE	|
+	JSL generate_tile			;$02C2DE	|
 	BRA CODE_02C2F4				;$02C2E2	|
 
 CODE_02C2E4:
@@ -10483,7 +10483,7 @@ CODE_02CD59:
 	LDA.w $14D4,X				;$02CD74	|
 	SBC.b #$00				;$02CD77	|
 	STA $99					;$02CD79	|
-	JSL GenerateTile			;$02CD7B	|
+	JSL generate_tile			;$02CD7B	|
 CODE_02CD7F:
 	JSL InvisBlkMainRt
 	JSR GetDrawInfo2			;$02CD83	|
@@ -11112,7 +11112,7 @@ SetTreeTile:
 	STA $99					;$02D205	|
 	LDA.b #$04				;$02D207	|
 	STA $9C					;$02D209	|
-	JSL GenerateTile			;$02D20B	|
+	JSL generate_tile			;$02D20B	|
 Return02D20F:
 	RTL
 
@@ -13444,7 +13444,7 @@ CODE_02E2B0:
 	STA $99					;$02E2D3	|
 	LDA.b #$06				;$02E2D5	|
 	STA $9C					;$02E2D7	|
-	JSL GenerateTile			;$02E2D9	|
+	JSL generate_tile			;$02E2D9	|
 	RTS					;$02E2DD	|
 
 CODE_02E2DE:
@@ -13770,7 +13770,7 @@ CODE_02E533:
 	STA $98					;$02E543	|
 	LDA.w $14D4,X				;$02E545	|
 	STA $99					;$02E548	|
-	JSL GenerateTile			;$02E54A	|
+	JSL generate_tile			;$02E54A	|
 CODE_02E54E:
 	JSR MushroomScaleGfx
 	STZ.w $1528,X				;$02E551	|
@@ -14278,7 +14278,7 @@ GrowingPipeGfx:
 	STA $98					;$02E8D6	|
 	LDA.w $14D4,X				;$02E8D8	|
 	STA $99					;$02E8DB	|
-	JSL GenerateTile			;$02E8DD	|
+	JSL generate_tile			;$02E8DD	|
 	LDA.w $18B6				;$02E8E1	|
 	STA $9C					;$02E8E4	|
 	LDA $E4,X				;$02E8E6	|
@@ -14292,7 +14292,7 @@ GrowingPipeGfx:
 	STA $98					;$02E8F6	|
 	LDA.w $14D4,X				;$02E8F8	|
 	STA $99					;$02E8FB	|
-	JSL GenerateTile			;$02E8FD	|
+	JSL generate_tile			;$02E8FD	|
 	RTS					;$02E901	|
 
 CODE_02E902:

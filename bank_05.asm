@@ -3217,7 +3217,7 @@ CODE_05B34A:
 Return05B35A:
 	RTL
 
-DATA_05B35B:
+level_bit_masks:
 	db $80,$40,$20,$10,$08,$04,$02,$01
 
 	TYA					;$05B363	|
@@ -3230,7 +3230,7 @@ DATA_05B35B:
 	TAX					;$05B36B	|
 	LDA.w $1F02,X				;$05B36C	|
 	PLX					;$05B36F	|
-	AND.l DATA_05B35B,X			;$05B370	|
+	AND.l level_bit_masks,X			;$05B370	|
 	RTL					;$05B374	|
 
 DATA_05B375:

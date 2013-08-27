@@ -2597,7 +2597,7 @@ GenTileFromSpr1:
 	STA $98					;$039398	|
 	LDA.w $14D4,X				;$03939A	|
 	STA $99					;$03939D	|
-	JSL GenerateTile			;$03939F	|
+	JSL generate_tile			;$03939F	|
 	RTS					;$0393A3	|
 
 CrtEatBlkData1:
@@ -7757,7 +7757,7 @@ GenTileFromSpr2:
 	LDA.w $14D4,X				;$03C017	|
 	ADC.b #$00				;$03C01A	|
 	STA $99					;$03C01C	|
-	JSL GenerateTile			;$03C01E	|
+	JSL generate_tile			;$03C01E	|
 	RTL					;$03C022	|
 
 CODE_03C023:
