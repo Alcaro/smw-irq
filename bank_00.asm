@@ -11166,7 +11166,7 @@ level_collision:
 	STA $90					;$00EADF	|
 	LDA.w $13E3				;$00EAE1	|
 	BNE .wall_running			;$00EAE4	|
-	JMP not_wall_running			;$00EAE6	|
+	JMP normal_collision			;$00EAE6	|
 
 .wall_running
 	AND.b #$01				;$00EAE9	|
@@ -11186,9 +11186,9 @@ level_collision:
 	BCS .on_wall				;$00EB08	|
 	LDX $90					;$00EB0A	|
 	CPX.b #$08				;$00EB0C	|
-	BCC stop_wall_running_return		;$00EB0E	| NON-OPTIMAL LABEL
+	BCC stop_wall_running_return		;$00EB0E	|
 	CMP.b #$04				;$00EB10	|
-	BCS stop_wall_running			;$00EB12	| NON-OPTIMAL LABEL
+	BCS stop_wall_running			;$00EB12	|
 	ORA.b #$04				;$00EB14	|
 	STA.w $13E3				;$00EB16	|
 .solid_collision				;		|
@@ -11253,19 +11253,19 @@ stop_wall_running:
 .return
 	RTS					;$00EB76	|
 
-not_wall_running:
+normal_collision:
 	LDX.b #$00				;$00EB77	\ Initialize collision point index
 	LDA $19					;$00EB79	 |\
 	BEQ .not_big_2				;$00EB7B	 | | If the player is big
 	LDA $73					;$00EB7D	 | |
 	BNE .not_big_2				;$00EB7F	 | | and not ducking,
-	LDX.b #$18				;$00EB81	 | | use the big Mario collision point indices
+	LDX.b #$18				;$00EB81	 | | use the big Mario collision point indices.
 .not_big_2					;		 |/
 	LDA.w $187A				;$00EB83	 |\
 	BEQ .not_on_yoshi			;$00EB86	 | | If the player is on yoshi,
 	TXA					;$00EB88	 | |
 	CLC					;$00EB89	 | |
-	ADC.b #$30				;$00EB8A	 | | use the Yoshi collision point indices
+	ADC.b #$30				;$00EB8A	 | | use the Yoshi collision point indices.
 	TAX					;$00EB8C	 | |
 .not_on_yoshi					;		 |/
 	LDA $94					;$00EB8D	 |
@@ -11288,131 +11288,131 @@ CODE_00EBA5:					;		 |
 	ADC.w collision_y_offsets+6,X		;$00EBA8	 |
 	AND.b #$0F				;$00EBAB	 |
 	STA $91					;$00EBAD	 |
-	JSR process_collision_point		;$00EBAF	 | Process the center body collision point
-	BEQ CODE_00EBDD				;$00EBB2	 |
+	JSR process_collision_point		;$00EBAF	 | Process the center body collision point.
+	BEQ .center_page_0			;$00EBB2	 |
 	CPY.b #$11				;$00EBB4	 |
-	BCC CODE_00EC24				;$00EBB6	 |
+	BCC .skip_center			;$00EBB6	 |
 	CPY.b #$6E				;$00EBB8	 |
-	BCC CODE_00EBC9				;$00EBBA	 |
+	BCC .solid_center			;$00EBBA	 |
 	TYA					;$00EBBC	 |
 	JSL CODE_00F04D				;$00EBBD	 |
-	BCC CODE_00EC24				;$00EBC1	 |
+	BCC .skip_center			;$00EBC1	 |
 	LDA.b #$01				;$00EBC3	 |
 	TSB $8A					;$00EBC5	 |
-	BRA CODE_00EC24				;$00EBC7	/
+	BRA .skip_center			;$00EBC7	/
 
-CODE_00EBC9:
-	INX
+.solid_center
+	INX					;$00EBC9	|
 	INX					;$00EBCA	|
 	INX					;$00EBCB	|
 	INX					;$00EBCC	|
 	TYA					;$00EBCD	|
 	LDY.b #$00				;$00EBCE	|
 	CMP.b #$1E				;$00EBD0	|
-	BEQ CODE_00EBDA				;$00EBD2	|
+	BEQ .CODE_00EBDA			;$00EBD2	|
 	CMP.b #$52				;$00EBD4	|
-	BEQ CODE_00EBDA				;$00EBD6	|
+	BEQ .CODE_00EBDA			;$00EBD6	|
 	LDY.b #$02				;$00EBD8	|
-CODE_00EBDA:
-	JMP CODE_00EC6F
+.CODE_00EBDA
+	JMP .center_body_in_block
 
-CODE_00EBDD:
-	CPY.b #$9C
-	BNE CODE_00EBE8				;$00EBDF	|
+.center_page_0
+	CPY.b #$9C				;$00EBDD	|
+	BNE .not_castle_door			;$00EBDF	|
 	LDA.w $1931				;$00EBE1	|
 	CMP.b #$01				;$00EBE4	|
-	BEQ CODE_00EC06				;$00EBE6	|
-CODE_00EBE8:
+	BEQ .castle_door			;$00EBE6	|
+.not_castle_door
 	CPY.b #$20
-	BEQ CODE_00EC01				;$00EBEA	|
+	BEQ .door				;$00EBEA	|
 	CPY.b #$1F				;$00EBEC	|
-	BEQ CODE_00EBFD				;$00EBEE	|
+	BEQ .upper_door				;$00EBEE	|
 	LDA.w $14AD				;$00EBF0	|
-	BEQ CODE_00EC21				;$00EBF3	|
+	BEQ .process_center			;$00EBF3	|
 	CPY.b #$28				;$00EBF5	|
-	BEQ CODE_00EC01				;$00EBF7	|
+	BEQ .door				;$00EBF7	|
 	CPY.b #$27				;$00EBF9	|
-	BNE CODE_00EC21				;$00EBFB	|
-CODE_00EBFD:
-	LDA $19
-	BNE CODE_00EC24				;$00EBFF	|
-CODE_00EC01:
-	JSR CODE_00F443
-	BCS CODE_00EC24				;$00EC04	|
-CODE_00EC06:
-	LDA $8F
-	BNE CODE_00EC24				;$00EC08	|
+	BNE .process_center			;$00EBFB	|
+.upper_door
+	LDA $19					;$00EBFD	|
+	BNE .skip_center			;$00EBFF	|
+.door
+	JSR can_use_door			;$00EC01	|
+	BCS .skip_center			;$00EC04	|
+.castle_door
+	LDA $8F					;$00EC06	|
+	BNE .skip_center			;$00EC08	|
 	LDA $16					;$00EC0A	|
 	AND.b #$08				;$00EC0C	|
-	BEQ CODE_00EC24				;$00EC0E	|
+	BEQ .skip_center			;$00EC0E	|
 	LDA.b #$0F				;$00EC10	|
 	STA.w $1DFC				;$00EC12	|
 	JSR CODE_00D273				;$00EC15	|
 	LDA.b #$0D				;$00EC18	|
 	STA $71					;$00EC1A	|
 	JSR disable_controls			;$00EC1C	|
-	BRA CODE_00EC24				;$00EC1F	|
+	BRA .skip_center			;$00EC1F	|
 
-CODE_00EC21:
-	JSR CODE_00F28C
-CODE_00EC24:
-	JSR process_collision_point
-	BEQ CODE_00EC35				;$00EC27	|
+.process_center
+	JSR CODE_00F28C				;$00EC21	|
+.skip_center					;		|
+	JSR process_collision_point		;$00EC24	| Process the side body collision point.
+	BEQ .side_body_page_0			;$00EC27	|
 	CPY.b #$11				;$00EC29	|
-	BCC CODE_00EC3A				;$00EC2B	|
+	BCC .skip_side_body			;$00EC2B	|
 	CPY.b #$6E				;$00EC2D	|
-	BCS CODE_00EC3A				;$00EC2F	|
+	BCS .skip_side_body			;$00EC2F	|
 	INX					;$00EC31	|
 	INX					;$00EC32	|
-	BRA CODE_00EC4E				;$00EC33	|
+	BRA .side_body_in_block			;$00EC33	|
 
-CODE_00EC35:
-	LDA.b #$10
+.side_body_page_0
+	LDA.b #$10				;$00EC35	|
 	JSR CODE_00F2C9				;$00EC37	|
-CODE_00EC3A:
-	JSR process_collision_point
-	BNE CODE_00EC46				;$00EC3D	|
+.skip_side_body					;		|
+	JSR process_collision_point		;$00EC3A	| Process the side head collision point.
+	BNE .side_head_page_1			;$00EC3D	|
 	LDA.b #$08				;$00EC3F	|
 	JSR CODE_00F2C9				;$00EC41	|
-	BRA CODE_00EC8A				;$00EC44	|
+	BRA .skip_side_head			;$00EC44	|
 
-CODE_00EC46:
-	CPY.b #$11
-	BCC CODE_00EC8A				;$00EC48	|
+.side_head_page_1
+	CPY.b #$11				;$00EC46	|
+	BCC .skip_side_head			;$00EC48	|
 	CPY.b #$6E				;$00EC4A	|
-	BCS CODE_00EC8A				;$00EC4C	|
-CODE_00EC4E:
-	LDA $76
+	BCS .skip_side_head			;$00EC4C	|
+.side_body_in_block
+	LDA $76					;$00EC4E	|
 	CMP $93					;$00EC50	|
-	BEQ CODE_00EC5F				;$00EC52	|
+	BEQ .CODE_00EC5F			;$00EC52	|
 	JSR CODE_00F3C4				;$00EC54	|
 	PHX					;$00EC57	|
 	JSR CODE_00F267				;$00EC58	|
 	LDY.w $1693				;$00EC5B	|
 	PLX					;$00EC5E	|
-CODE_00EC5F:
+.CODE_00EC5F
 	LDA.b #$03
 	STA.w $13E5				;$00EC61	|
 	LDY $93					;$00EC64	|
 	LDA $94					;$00EC66	|
 	AND.b #$0F				;$00EC68	|
 	CMP.w DATA_00E911,Y			;$00EC6A	|
-	BEQ CODE_00EC8A				;$00EC6D	|
-CODE_00EC6F:
-	LDA.w $1402
-	BEQ CODE_00EC7B				;$00EC72	|
+	BEQ .skip_side_head			;$00EC6D	|
+.center_body_in_block
+	LDA.w $1402				;$00EC6F	|
+	BEQ .CODE_00EC7B			;$00EC72	|
 	LDA.w $1693				;$00EC74	|
 	CMP.b #$52				;$00EC77	|
-	BEQ CODE_00EC8A				;$00EC79	|
-CODE_00EC7B:
+	BEQ .skip_side_head			;$00EC79	|
+.CODE_00EC7B
 	LDA.w DATA_00E90A,Y
 	TSB $77					;$00EC7E	|
 	AND.b #$03				;$00EC80	|
 	TAY					;$00EC82	|
 	LDA.w $1693				;$00EC83	|
 	JSL CODE_00F127				;$00EC86	|
-CODE_00EC8A:
-	JSR process_collision_point
+.skip_side_head					;		|
+	JSR process_collision_point		;$00EC8A	| Process the head collision point.
 	BNE CODE_00ECB1				;$00EC8D	|
 	LDA.b #$02				;$00EC8F	|
 	JSR CODE_00F2C2				;$00EC91	|
@@ -12511,8 +12511,8 @@ CODE_00F43F:
 Return00F442:
 	RTS
 
-CODE_00F443:
-	LDA $94
+can_use_door:
+	LDA $94					;$00F443	|
 	CLC					;$00F445	|
 	ADC.b #$04				;$00F446	|
 	AND.b #$0F				;$00F448	|
@@ -12520,160 +12520,160 @@ CODE_00F443:
 	RTS					;$00F44C	|
 
 process_collision_point:
-	INX					;$00F44D	\ Prepare to process the next player collision point
+	INX					;$00F44D	\ Prepare to process the next player collision point.
 	INX					;$00F44E	 |
-	REP #$20				;$00F44F	 |\ Enable 16 bit A
-	LDA $94					;$00F451	 | | Get the player's X position
+	REP #$20				;$00F44F	 |\ Enable 16 bit A.
+	LDA $94					;$00F451	 | | Get the player's X position,
 	CLC					;$00F453	 | |
-	ADC.w collision_x_offsets-2,X		;$00F454	 | | Add the collision X offset
-	STA $9A					;$00F457	 |/ And set that as the collision X to process
-	LDA $96					;$00F459	 |\ Get the player's Y position
+	ADC.w collision_x_offsets-2,X		;$00F454	 | | add the collision X offset,
+	STA $9A					;$00F457	 |/ and set that as the collision X to process.
+	LDA $96					;$00F459	 |\ Get the player's Y position,
 	CLC					;$00F45B	 | |
-	ADC.w collision_y_offsets-2,X		;$00F45C	 | | Add the collision Y offset
-	STA $98					;$00F45F	 |/ And set that as the collision Y to process
+	ADC.w collision_y_offsets-2,X		;$00F45C	 | | add the collision Y offset,
+	STA $98					;$00F45F	 |/ and set that as the collision Y to process.
 process_collision:				;		/
-	JSR collision				;$00F461	| Process collision
+	JSR collision				;$00F461	| Process collision.
 	RTS					;$00F464	|
 
 collision:
-	SEP #$20				;$00F465	\ Enable 8 bit A
-	STZ.w $1423				;$00F467	 | Clear switch palace switch flag
-	PHX					;$00F46A	 | Preserve collision point index
+	SEP #$20				;$00F465	\ Enable 8 bit A.
+	STZ.w $1423				;$00F467	 | Clear switch palace switch flag.
+	PHX					;$00F46A	 | Preserve collision point index.
 	LDA $8E					;$00F46B	 |
 	BPL .not_layer_2			;$00F46D	 |
-	JMP .layer_2				;$00F46F	/ Process layer 2 collision if applicable
+	JMP .layer_2				;$00F46F	/ Process layer 2 collision, if applicable.
 
 .not_layer_2
-	BNE .vertical_level			;$00F472	| Process vertical level collision if applicable
+	BNE .vertical_level			;$00F472	| Process vertical level collision, if applicable.
 	REP #$20				;$00F474	\
 	LDA $98					;$00F476	 |
 	CMP.w #$01B0				;$00F478	 | If collision Y > $01B0,
 	SEP #$20				;$00F47B	 |
-	BCS .air_tile				;$00F47D	 | Act like air
+	BCS .air_tile				;$00F47D	 | act like air.
 	AND.b #$F0				;$00F47F	 |\
-	STA $00					;$00F481	 | | Set upper nybble of map16 table index
+	STA $00					;$00F481	 | | Set the upper nybble of map16 table index.
 	LDX $9B					;$00F483	 | |
 	CPX $5D					;$00F485	 | | If collision X > end of level,
-	BCS .air_tile				;$00F487	 | | Act like air
-	LDA $9A					;$00F489	 | | Get collision X
+	BCS .air_tile				;$00F487	 | | act like air.
+	LDA $9A					;$00F489	 | | Get collision X,
 	LSR					;$00F48B	 | |
 	LSR					;$00F48C	 | |
 	LSR					;$00F48D	 | |
-	LSR					;$00F48E	 | | Divide by 16
-	ORA $00					;$00F48F	 | | Set lower nybble of map16 table index
+	LSR					;$00F48E	 | | divide by 16,
+	ORA $00					;$00F48F	 | | and set the lower nybble of map16 table index.
 	CLC					;$00F491	 | |
 	ADC.l DATA_00BA60,X			;$00F492	 | |
 	STA $00					;$00F496	 | |
 	LDA $99					;$00F498	 | |
-	ADC.l DATA_00BA9C,X			;$00F49A	 |/ Add by $C800 + $01B0 * screen number for map16 pointer
-	BRA .process_map16			;$00F49E	/ Process map16
+	ADC.l DATA_00BA9C,X			;$00F49A	 |/ Add by $C800 + $01B0 * screen number for map16 pointer.
+	BRA .process_map16			;$00F49E	/ Process map16.
 
 .air_tile
-	PLX					;$00F4A0	\ Restore collision point index
-	LDY.b #$25				;$00F4A1	 | Set the low byte to $25
+	PLX					;$00F4A0	\ Restore collision point index.
+	LDY.b #$25				;$00F4A1	 | Set the low byte to $25,
 .high_byte_00					;		 |
-	LDA.b #$00				;$00F4A3	 | Set the high byte to $00
+	LDA.b #$00				;$00F4A3	 | and set the high byte to $00.
 	RTS					;$00F4A5	/
 
 .vertical_level
 	LDA $9B					;$00F4A6	\
 	CMP.b #$02				;$00F4A8	 | If collision X > $0200,
-	BCS .air_tile_2				;$00F4AA	 | Act like air
+	BCS .air_tile_2				;$00F4AA	 | act like air.
 	LDX $99					;$00F4AC	 |
 	CPX $5D					;$00F4AE	 | If collision Y > end of level,
-	BCS .air_tile_2				;$00F4B0	 | Act like air
+	BCS .air_tile_2				;$00F4B0	 | act like air.
 	LDA $98					;$00F4B2	 |\
 	AND.b #$F0				;$00F4B4	 | |
-	STA $00					;$00F4B6	 | | Set upper nybble of map16 table index
-	LDA $9A					;$00F4B8	 | | Get collision X
+	STA $00					;$00F4B6	 | | Set the upper nybble of map16 table index.
+	LDA $9A					;$00F4B8	 | | Get collision X,
 	LSR					;$00F4BA	 | |
 	LSR					;$00F4BB	 | |
 	LSR					;$00F4BC	 | |
-	LSR					;$00F4BD	 | | Divide by 16
-	ORA $00					;$00F4BE	 | | Set lower nybble of map16 table index
+	LSR					;$00F4BD	 | | divide by 16,
+	ORA $00					;$00F4BE	 | | and set the lower nybble of map16 table index.
 	CLC					;$00F4C0	 | |
 	ADC.l DATA_00BA80,X			;$00F4C1	 | |
 	STA $00					;$00F4C5	 | |
 	LDA $9B					;$00F4C7	 | |
-	ADC.l DATA_00BABC,X			;$00F4C9	 |/ Add by $C800 + $0200 * screen number for map16 pointer
+	ADC.l DATA_00BABC,X			;$00F4C9	 |/ Add by $C800 + $0200 * screen number for map16 pointer.
 .process_map16					;		 |
-	STA $01					;$00F4CD	 |\ Set pointer to map16 low byte table
+	STA $01					;$00F4CD	 |\ Set pointer to map16 low byte table,
 	LDA.b #$7E				;$00F4CF	 | |
 	STA $02					;$00F4D1	 |/
-	LDA [$00]				;$00F4D3	 |\ Set $1693 to low byte of map16 tile
+	LDA [$00]				;$00F4D3	 |\ set $1693 to low byte of map16 tile,
 	STA.w $1693				;$00F4D5	 |/
-	INC $02					;$00F4D8	 | Set pointer to map16 high byte table
-	PLX					;$00F4DA	 | Restore collision point index
+	INC $02					;$00F4D8	 | and set pointer to map16 high byte table.
+	PLX					;$00F4DA	 | Restore collision point index.
 	LDA [$00]				;$00F4DB	 |
-	JSL conditional_map16			;$00F4DD	 | Process "conditional" map16
-	LDY.w $1693				;$00F4E1	 | Set Y to low byte of map16 tile
-	CMP.b #$00				;$00F4E4	 | Check if high byte is $00
+	JSL conditional_map16			;$00F4DD	 | Process "conditional" map16.
+	LDY.w $1693				;$00F4E1	 | Set Y to low byte of map16 tile,
+	CMP.b #$00				;$00F4E4	 | and check if high byte is $00.
 	RTS					;$00F4E6	/
 
 .air_tile_2
-	PLX					;$00F4E7	\ Restore collision point index
-	LDY.b #$25				;$00F4E8	 | Set the low byte to $25
-	BRA .high_byte_00			;$00F4EA	/ Set the high byte to $00
+	PLX					;$00F4E7	\ Restore collision point index.
+	LDY.b #$25				;$00F4E8	 | Set the low byte to $25,
+	BRA .high_byte_00			;$00F4EA	/ and set the high byte to $00.
 
 .layer_2
 	ASL					;$00F4EC	|
-	BNE .vertical_layer_2			;$00F4ED	| Process vertical layer 2 collision if applicable
+	BNE .vertical_layer_2			;$00F4ED	| Process vertical layer 2 collision, if applicable.
 	REP #$20				;$00F4EF	 \
 	LDA $98					;$00F4F1	 |
 	CMP.w #$01B0				;$00F4F3	 | If collision Y > $01B0,
 	SEP #$20				;$00F4F6	 |
-	BCS .air_tile_2				;$00F4F8	 | Act like air
+	BCS .air_tile_2				;$00F4F8	 | act like air.
 	AND.b #$F0				;$00F4FA	 |\
-	STA $00					;$00F4FC	 | | Set upper nybble of map16 table index
+	STA $00					;$00F4FC	 | | Set the upper nybble of map16 table index.
 	LDX $9B					;$00F4FE	 | |
 	CPX.b #$10				;$00F500	 | | If collision X > end of level,
-	BCS .air_tile_2				;$00F502	 | | Act like air
-	LDA $9A					;$00F504	 | | Get collision X
+	BCS .air_tile_2				;$00F502	 | | act like air.
+	LDA $9A					;$00F504	 | | Get collision X,
 	LSR					;$00F506	 | |
 	LSR					;$00F507	 | |
 	LSR					;$00F508	 | |
-	LSR					;$00F509	 | | Divide by 16
-	ORA $00					;$00F50A	 | | Set lower nybble of map16 table index
+	LSR					;$00F509	 | | divide by 16,
+	ORA $00					;$00F50A	 | | and set the lower nybble of map16 table index
 	CLC					;$00F50C	 | |
 	ADC.l DATA_00BA70,X			;$00F50D	 | |
 	STA $00					;$00F511	 | |
 	LDA $99					;$00F513	 | |
-	ADC.l DATA_00BAAC,X			;$00F515	 |/ Add by $C800 + $1B0 * (screen number + $10) for map16 pointer
-	BRA .process_map16			;$00F519	/ Process map16
+	ADC.l DATA_00BAAC,X			;$00F515	 |/ Add by $C800 + $1B0 * (screen number + $10) for map16 pointer.
+	BRA .process_map16			;$00F519	/ Process map16.
 
 .vertical_layer_2
 	LDA $9B					;$00F51B	\
 	CMP.b #$02				;$00F51D	 | If collision X > $0200,
-	BCS .air_tile_2				;$00F51F	 | Act like air
+	BCS .air_tile_2				;$00F51F	 | act like air.
 	LDX $99					;$00F521	 |
 	CPX.b #$0E				;$00F523	 | If collision Y > $0E00,
-	BCS .air_tile_2				;$00F525	 | Act like air
+	BCS .air_tile_2				;$00F525	 | act like air.
 	LDA $98					;$00F527	 |\
 	AND.b #$F0				;$00F529	 | |
-	STA $00					;$00F52B	 | | Set upper nybble of map16 table index
-	LDA $9A					;$00F52D	 | | Get collision X
+	STA $00					;$00F52B	 | | Set the upper nybble of map16 table index.
+	LDA $9A					;$00F52D	 | | Get collision X,
 	LSR					;$00F52F	 | |
 	LSR					;$00F530	 | |
 	LSR					;$00F531	 | |
-	LSR					;$00F532	 | | Divide by 16
-	ORA $00					;$00F533	 | | Set lower nybble of map16 table index
+	LSR					;$00F532	 | | divide by 16,
+	ORA $00					;$00F533	 | | and set the lower nybble of map16 table index.
 	CLC					;$00F535	 | |
 	ADC.l DATA_00BA8E,X			;$00F536	 | |
 	STA $00					;$00F53A	 | |
 	LDA $9B					;$00F53C	 | |
-	ADC.l DATA_00BACA,X			;$00F53E	 |/ Add by $C800 + $200 * (screen number + $10) for map16 pointer
-	JMP .process_map16			;$00F542	/
+	ADC.l DATA_00BACA,X			;$00F53E	 |/ Add by $C800 + $200 * (screen number + $10) for map16 pointer.
+	JMP .process_map16			;$00F542	/ Process map16.
 
 conditional_map16:
-	TAY					;$00F545	\ If map16 page != 0
-	BNE .map16_page_01			;$00F546	 | Process map16 page 1 code
+	TAY					;$00F545	\ If map16 page != 0,
+	BNE .map16_page_01			;$00F546	 | process map16 page 1 code.
 	LDY.w $1693				;$00F548	 |
 	CPY.b #$29				;$00F54B	 | If it's an invisible ? block
 	BNE .not_029				;$00F54D	 | 
-	LDY.w $14AD				;$00F54F	 | And the blue P-switch is active,
+	LDY.w $14AD				;$00F54F	 | and the blue P-switch is active,
 	BEQ .return				;$00F552	 |
 	LDA.b #$24				;$00F554	 |
-	STA.w $1693				;$00F556	 | Act like a real ? block
+	STA.w $1693				;$00F556	 | act like a real ? block.
 	RTL					;$00F559	/
 
 .not_029
@@ -12685,35 +12685,35 @@ conditional_map16:
 	CMP.b #$10				;$00F562	 | If it's a switch palace switch,
 	BCS .not_switch				;$00F564	 |
 	INC A					;$00F566	 |
-	STA.w $1423				;$00F567	 | Set the switch palace flag
-	BRA .act_like_used_block		;$00F56A	/ And act like a used block
+	STA.w $1423				;$00F567	 | set the switch palace flag,
+	BRA .act_like_used_block		;$00F56A	/ and act like a used block.
 
 .is_02B
 	LDY.w $14AD				;$00F56C	\ If it's a coin and the blue P-switch is active,
 	BEQ .return				;$00F56F	 |
 .act_like_used_block				;		 |
 	LDA.b #$32				;$00F571	 |
-	STA.w $1693				;$00F573	 | Act like a used block
+	STA.w $1693				;$00F573	 | act like a used block.
 	RTL					;$00F576	/
 
 .map16_page_01
 	LDY.w $1693				;$00F577	\
 	CPY.b #$32				;$00F57A	 | If it's a used block
 	BNE .not_132				;$00F57C	 |
-	LDY.w $14AD				;$00F57E	 | And the blue P-switch is active,
-	BNE .act_like_coin			;$00F581	 | Act like a coin
+	LDY.w $14AD				;$00F57E	 | and the blue P-switch is active,
+	BNE .act_like_coin			;$00F581	 | act like a coin.
 	RTL					;$00F583	/
 
 .not_132
 	CPY.b #$2F				;$00F584	\ If it's a muncher
 	BNE .return				;$00F586	 |
-	LDY.w $14AE				;$00F588	 | And the silver P-switch is active,
+	LDY.w $14AE				;$00F588	 | and the silver P-switch is active,
 	BEQ .return				;$00F58B	 |
 .act_like_coin					;		 |
 	LDY.b #$2B				;$00F58D	 |
-	STY.w $1693				;$00F58F	 | Act like a coin
+	STY.w $1693				;$00F58F	 | act like a coin.
 .not_switch					;		 |
-	LDA.b #$00				;$00F592	 | Set map16 page 0
+	LDA.b #$00				;$00F592	 | Set map16 page 0.
 .return						;		 |
 	RTL					;$00F594	/
 
