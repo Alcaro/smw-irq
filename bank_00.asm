@@ -236,35 +236,35 @@ NMI_start:					;		\
 	STA.w $2130				;$0081C3	 |/
 	LDA.w $0D9B				;$0081C6	 |\ Check for a regular level
 	BPL .regular_level_NMI			;$0081C9	 | |
-	JMP mode7_NMI				;$0081CB	 |/ Otherwise go to mode 7 routines
+	JMP mode_7_NMI				;$0081CB	 |/ Otherwise go to mode 7 routines
 .regular_level_NMI				;		 |
 	LDA $40					;$0081CE	 |\ Set up color math on all layers in $40 but three
 	AND.b #$FB				;$0081D0	 | |
 	STA.w $2131				;$0081D2	 |/
 	LDA.b #$09				;$0081D5	 |\ Mode 1 with layer 3 priority
 	STA.w $2105				;$0081D7	 |/
-	LDA $10					;$0081DA	 |\ If the game is not lagging
+	LDA $10					;$0081DA	 |\ If the game is not lagging skip to regular NMI
 	BEQ .no_lag				;$0081DC	 |/
 	LDA.w $0D9B				;$0081DE	 |\ Check if we are in a regular level
 	LSR					;$0081E1	 | |
-	BEQ not_special_level_NMI		;$0081E2	 | |
-	JMP special_level_NMI			;$0081E4	 |/ Otherwise process as a special level
+	BEQ lagging_level_NMI			;$0081E2	 | |
+	JMP lagging_overworld_NMI		;$0081E4	 |/ Otherwise process as the overworld
 .no_lag						;		 |
 	INC $10					;$0081E7	 | Allow the game loop to run after NMI
 	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
-	LDA.w $0D9B				;$0081EC	 |
-	LSR					;$0081EF	 |
-	BNE overworld_NMI			;$0081F0	 |
-	BCS .mario_start_NMI			;$0081F2	 |
-	JSR draw_status_bar			;$0081F4	 |
+	LDA.w $0D9B				;$0081EC	 |\ Seperate the current level mode
+	LSR					;$0081EF	 |/
+	BNE overworld_NMI			;$0081F0	 | $0D9B was 02, run OW code
+	BCS .mario_start_NMI			;$0081F2	 | $0D9B was 01(MARIO START), Skip the status bar draw
+	JSR draw_status_bar			;$0081F4	 | Draw the status bar
 .mario_start_NMI				;		 |
-	LDA.w $13C6				;$0081F7	 |
-	CMP.b #$08				;$0081FA	 |
-	BNE .not_end_credits			;$0081FC	 |
-	LDA.w $1FFE				;$0081FE	 |
-	BEQ CODE_00821A				;$008201	 |
-	JSL CODE_0C9567				;$008203	 |
-	BRA CODE_00821A				;$008207	 |
+	LDA.w $13C6				;$0081F7	 |\ Skip the end credits code 
+	CMP.b #$08				;$0081FA	 | | if the current cutscene is not $08 (end credits)
+	BNE .not_end_credits			;$0081FC	 |/
+	LDA.w $1FFE				;$0081FE	 |\ Skip updating the credits background
+	BEQ CODE_00821A				;$008201	 |/ If a new background is not yet needed
+	JSL DMA_credits_background		;$008203	 | Update the Credits background
+	BRA CODE_00821A				;$008207	 | Continue with NMI
 .not_end_credits				;		 |
 	JSL CODE_0087AD				;$008209	 |
 	LDA.w $143A				;$00820D	 |
@@ -296,7 +296,7 @@ CODE_00823D:					;		 |
 	JSR DMA_OAM				;$008240	 |
 CODE_008243:					;		 |
 	JSR update_controls			;$008243	 |
-not_special_level_NMI:				;		 |
+lagging_level_NMI:				;		 |
 	LDA $1A					;$008246	 |
 	STA.w $210D				;$008248	 |
 	LDA $1B					;$00824B	 |
@@ -318,25 +318,25 @@ not_special_level_NMI:				;		 |
 	STA.w $2110				;$008272	 |
 	LDA.w $0D9B				;$008275	 |
 	BEQ CODE_008292				;$008278	 |
-special_level_NMI:				;		 |
-	LDA.b #$81				;$00827A	 |
-	LDY.w $13C6				;$00827C	 |
-	CPY.b #$08				;$00827F	 |
-	BNE NotCredits				;$008281	 |
-	LDY.w $0DAE				;$008283	 |
-	STY.w $2100				;$008286	 |
-	LDY.w $0D9F				;$008289	 |
-	STY.w $420C				;$00828C	 |
-	JMP IRQNMIEnding			;$00828F	 | Finish off NMI
+lagging_overworld_NMI:				;		 |
+	LDA.b #$81				;$00827A	 | Load Enable NMI and autojoy enabled
+	LDY.w $13C6				;$00827C	 |\ Skip to NMI return if the credits are not playing
+	CPY.b #$08				;$00827F	 | |
+	BNE NMI_return				;$008281	 |/
+	LDY.w $0DAE				;$008283	 |\ Set screen brightness from mirror
+	STY.w $2100				;$008286	 |/
+	LDY.w $0D9F				;$008289	 |\ Enable HDMA channels
+	STY.w $420C				;$00828C	 |/
+	JMP IRQ_NMI_return			;$00828F	 | Finish off NMI
 CODE_008292:					;		 |
 	LDY.b #$24				;$008292	 | Load the V timer scanline
-CODE_008294:					;		 |
+mode_7_NMI_return:				;		 |
 	LDA.w $4211				;$008294	 | Read to clear the IRQ flag
 	STY.w $4209				;$008297	 | Set the V timer low byte (generally #$24)
 	STZ.w $420A				;$00829A	 | Clear the V timer high byte
 	STZ $11					;$00829D	 | Set IRQ id flag to 0 (IRQ #1)
 	LDA.b #$A1				;$00829F	 | Load Enable NMI, vertical IRQ, and autojoy enabled
-NotCredits:					;		 |
+NMI_return:					;		 |
 	STA.w $4200				;$0082A1	 | Store NMI/IRQ/autojoy enabled status
 	STZ.w $2111				;$0082A4	 |\ Reset layer X three scroll position
 	STZ.w $2111				;$0082A7	 |/
@@ -354,7 +354,7 @@ NotCredits:					;		 |
 	PLP					;$0082C2	 |/
 	RTI					;$0082C3	/ Return from NMI
 
-mode7_NMI:					;		\
+mode_7_NMI:					;		\
 	LDA $10					;$0082C4	 |
 	BNE CODE_0082F7				;$0082C6	 |
 	INC $10					;$0082C8	 |
@@ -433,25 +433,25 @@ CODE_00835C:					;		 |
 	BNE CODE_008371				;$00836D	 |
 	LDY.b #$2D				;$00836F	 |
 CODE_008371:					;		 |
-	JMP CODE_008294				;$008371	/
+	JMP mode_7_NMI_return			;$008371	/
 
 IRQ_start:					;		\
-	SEI					;$008374	 |
-	PHP					;$008375	 |
-	REP #$30				;$008376	 |
-	PHA					;$008378	 |
-	PHX					;$008379	 |
-	PHY					;$00837A	 |
-	PHB					;$00837B	 |
-	PHK					;$00837C	 |
-	PLB					;$00837D	 |
-	SEP #$30				;$00837E	 |
+	SEI					;$008374	 | Disable interrupts to stop interrupting an interrupt
+	PHP					;$008375	 |\
+	REP #$30				;$008376	 | | Push pretty much everything(except direct page)
+	PHA					;$008378	 | | Make sure you push 16 bit values to the stack
+	PHX					;$008379	 | |
+	PHY					;$00837A	 | |
+	PHB					;$00837B	 | |
+	PHK					;$00837C	 | | Also set the bank to 00
+	PLB					;$00837D	 |/
+	SEP #$30				;$00837E	 | 8 bit A/X/Y
 	LDA.w $4211				;$008380	 |
 	BPL CODE_0083B2				;$008383	 |
 	LDA.b #$81				;$008385	 |
 	LDY.w $0D9B				;$008387	 |
 	BMI CODE_0083BA				;$00838A	 |
-IRQNMIEnding:					;		 |
+IRQ_NMI_return:					;		 |
 	STA.w $4200				;$00838C	 |
 	LDY.b #$1F				;$00838F	 |
 	JSR WaitForHBlank			;$008391	 |
@@ -469,14 +469,14 @@ CODE_0083A8:					;		 |
 	LDA $40					;$0083AD	 |
 	STA.w $2131				;$0083AF	 |
 CODE_0083B2:					;		 |
-	REP #$30				;$0083B2	 |
-	PLB					;$0083B4	 |
-	PLY					;$0083B5	 |
-	PLX					;$0083B6	 |
-	PLA					;$0083B7	 |
-	PLP					;$0083B8	 |
+	REP #$30				;$0083B2	 |\ Restore everything saved at the beginning of NMI
+	PLB					;$0083B4	 | |
+	PLY					;$0083B5	 | |
+	PLX					;$0083B6	 | |
+	PLA					;$0083B7	 | |
+	PLP					;$0083B8	 |/
 EmptyHandler:					;		 |
-	RTI					;$0083B9	/
+	RTI					;$0083B9	/ Return from NMI
 
 CODE_0083BA:
 	BIT.w $0D9B
@@ -505,7 +505,7 @@ CODE_0083E3:
 	CPY.b #$40				;$0083EB	|
 	BCC CODE_0083F3				;$0083ED	|
 	LDA.b #$81				;$0083EF	|
-	BRA IRQNMIEnding			;$0083F1	|
+	BRA IRQ_NMI_return			;$0083F1	|
 
 CODE_0083F3:
 	STA.w $4200
