@@ -254,30 +254,30 @@ NMI_start:					;		\
 	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
 	LDA.w $0D9B				;$0081EC	 |\ Seperate the current level mode
 	LSR					;$0081EF	 |/
-	BNE overworld_NMI			;$0081F0	 | $0D9B was 02, run OW code
-	BCS .mario_start_NMI			;$0081F2	 | $0D9B was 01(MARIO START), Skip the status bar draw
+	BNE .overworld_NMI			;$0081F0	 | $0D9B was 02, run OW code
+	BCS .transition_NMI			;$0081F2	 | $0D9B was 01(transition), Skip the status bar draw
 	JSR draw_status_bar			;$0081F4	 | Draw the status bar
-.mario_start_NMI				;		 |
+.transition_NMI					;		 |
 	LDA.w $13C6				;$0081F7	 |\ Skip the end credits code 
 	CMP.b #$08				;$0081FA	 | | if the current cutscene is not $08 (end credits)
 	BNE .not_end_credits			;$0081FC	 |/
 	LDA.w $1FFE				;$0081FE	 |\ Skip updating the credits background
-	BEQ CODE_00821A				;$008201	 |/ If a new background is not yet needed
+	BEQ .draw_mario				;$008201	 |/ If a new background is not yet needed
 	JSL DMA_credits_background		;$008203	 | Update the Credits background
-	BRA CODE_00821A				;$008207	 | Continue with NMI
+	BRA .draw_mario				;$008207	 | Continue with NMI by drawing mario
 .not_end_credits				;		 |
-	JSL CODE_0087AD				;$008209	 |
-	LDA.w $143A				;$00820D	 |
-	BEQ CODE_008217				;$008210	 |
-	JSR CODE_00A7C2				;$008212	 |
+	JSL CODE_0087AD				;$008209	 | <-- get this later.  It is evil.
+	LDA.w $143A				;$00820D	 |\ Check if the transition screens need DMAed
+	BEQ .skip_transition_DMA		;$008210	 |/
+	JSR DMA_transition_screen		;$008212	 | DMA start/bonus/game over/time up transition screens
 	BRA CODE_00823D				;$008215	 |
-CODE_008217:					;		 |
+.skip_transition_DMA				;		 |
 	JSR CODE_00A390				;$008217	 |
-CODE_00821A:					;		 |
+.draw_mario					;		 |
 	JSR CODE_00A436				;$00821A	 |
-	JSR MarioGFXDMA				;$00821D	 |
+	JSR mario_graphics_DMA			;$00821D	 |
 	BRA CODE_00823D				;$008220	 |
-overworld_NMI:					;		 |
+.overworld_NMI					;		 |
 	LDA.w $13D9				;$008222	 |
 	CMP.b #$0A				;$008225	 |
 	BNE CODE_008237				;$008227	 |
@@ -290,34 +290,34 @@ overworld_NMI:					;		 |
 	BRA CODE_008243				;$008235	 |
 CODE_008237:					;		 |
 	JSR CODE_00A4E3				;$008237	 |
-	JSR MarioGFXDMA				;$00823A	 |
+	JSR mario_graphics_DMA			;$00823A	 |
 CODE_00823D:					;		 |
-	JSR _load_stripe_image_			;$00823D	 |
-	JSR DMA_OAM				;$008240	 |
+	JSR _load_stripe_image_			;$00823D	 | Upload Stripe image data (to be commented)
+	JSR DMA_OAM				;$008240	 | DMA Sprite tiles to the screen
 CODE_008243:					;		 |
-	JSR update_controls			;$008243	 |
+	JSR update_controllers			;$008243	 | Run the controller update routine
 lagging_level_NMI:				;		 |
-	LDA $1A					;$008246	 |
-	STA.w $210D				;$008248	 |
-	LDA $1B					;$00824B	 |
-	STA.w $210D				;$00824D	 |
-	LDA $1C					;$008250	 |
-	CLC					;$008252	 |
-	ADC.w $1888				;$008253	 |
-	STA.w $210E				;$008256	 |
-	LDA $1D					;$008259	 |
-	ADC.w $1889				;$00825B	 |
-	STA.w $210E				;$00825E	 |
-	LDA $1E					;$008261	 |
-	STA.w $210F				;$008263	 |
-	LDA $1F					;$008266	 |
-	STA.w $210F				;$008268	 |
-	LDA $20					;$00826B	 |
-	STA.w $2110				;$00826D	 |
-	LDA $21					;$008270	 |
-	STA.w $2110				;$008272	 |
-	LDA.w $0D9B				;$008275	 |
-	BEQ CODE_008292				;$008278	 |
+	LDA $1A					;$008246	 |\ Set layer 1 X position from mirrors
+	STA.w $210D				;$008248	 | | $210D is a write twice register 
+	LDA $1B					;$00824B	 | |
+	STA.w $210D				;$00824D	 |/
+	LDA $1C					;$008250	 |\ Set layer 1 Y position from mirrors
+	CLC					;$008252	 | | 
+	ADC.w $1888				;$008253	 | | $1888/9 are used as relative Y offsets
+	STA.w $210E				;$008256	 | | $210E is a write twice register
+	LDA $1D					;$008259	 | |
+	ADC.w $1889				;$00825B	 | |
+	STA.w $210E				;$00825E	 |/
+	LDA $1E					;$008261	 |\ Set layer 2 X position from mirrors
+	STA.w $210F				;$008263	 | | $210F is a write twice register 
+	LDA $1F					;$008266	 | |
+	STA.w $210F				;$008268	 |/
+	LDA $20					;$00826B	 |\ Set layer 2 Y position from mirrors
+	STA.w $2110				;$00826D	 | | $2110 is a write twice register 
+	LDA $21					;$008270	 | |
+	STA.w $2110				;$008272	 |/
+	LDA.w $0D9B				;$008275	 |\ If we are in a level, skip to level NMI return
+	BEQ level_NMI_return			;$008278	 |/
 lagging_overworld_NMI:				;		 |
 	LDA.b #$81				;$00827A	 | Load Enable NMI and autojoy enabled
 	LDY.w $13C6				;$00827C	 |\ Skip to NMI return if the credits are not playing
@@ -328,7 +328,7 @@ lagging_overworld_NMI:				;		 |
 	LDY.w $0D9F				;$008289	 |\ Enable HDMA channels
 	STY.w $420C				;$00828C	 |/
 	JMP IRQ_NMI_return			;$00828F	 | Finish off NMI
-CODE_008292:					;		 |
+level_NMI_return:				;		 |
 	LDY.b #$24				;$008292	 | Load the V timer scanline
 mode_7_NMI_return:				;		 |
 	LDA.w $4211				;$008294	 | Read to clear the IRQ flag
@@ -360,11 +360,11 @@ mode_7_NMI:					;		\
 	INC $10					;$0082C8	 |
 	LDA.w $143A				;$0082CA	 |
 	BEQ CODE_0082D4				;$0082CD	 |
-	JSR CODE_00A7C2				;$0082CF	 |
+	JSR DMA_transition_screen		;$0082CF	 |
 	BRA CODE_0082E8				;$0082D2	 |
 CODE_0082D4:					;		 |
 	JSR CODE_00A436				;$0082D4	 |
-	JSR MarioGFXDMA				;$0082D7	 |
+	JSR mario_graphics_DMA			;$0082D7	 |
 	BIT.w $0D9B				;$0082DA	 |
 	BVC CODE_0082E8				;$0082DD	 |
 	JSR CODE_0098A9				;$0082DF	 |
@@ -377,7 +377,7 @@ CODE_0082EB:					;		 |
 	JSR upload_palette			;$0082ED	 |
 	JSR _load_stripe_image_			;$0082EE	 |
 	JSR DMA_OAM				;$0082F1	 |
-	JSR update_controls			;$0082F4	 |
+	JSR update_controllers			;$0082F4	 |
 CODE_0082F7:					;		 |
 	LDA.b #$09				;$0082F7	 |
 	STA.w $2105				;$0082F9	 |
@@ -433,7 +433,7 @@ CODE_00835C:					;		 |
 	BNE CODE_008371				;$00836D	 |
 	LDY.b #$2D				;$00836F	 |
 CODE_008371:					;		 |
-	JMP mode_7_NMI_return			;$008371	/
+	JMP mode_7_NMI_return			;$008371	/ Finish off mode 7 NMI
 
 IRQ_start:					;		\
 	SEI					;$008374	 | Disable interrupts to stop interrupting an interrupt
@@ -554,24 +554,24 @@ CODE_008445:
 	BNE CODE_008445				;$008446	|
 	RTS					;$008448	|
 
-DMA_OAM:
-	STZ.w $4300
-	REP #$20				;$00844C	|
-	STZ.w $2102				;$00844E	|
-	LDA.w #$0004				;$008451	|
-	STA.w $4301				;$008454	|
-	LDA.w #$0002				;$008457	|
-	STA.w $4303				;$00845A	|
-	LDA.w #$0220				;$00845D	|
-	STA.w $4305				;$008460	|
-	LDY.b #$01				;$008463	|
-	STY.w $420B				;$008465	|
-	SEP #$20				;$008468	|
-	LDA.b #$80				;$00846A	|
-	STA.w $2103				;$00846C	|
-	LDA $3F					;$00846F	|
-	STA.w $2102				;$008471	|
-	RTS					;$008474	|
+DMA_OAM:					;		\ 
+	STZ.w $4300				;$008449	 | DMA mode 0 (p)
+	REP #$20				;$00844C	 | 16 bit A
+	STZ.w $2102				;$00844E	 | Set OAM address to 00
+	LDA.w #$0004				;$008451	 |\ Set DMA destination to $2104
+	STA.w $4301				;$008454	 |/ Set DMA source low byte to #$00
+	LDA.w #$0002				;$008457	 |\ Set DMA source to $000200
+	STA.w $4303				;$00845A	 |/
+	LDA.w #$0220				;$00845D	 |\ Transfer #$0220 bytes
+	STA.w $4305				;$008460	 |/
+	LDY.b #$01				;$008463	 |\ Run DMA channel 0
+	STY.w $420B				;$008465	 |/
+	SEP #$20				;$008468	 | 8 bit A
+	LDA.b #$80				;$00846A	 |\ Enable sprite rotation priority
+	STA.w $2103				;$00846C	 |/
+	LDA $3F					;$00846F	 |\ Set OAM rotation address
+	STA.w $2102				;$008471	 |/
+	RTS					;$008474	/ Finished with OAM DMA
 
 DATA_008475:
 	db $00,$00,$08,$00,$10,$00,$18,$00
@@ -764,54 +764,54 @@ CODE_00862F:
 DATA_008649:
 	db $08,$18,$00,$00,$00,$00,$10
 
-update_controls:
-	LDA.w $4218
-	AND.b #$F0				;$008653	|
-	STA.w $0DA4				;$008655	|
-	TAY					;$008658	|
-	EOR.w $0DAC				;$008659	|
-	AND.w $0DA4				;$00865C	|
-	STA.w $0DA8				;$00865F	|
-	STY.w $0DAC				;$008662	|
-	LDA.w $4219				;$008665	|
-	STA.w $0DA2				;$008668	|
-	TAY					;$00866B	|
-	EOR.w $0DAA				;$00866C	|
-	AND.w $0DA2				;$00866F	|
-	STA.w $0DA6				;$008672	|
-	STY.w $0DAA				;$008675	|
-	LDA.w $421A				;$008678	|
-	AND.b #$F0				;$00867B	|
-	STA.w $0DA5				;$00867D	|
-	TAY					;$008680	|
-	EOR.w $0DAD				;$008681	|
-	AND.w $0DA5				;$008684	|
-	STA.w $0DA9				;$008687	|
-	STY.w $0DAD				;$00868A	|
-	LDA.w $421B				;$00868D	|
-	STA.w $0DA3				;$008690	|
-	TAY					;$008693	|
-	EOR.w $0DAB				;$008694	|
-	AND.w $0DA3				;$008697	|
-	STA.w $0DA7				;$00869A	|
-	STY.w $0DAB				;$00869D	|
-	LDX.w $0DA0				;$0086A0	|
-	BPL CODE_0086A8				;$0086A3	|
-	LDX.w $0DB3				;$0086A5	|
-CODE_0086A8:
-	LDA.w $0DA4,X
-	AND.b #$C0				;$0086AB	|
-	ORA.w $0DA2,X				;$0086AD	|
-	STA $15					;$0086B0	|
-	LDA.w $0DA4,X				;$0086B2	|
-	STA $17					;$0086B5	|
-	LDA.w $0DA8,X				;$0086B7	|
-	AND.b #$40				;$0086BA	|
-	ORA.w $0DA6,X				;$0086BC	|
-	STA $16					;$0086BF	|
-	LDA.w $0DA8,X				;$0086C1	|
-	STA $18					;$0086C4	|
-	RTS					;$0086C6	|
+update_controllers:				;		\ 
+	LDA.w $4218				;$008650	 |\ Load controller 1 low byte data
+	AND.b #$F0				;$008653	 | | Filter out potentially invalid bits
+	STA.w $0DA4				;$008655	 | | Store the filtered value in $0DA4 and Y
+	TAY					;$008658	 | |
+	EOR.w $0DAC				;$008659	 | | Flip any disabled bits off
+	AND.w $0DA4				;$00865C	 | | Reset any disabled bits turned on
+	STA.w $0DA8				;$00865F	 | | Store controller data
+	STY.w $0DAC				;$008662	 |/
+	LDA.w $4219				;$008665	 |\ Load controller 1 high byte data
+	STA.w $0DA2				;$008668	 | | Store the raw value in $0DA2 and Y
+	TAY					;$00866B	 | |
+	EOR.w $0DAA				;$00866C	 | | Flip any disabled bits off
+	AND.w $0DA2				;$00866F	 | | Reset any disabled bits turned on
+	STA.w $0DA6				;$008672	 | | Store controller data
+	STY.w $0DAA				;$008675	 |/
+	LDA.w $421A				;$008678	 |\ Load controller 2 low byte data
+	AND.b #$F0				;$00867B	 | | Filter out potentially invalid bits
+	STA.w $0DA5				;$00867D	 | | Store the filtered value in $0DA5 and Y
+	TAY					;$008680	 | |
+	EOR.w $0DAD				;$008681	 | | Flip any disabled bits off
+	AND.w $0DA5				;$008684	 | | Reset any disabled bits turned on
+	STA.w $0DA9				;$008687	 | | Store controller data
+	STY.w $0DAD				;$00868A	 |/
+	LDA.w $421B				;$00868D	 |\ Load controller 2 high byte data
+	STA.w $0DA3				;$008690	 | | Store the raw value in $0DA3 and Y
+	TAY					;$008693	 | |
+	EOR.w $0DAB				;$008694	 | | Flip any disabled bits off
+	AND.w $0DA3				;$008697	 | | Reset any disabled bits turned on
+	STA.w $0DA7				;$00869A	 | | Store controller data
+	STY.w $0DAB				;$00869D	 |/
+	LDX.w $0DA0				;$0086A0	 |\ Check for the second controller
+	BPL .single_controller			;$0086A3	 |/
+	LDX.w $0DB3				;$0086A5	 | Load current player
+.single_controller				;		 |
+	LDA.w $0DA4,X				;$0086A8	 |\ Update $15 t0 current button press high byte
+	AND.b #$C0				;$0086AB	 | | Share bit 6 with X/Y
+	ORA.w $0DA2,X				;$0086AD	 | | 
+	STA $15					;$0086B0	 |/
+	LDA.w $0DA4,X				;$0086B2	 |\ Update $17 to current button press low byte
+	STA $17					;$0086B5	 |/
+	LDA.w $0DA8,X				;$0086B7	 |\ Update $16 t0 current frame press high byte
+	AND.b #$40				;$0086BA	 | | Share bit 6 with X/Y
+	ORA.w $0DA6,X				;$0086BC	 | | 
+	STA $16					;$0086BF	 |/
+	LDA.w $0DA8,X				;$0086C1	 |\ Update $18 to current frame press low byte
+	STA $18					;$0086C4	 |/
+	RTS					;$0086C6	/
 
 CODE_0086C7:
 	REP #$30
@@ -4227,7 +4227,7 @@ CODE_00A2F3:
 	SEP #$20				;$00A2FD	|
 	RTS					;$00A2FF	|
 
-MarioGFXDMA:
+mario_graphics_DMA:
 	REP #$20
 	LDX.b #$04				;$00A302	|
 	LDY.w $0D84				;$00A304	|
@@ -4811,45 +4811,45 @@ CODE_00A7B9:
 	SEP #$20				;$00A7BF	|
 	RTS					;$00A7C1	|
 
-CODE_00A7C2:
-	REP #$20
-	LDX.b #$80				;$00A7C4	|
-	STX.w $2115				;$00A7C6	|
-	LDA.w #$6000				;$00A7C9	|
-	STA.w $2116				;$00A7CC	|
-	LDA.w #$1801				;$00A7CF	|
-	STA.w $4320				;$00A7D2	|
-	LDA.w #$977B				;$00A7D5	|
-	STA.w $4322				;$00A7D8	|
-	LDX.b #$7F				;$00A7DB	|
-	STX.w $4324				;$00A7DD	|
-	LDA.w #$00C0				;$00A7E0	|
-	STA.w $4325				;$00A7E3	|
-	LDX.b #$04				;$00A7E6	|
-	STX.w $420B				;$00A7E8	|
-	LDA.w #$6100				;$00A7EB	|
-	STA.w $2116				;$00A7EE	|
-	LDA.w #$983B				;$00A7F1	|
-	STA.w $4322				;$00A7F4	|
-	LDA.w #$00C0				;$00A7F7	|
-	STA.w $4325				;$00A7FA	|
-	STX.w $420B				;$00A7FD	|
-	LDA.w #$64A0				;$00A800	|
-	STA.w $2116				;$00A803	|
-	LDA.w #$98FB				;$00A806	|
-	STA.w $4322				;$00A809	|
-	LDA.w #$00C0				;$00A80C	|
-	STA.w $4325				;$00A80F	|
-	STX.w $420B				;$00A812	|
-	LDA.w #$65A0				;$00A815	|
-	STA.w $2116				;$00A818	|
-	LDA.w #$99BB				;$00A81B	|
-	STA.w $4322				;$00A81E	|
-	LDA.w #$00C0				;$00A821	|
-	STA.w $4325				;$00A824	|
-	STX.w $420B				;$00A827	|
-	SEP #$20				;$00A82A	|
-	RTS					;$00A82C	|
+DMA_transition_screen:				;		\ 
+	REP #$20				;$00A7C2	 | 16 bit A, 8 bit XY
+	LDX.b #$80				;$00A7C4	 |\ Set VRAM to increment after writing $2119
+	STX.w $2115				;$00A7C6	 |/
+	LDA.w #$6000				;$00A7C9	 |\ Set VRAM address to $6000 (layer three)
+	STA.w $2116				;$00A7CC	 |/
+	LDA.w #$1801				;$00A7CF	 |\ DMA mode 01(p, p+1), increment DMA address
+	STA.w $4320				;$00A7D2	 |/ With $2118 as the destination.
+	LDA.w #$977B				;$00A7D5	 |\ Set DMA source to $7F977B
+	STA.w $4322				;$00A7D8	 |/
+	LDX.b #$7F				;$00A7DB	 |\ Set DMA source bank to #$7F
+	STX.w $4324				;$00A7DD	 |/
+	LDA.w #$00C0				;$00A7E0	 |\ Set DMA size to #$C0 bytes
+	STA.w $4325				;$00A7E3	 |/
+	LDX.b #$04				;$00A7E6	 |\ Start DMA channel 3
+	STX.w $420B				;$00A7E8	 |/
+	LDA.w #$6100				;$00A7EB	 |\ Set VRAM address to $6100 (layer three)
+	STA.w $2116				;$00A7EE	 |/
+	LDA.w #$983B				;$00A7F1	 |\ Set DMA source to $7F983B
+	STA.w $4322				;$00A7F4	 |/
+	LDA.w #$00C0				;$00A7F7	 |\ Set DMA size to #$C0 bytes
+	STA.w $4325				;$00A7FA	 |/
+	STX.w $420B				;$00A7FD	 | Start DMA channel 3
+	LDA.w #$64A0				;$00A800	 |\ Set VRAM address to $64A0 (layer three)
+	STA.w $2116				;$00A803	 |/
+	LDA.w #$98FB				;$00A806	 |\ Set DMA source to $7F98FB
+	STA.w $4322				;$00A809	 |/
+	LDA.w #$00C0				;$00A80C	 |\ Set DMA size to #$C0 bytes
+	STA.w $4325				;$00A80F	 |/
+	STX.w $420B				;$00A812	 | Start DMA channel 3
+	LDA.w #$65A0				;$00A815	 |\ Set VRAM address to $65A0 (layer three)
+	STA.w $2116				;$00A818	 |/
+	LDA.w #$99BB				;$00A81B	 |\ Set DMA source to $7F99BB
+	STA.w $4322				;$00A81E	 |/
+	LDA.w #$00C0				;$00A821	 |\ Set DMA size to #$C0 bytes
+	STA.w $4325				;$00A824	 |/
+	STX.w $420B				;$00A827	 | Start DMA channel 3
+	SEP #$20				;$00A82A	 | Restore 8 bit A
+	RTS					;$00A82C	/ Done with transition screen DMA
 
 CODE_00A82D:
 	LDY.b #$0F

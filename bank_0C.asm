@@ -885,7 +885,7 @@ DMA_credits_background:				;		\
 	PHB					;$0C9569	 | | and switch the data bank to $0C
 	PHK					;$0C956A	 | |
 	PLB					;$0C956B	 |/
-	LDA.b #$80				;$0C956C	 |\ Set increment after VRAM write
+	LDA.b #$80				;$0C956C	 |\ Set increment VRAM after writing $2119
 	STA.w $2115				;$0C956E	 |/
 	LDA.b #$C0				;$0C9571	 |\ Set VRAM address to $30C0
 	STA.w $2116				;$0C9573	 | |
