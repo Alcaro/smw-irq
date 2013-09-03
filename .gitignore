@@ -7,3 +7,6 @@
 *.so
 *.swp
 *~*
+*.srm
+smw.0*
+*.usage
