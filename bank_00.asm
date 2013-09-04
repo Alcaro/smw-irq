@@ -4561,7 +4561,7 @@ CODE_00A5CF:
 	LDX.w #$0703				;$00A5DB	|
 	LDY.w #$0905				;$00A5DE	|
 	LDA.w #$01EF				;$00A5E1	|
-	db $54,$00,$00				;$00A5E4	|
+	MVN $00,$00				;$00A5E4	|
 	PLB					;$00A5E7	|
 	LDX.w $0701				;$00A5E8	|
 	STX.w $0903				;$00A5EB	|

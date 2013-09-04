@@ -7471,7 +7471,7 @@ CODE_0DE016:
 	LDA $00					;$0DE033	|
 	LDX $02					;$0DE035	|
 	LDY $04					;$0DE037	|
-	db $54,$7E,$7E				;$0DE039	|
+	MVN $7E,$7E				;$0DE039	|
 	PLB					;$0DE03C	|
 	LDA.w #$01B0				;$0DE03D	|
 	STA $00					;$0DE040	|
@@ -7481,7 +7481,7 @@ CODE_0DE016:
 	LDA $00					;$0DE048	|
 	LDX $02					;$0DE04A	|
 	LDY $06					;$0DE04C	|
-	db $54,$7F,$7F				;$0DE04E	|
+	MVN $7F,$7F				;$0DE04E	|
 	PLB					;$0DE051	|
 	SEP #$30				;$0DE052	|
 	DEC $59					;$0DE054	|

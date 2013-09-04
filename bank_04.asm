@@ -5523,7 +5523,7 @@ CODE_04DC42:
 	LDA.w #$07FF				;$04DC57	|
 	LDX.w #$F7DF				;$04DC5A	|
 	LDY.w #$C800				;$04DC5D	|
-	db $54,$7E,$0C				;$04DC60	|
+	MVN $7E,$0C				;$04DC60	|
 	PLB					;$04DC63	|
 	JSR CODE_04D7F2				;$04DC64	|
 	SEP #$30				;$04DC67	|
