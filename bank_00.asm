@@ -292,7 +292,7 @@ NMI_start:					;		\
 	JSR DMA_animated_overworld_tiles	;$008237	 | DMA animated overworld tiles (plus animated palettes)
 	JSR dynamic_sprite_DMA			;$00823A	 | DMA Mario/Yoshi/Vertical fireball
 .skip_overworld_NMI:				;		 |
-	JSR _load_stripe_image_			;$00823D	 | <-- Upload Stripe image data
+	JSR _load_stripe_image_			;$00823D	 | Upload Stripe image data
 	JSR DMA_OAM				;$008240	 | DMA Sprite tiles to the screen
 .regular_overworld_bypass			;		 |
 	JSR update_controllers			;$008243	 | Run the controller update routine
@@ -610,13 +610,13 @@ CODE_008496:
 	BPL CODE_008496				;$0084C5	|
 	RTS					;$0084C7	|
 
-load_stripe_image:
-	PHB
-	PHK					;$0084C9	|
-	PLB					;$0084CA	|
-	JSR _load_stripe_image_			;$0084CB	|
-	PLB					;$0084CE	|
-	RTL					;$0084CF	|
+load_stripe_image:				;		\ 
+	PHB					;$0084C8	 |\ Set data bank to $00
+	PHK					;$0084C9	 | |
+	PLB					;$0084CA	 |/
+	JSR _load_stripe_image_			;$0084CB	 | Upload the stripe image
+	PLB					;$0084CE	 | Restore bank
+	RTL					;$0084CF	/ Done with stripe image uploading
 
 stripe_images:
 	dl $7F837D				;		|$7F837D
@@ -706,24 +706,24 @@ stripe_images:
 	dl DATA_0DFD5C				;		|$0DFD5C
 	dl DATA_0CBD02				;		|$0CBD02
 
-_load_stripe_image_:
-	LDY $12
-	LDA.w stripe_images,Y			;$0085D4	|
-	STA $00					;$0085D7	|
-	LDA.w stripe_images+1,Y			;$0085D9	|
-	STA $01					;$0085DC	|
-	LDA.w stripe_images+2,Y			;$0085DE	|
-	STA $02					;$0085E1	|
-	JSR DMA_stripe_image			;$0085E3	|
-	LDA $12					;$0085E6	|
-	BNE CODE_0085F7				;$0085E8	|
-	STA.l $7F837B				;$0085EA	|
-	STA.l $7F837C				;$0085EE	|
-	DEC A					;$0085F2	|
-	STA.l $7F837D				;$0085F3	|
-CODE_0085F7:
-	STZ $12
-	RTS					;$0085F9	|
+_load_stripe_image_:				;		\
+	LDY $12					;$0085D2	 | Load the stripe index pointer
+	LDA.w stripe_images,Y			;$0085D4	 |\ Load and store the low byte
+	STA $00					;$0085D7	 |/
+	LDA.w stripe_images+1,Y			;$0085D9	 |\ Load and store the high byte
+	STA $01					;$0085DC	 |/
+	LDA.w stripe_images+2,Y			;$0085DE	 |\ Load and store the bank byte
+	STA $02					;$0085E1	 |/
+	JSR DMA_stripe_image			;$0085E3	 | DMA the actual stripe image
+	LDA $12					;$0085E6	 |
+	BNE .skip_RAM_clear			;$0085E8	 |
+	STA.l $7F837B				;$0085EA	 |\ Set the stripe RAM index to #$0000
+	STA.l $7F837C				;$0085EE	 |/
+	DEC A					;$0085F2	 |\ Set as "end of data"
+	STA.l $7F837D				;$0085F3	 |/
+.skip_RAM_clear					;		 |
+	STZ $12					;$0085F7	 | Clear the stripe index
+	RTS					;$0085F9	/ Done loading stripe image data
 
 CODE_0085FA:
 	JSR TurnOffIO
@@ -867,82 +867,82 @@ ExecutePtrLong:
 	JMP [$0000]				;$00871B	|
 
 DMA_stripe_image:
-	REP #$10
-	STA.w $4314				;$008720	|
-	LDY.w #$0000				;$008723	|
-CODE_008726:
-	LDA [$00],Y
-	BPL CODE_00872D				;$008728	|
-	SEP #$30				;$00872A	|
-	RTS					;$00872C	|
+	REP #$10				;$00871E	\ 16 bit XY
+	STA.w $4314				;$008720	 |\ Store DMA source bank
+	LDY.w #$0000				;$008723	 |/
+.next_block					;		 |
+	LDA [$00],Y				;$008726	 |\ Continue while end of data bit not set
+	BPL .upload_stripe_block		;$008728	 |/
+	SEP #$30				;$00872A	 | 8 bit AXY
+	RTS					;$00872C	/ Done with stripe image DMA
 
-CODE_00872D:
-	STA $04
-	INY					;$00872F	|
-	LDA [$00],Y				;$008730	|
-	STA $03					;$008732	|
-	INY					;$008734	|
-	LDA [$00],Y				;$008735	|
-	STZ $07					;$008737	|
-	ASL					;$008739	|
-	ROL $07					;$00873A	|
-	LDA.b #$18				;$00873C	|
-	STA.w $4311				;$00873E	|
-	LDA [$00],Y				;$008741	|
-	AND.b #$40				;$008743	|
-	LSR					;$008745	|
-	LSR					;$008746	|
-	LSR					;$008747	|
-	STA $05					;$008748	|
-	STZ $06					;$00874A	|
-	ORA.b #$01				;$00874C	|
-	STA.w $4310				;$00874E	|
-	REP #$20				;$008751	|
-	LDA $03					;$008753	|
-	STA.w $2116				;$008755	|
-	LDA [$00],Y				;$008758	|
-	XBA					;$00875A	|
-	AND.w #$3FFF				;$00875B	|
-	TAX					;$00875E	|
-	INX					;$00875F	|
-	INY					;$008760	|
-	INY					;$008761	|
-	TYA					;$008762	|
-	CLC					;$008763	|
-	ADC $00					;$008764	|
-	STA.w $4312				;$008766	|
-	STX.w $4315				;$008769	|
-	LDA $05					;$00876C	|
-	BEQ CODE_008795				;$00876E	|
-	SEP #$20				;$008770	|
-	LDA $07					;$008772	|
-	STA.w $2115				;$008774	|
-	LDA.b #$02				;$008777	|
-	STA.w $420B				;$008779	|
-	LDA.b #$19				;$00877C	|
-	STA.w $4311				;$00877E	|
-	REP #$21				;$008781	|
-	LDA $03					;$008783	|
-	STA.w $2116				;$008785	|
-	TYA					;$008788	|
-	ADC $00					;$008789	|
-	INC A					;$00878B	|
-	STA.w $4312				;$00878C	|
-	STX.w $4315				;$00878F	|
-	LDX.w #$0002				;$008792	|
-CODE_008795:
-	STX $03
-	TYA					;$008797	|
-	CLC					;$008798	|
-	ADC $03					;$008799	|
-	TAY					;$00879B	|
-	SEP #$20				;$00879C	|
-	LDA $07					;$00879E	|
-	ORA.b #$80				;$0087A0	|
-	STA.w $2115				;$0087A2	|
-	LDA.b #$02				;$0087A5	|
-	STA.w $420B				;$0087A7	|
-	JMP CODE_008726				;$0087AA	|
+.upload_stripe_block				;		\ 
+	STA $04					;$00872D	 | preserve the first header byte
+	INY					;$00872F	 |\ Load and preserve the second header byte
+	LDA [$00],Y				;$008730	 | |
+	STA $03					;$008732	 |/
+	INY					;$008734	 |\ Load the third header byte
+	LDA [$00],Y				;$008735	 |/
+	STZ $07					;$008737	 |\ Store bit 7 of the third header byte in $07
+	ASL					;$008739	 | |
+	ROL $07					;$00873A	 |/
+	LDA.b #$18				;$00873C	 |\ Set DMA destination address to $2118
+	STA.w $4311				;$00873E	 |/
+	LDA [$00],Y				;$008741	 |\ Reload the third header byte
+	AND.b #$40				;$008743	 | | Test for and set $05 to the RLE encoding state
+	LSR					;$008745	 | |
+	LSR					;$008746	 | |
+	LSR					;$008747	 | |
+	STA $05					;$008748	 |/
+	STZ $06					;$00874A	 | Zero out $06 (used for 16 bit access)
+	ORA.b #$01				;$00874C	 |\ Set DMA transfer mode to 1 and if the RLE bit
+	STA.w $4310				;$00874E	 |/ Set, fixed transfer mode will also be set.
+	REP #$20				;$008751	 | 16 bit A
+	LDA $03					;$008753	 |\ Load header bytes 1 and 2 (VRAM destination)
+	STA.w $2116				;$008755	 |/
+	LDA [$00],Y				;$008758	 |\ Load leader bytes 3 and 4
+	XBA					;$00875A	 | | Swap the endianess of the bytes
+	AND.w #$3FFF				;$00875B	 | | Isolate the "Length" component of the upload
+	TAX					;$00875E	 | |
+	INX					;$00875F	 |/ And increment the length.
+	INY					;$008760	 |\ Move to the actual stripe data
+	INY					;$008761	 | |
+	TYA					;$008762	 | |
+	CLC					;$008763	 | |
+	ADC $00					;$008764	 | | Add the current index to the pointer
+	STA.w $4312				;$008766	 |/ Store this as the DMA source address
+	STX.w $4315				;$008769	 | Store the DMA transfer size
+	LDA $05					;$00876C	 |\ If the RLE bit is not set skip the RLE DMA
+	BEQ .not_RLE				;$00876E	 |/
+	SEP #$20				;$008770	 | 8 bit A
+	LDA $07					;$008772	 |\ Set VRAM remapping depending on stripe direction
+	STA.w $2115				;$008774	 |/
+	LDA.b #$02				;$008777	 |\ Start DMA on channel 1 to DMA the first RLE byte
+	STA.w $420B				;$008779	 |/
+	LDA.b #$19				;$00877C	 |\ Set DMA destination to $2119
+	STA.w $4311				;$00877E	 |/
+	REP #$21				;$008781	 | 16 bit A and clear carry
+	LDA $03					;$008783	 |\ Reset the VRAM destination address
+	STA.w $2116				;$008785	 |/
+	TYA					;$008788	 |\ Set the new DMA source address
+	ADC $00					;$008789	 | |
+	INC A					;$00878B	 | |
+	STA.w $4312				;$00878C	 |/
+	STX.w $4315				;$00878F	 | Reset the number of bytes to transfer
+	LDX.w #$0002				;$008792	 | Load "two bytes" to move forward in stripe data
+.not_RLE					;		 |
+	STX $03					;$008795	 |\ Update the Y index to after the current stripe data
+	TYA					;$008797	 | |
+	CLC					;$008798	 | |
+	ADC $03					;$008799	 | |
+	TAY					;$00879B	 |/
+	SEP #$20				;$00879C	 | 8 bit A
+	LDA $07					;$00879E	 |\ Load the direction for VRAM remapping and
+	ORA.b #$80				;$0087A0	 | | Set VRAM increment after $2119
+	STA.w $2115				;$0087A2	 |/
+	LDA.b #$02				;$0087A5	 |\ Run DMA on channel 1, second RLE byte or non-RLE
+	STA.w $420B				;$0087A7	 |/
+	JMP .next_block				;$0087AA	/ Continue and read the next block
 
 CODE_0087AD:
 	SEP #$30
@@ -2087,25 +2087,25 @@ DATA_009249:
 
 setup_window_HDMA:
 	LDX.b #$04				;$009250	\ Index for DMA set up
-.loop						;                \ Upload to $4374 to $4370
-	LDA.w window_HDMA_settings,X		;$009252	  |
-	STA.w $4370,X				;$009255	  |
-	DEX					;$009258	  |
-	BPL .loop				;$009259	 /
-	LDA.b #$00				;$00925B	 \ HDMA Data bank $00
-	STA.w $4377				;$00925D	 /
+.loop						;                |\ Upload to $4374 to $4370
+	LDA.w window_HDMA_settings,X		;$009252	 | |
+	STA.w $4370,X				;$009255	 | |
+	DEX					;$009258	 | |
+	BPL .loop				;$009259	 |/
+	LDA.b #$00				;$00925B	 |\ HDMA Data bank $00
+	STA.w $4377				;$00925D	 |/
 DisableHDMA:					;                |
 	STZ.w $0D9F				;$009260	 | Disable HDMA
 clear_window_HDMA:				;                |
 	REP #$10				;$009263	 | 16 bit x/y
-	LDX.w #$01BE				;$009265	 \
-	LDA.b #$FF				;$009268	  | Initialize the HDMA table to FF00
-.loop						;                 |
-	STA.w $04A0,X				;$00926A	  |
-	STZ.w $04A1,X				;$00926D	  |
-	DEX					;$009270	  |
-	DEX					;$009271	  |
-	BPL .loop				;$009272	 /
+	LDX.w #$01BE				;$009265	 |\
+	LDA.b #$FF				;$009268	 | | Initialize the HDMA table to FF00
+.loop						;                | |
+	STA.w $04A0,X				;$00926A	 | |
+	STZ.w $04A1,X				;$00926D	 | |
+	DEX					;$009270	 | |
+	DEX					;$009271	 | |
+	BPL .loop				;$009272	 |/
 	SEP #$10				;$009274	 | 8 bit x/y
 	RTS					;$009276	/
 
