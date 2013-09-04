@@ -2953,8 +2953,8 @@ CODE_05B15A:
 	PLB
 	LDA.b #$8E				;$05B15B	|
 	STA.w $1F19				;$05B15D	|
-SubSideExit:
-	STZ.w $0109
+side_exit_level:
+	STZ.w $0109				;$05B160	|
 	LDA.b #$00				;$05B163	|
 CODE_05B165:
 	STA.w $0DD5

@@ -39,7 +39,7 @@ RAM_routine_upload:				;		 | |
 	JSR upload_SPC_engine			;$008052	 | Upload the SPC engine
 	STZ.w $0100				;$008055	 | Clear game mode
 	STZ.w $0109				;$008058	 | Clear level number(used for OW bypass)
-	JSR clear_stack				;$00805B	 | RAM clear routine
+	JSR clear_non_stack			;$00805B	 | RAM clear routine
 	JSR upload_samples			;$00805E	 | Upload SPC samples
 	JSR setup_window_HDMA			;$008061	 | Set up HDMA for window settings
 	LDA.b #$03				;$008064	 |\ Set up OAM registers( 8x8 and 16x16)
@@ -292,7 +292,7 @@ NMI_start:					;		\
 	JSR DMA_animated_overworld_tiles	;$008237	 | DMA animated overworld tiles (plus animated palettes)
 	JSR dynamic_sprite_DMA			;$00823A	 | DMA Mario/Yoshi/Vertical fireball
 .skip_overworld_NMI:				;		 |
-	JSR _load_stripe_image_			;$00823D	 | Upload Stripe image data
+	JSR _load_stripe_image_			;$00823D	 | <-- Upload Stripe image data
 	JSR DMA_OAM				;$008240	 | DMA Sprite tiles to the screen
 .regular_overworld_bypass			;		 |
 	JSR update_controllers			;$008243	 | Run the controller update routine
@@ -411,7 +411,7 @@ CODE_0082F7:					;		 |
 	STA.w $211E				;$00833A	 |
 	LDA $35					;$00833D	 |
 	STA.w $211E				;$00833F	 |
-	JSR mode_7_static_background_scroll	;$008342	 |
+	JSR SETL1SCROLL				;$008342	 |
 	LDA.w $0D9B				;$008345	 |
 	LSR					;$008348	 |
 	BCC CODE_00835C				;$008349	 |
@@ -420,7 +420,7 @@ CODE_0082F7:					;		 |
 	LDA.w $0D9F				;$008351	 |
 	STA.w $420C				;$008354	 |
 	LDA.b #$81				;$008357	 |
-	JMP mode_7_scroll			;$008359	 |
+	JMP CODE_0083F3				;$008359	 |
 CODE_00835C:					;		 |
 	LDY.b #$24				;$00835C	 |
 	BIT.w $0D9B				;$00835E	 |
@@ -446,29 +446,29 @@ IRQ_start:					;		\
 	PHK					;$00837C	 | | Also set the bank to 00
 	PLB					;$00837D	 |/
 	SEP #$30				;$00837E	 | 8 bit A/X/Y
-	LDA.w $4211				;$008380	 |\ Read the IRQ status flag
-	BPL IRQ_return				;$008383	 |/ If the IRQ status flag is not triggered skip IRQ
-	LDA.b #$81				;$008385	 | Load NMI enabled, autojoy enabled
-	LDY.w $0D9B				;$008387	 |\ If we are in a mode 7 level branch
-	BMI mode_7_IRQ				;$00838A	 |/
+	LDA.w $4211				;$008380	 |
+	BPL CODE_0083B2				;$008383	 |
+	LDA.b #$81				;$008385	 |
+	LDY.w $0D9B				;$008387	 |
+	BMI CODE_0083BA				;$00838A	 |
 IRQ_NMI_return:					;		 |
-	STA.w $4200				;$00838C	 | Store interrupt enabled flags
-	LDY.b #$1F				;$00838F	 |\ wait for H-Blank to occur 
-	JSR wait_for_hblank			;$008391	 |/
-	LDA $22					;$008394	 |\ Set layer 3 X position
-	STA.w $2111				;$008396	 | |
-	LDA $23					;$008399	 | |
-	STA.w $2111				;$00839B	 |/
-	LDA $24					;$00839E	 |\ Set layer 3 Y position
-	STA.w $2112				;$0083A0	 | |
-	LDA $25					;$0083A3	 | |
-	STA.w $2112				;$0083A5	 |/
-mode_7_IRQ_return:				;		 |
-	LDA $3E					;$0083A8	 |\ Set the background mode
-	STA.w $2105				;$0083AA	 |/
-	LDA $40					;$0083AD	 |\ Set any color math settings
-	STA.w $2131				;$0083AF	 |/
-IRQ_return:					;		 |
+	STA.w $4200				;$00838C	 |
+	LDY.b #$1F				;$00838F	 |
+	JSR WaitForHBlank			;$008391	 |
+	LDA $22					;$008394	 |
+	STA.w $2111				;$008396	 |
+	LDA $23					;$008399	 |
+	STA.w $2111				;$00839B	 |
+	LDA $24					;$00839E	 |
+	STA.w $2112				;$0083A0	 |
+	LDA $25					;$0083A3	 |
+	STA.w $2112				;$0083A5	 |
+CODE_0083A8:					;		 |
+	LDA $3E					;$0083A8	 |
+	STA.w $2105				;$0083AA	 |
+	LDA $40					;$0083AD	 |
+	STA.w $2131				;$0083AF	 |
+CODE_0083B2:					;		 |
 	REP #$30				;$0083B2	 |\ Restore everything saved at the beginning of NMI
 	PLB					;$0083B4	 | |
 	PLY					;$0083B5	 | |
@@ -478,81 +478,81 @@ IRQ_return:					;		 |
 EmptyHandler:					;		 |
 	RTI					;$0083B9	/ Return from NMI
 
-mode_7_IRQ:					;		\ 
-	BIT.w $0D9B				;$0083DA	 |\ Platform bosses have only one IRQ
-	BVC .platform_bosses			;$0083BD	 |/ So skip the differentiation code
-	LDY $11					;$0083BF	 |\ If we are in the First IRQ branch
-	BEQ .first_IRQ				;$0083C1	 |/
-	STA.w $4200				;$0083C3	 | Store Interrupt flags
-	LDY.b #$14				;$0083C6	 |\ short wait for HBlank, use a short wait to
-	JSR wait_for_hblank			;$0083C8	 |/ account for the JSR of the scroll routine
-	JSR mode_7_static_background_scroll	;$0083CB	 | Set the status bar scroll
-	BRA mode_7_IRQ_return			;$0083CE	/
+CODE_0083BA:
+	BIT.w $0D9B
+	BVC CODE_0083E3				;$0083BD	|
+	LDY $11					;$0083BF	|
+	BEQ CODE_0083D0				;$0083C1	|
+	STA.w $4200				;$0083C3	|
+	LDY.b #$14				;$0083C6	|
+	JSR WaitForHBlank			;$0083C8	|
+	JSR SETL1SCROLL				;$0083CB	|
+	BRA CODE_0083A8				;$0083CE	|
 
-.first_IRQ					;		\ 
-	INC $11					;$0083D0	 | Set first IRQ as triggered
-	LDA.w $4211				;$0083D2	 | Reread the IRQ flag, this is unneeded
-	LDA.b #$AE				;$0083D5	 |\ Offset the V timer based on the layer 1 relative
-	SEC					;$0083D7	 | | Y position.
-	SBC.w $1888				;$0083D8	 | |
-	STA.w $4209				;$0083DB	 | |
-	STZ.w $420A				;$0083DE	 |/
-	LDA.b #$A1				;$0083E1	 | Load NMI, IRQ, and autojoy enabled
-.platform_bosses				;		 |
-	LDY.w $1493				;$0083E3	 |\ if the level isn't ending, run mode 7 scrolling
-	BEQ mode_7_scroll			;$0083E6	 |/
-	LDY.w $1495				;$0083E8	 |\ Also, if the fade timer is less than #$40
-	CPY.b #$40				;$0083EB	 | | keep on setting the mode 7 scroll
-	BCC mode_7_scroll			;$0083ED	 |/
-	LDA.b #$81				;$0083EF	 | Load NMI and autojoy enabled
-	BRA IRQ_NMI_return			;$0083F1	/ Finish off mode 7 IRQ
+CODE_0083D0:
+	INC $11
+	LDA.w $4211				;$0083D2	|
+	LDA.b #$AE				;$0083D5	|
+	SEC					;$0083D7	|
+	SBC.w $1888				;$0083D8	|
+	STA.w $4209				;$0083DB	|
+	STZ.w $420A				;$0083DE	|
+	LDA.b #$A1				;$0083E1	|
+CODE_0083E3:
+	LDY.w $1493
+	BEQ CODE_0083F3				;$0083E6	|
+	LDY.w $1495				;$0083E8	|
+	CPY.b #$40				;$0083EB	|
+	BCC CODE_0083F3				;$0083ED	|
+	LDA.b #$81				;$0083EF	|
+	BRA IRQ_NMI_return			;$0083F1	|
 
-mode_7_scroll:					;		\ 
-	STA.w $4200				;$0083F3	 | Store the interrupt flags
-	JSR full_wait_for_hblank		;$0083F6	 |\ Wait for the next H-Blank
-	NOP					;$0083F9	 | |
-	NOP					;$0083FA	 |/
-	LDA.b #$07				;$0083FB	 |\ Enable mode 7
-	STA.w $2105				;$0083FD	 |/
-	LDA $3A					;$008400	 |\ Set layer 1 X position
-	STA.w $210D				;$008402	 | |
-	LDA $3B					;$008405	 | |
-	STA.w $210D				;$008407	 |/
-	LDA $3C					;$00840A	 |\ Set layer 1 X position
-	STA.w $210E				;$00840C	 | |
-	LDA $3D					;$00840F	 | |
-	STA.w $210E				;$008411	 |/
-	BRA IRQ_return				;$008414	/ Finish off IRQ
+CODE_0083F3:
+	STA.w $4200
+	JSR CODE_008439				;$0083F6	|
+	NOP					;$0083F9	|
+	NOP					;$0083FA	|
+	LDA.b #$07				;$0083FB	|
+	STA.w $2105				;$0083FD	|
+	LDA $3A					;$008400	|
+	STA.w $210D				;$008402	|
+	LDA $3B					;$008405	|
+	STA.w $210D				;$008407	|
+	LDA $3C					;$00840A	|
+	STA.w $210E				;$00840C	|
+	LDA $3D					;$00840F	|
+	STA.w $210E				;$008411	|
+	BRA CODE_0083B2				;$008414	|
 
-mode_7_static_background_scroll:		;		\ 
-	LDA.b #$59				;$008416	 |\ set layer 1 tilemap address to $5800, mirror X
-	STA.w $2107				;$008418	 |/
-	LDA.b #$07				;$00841B	 |\ set layer 1 base character address to $7000
-	STA.w $210B				;$00841D	 |/
-	LDA $1A					;$008420	 |\ Set layer 1 X position.
-	STA.w $210D				;$008422	 | |
-	LDA $1B					;$008425	 | |
-	STA.w $210D				;$008427	 |/
-	LDA $1C					;$00842A	 |\ Set relative layer 1 Y position.
-	CLC					;$00842C	 | |
-	ADC.w $1888				;$00842D	 | | Add in the relative amount.
-	STA.w $210E				;$008430	 | |
-	LDA $1D					;$008433	 | |
-	STA.w $210E				;$008435	 |/
-	RTS					;$008438	/
+SETL1SCROLL:
+	LDA.b #$59
+	STA.w $2107				;$008418	|
+	LDA.b #$07				;$00841B	|
+	STA.w $210B				;$00841D	|
+	LDA $1A					;$008420	|
+	STA.w $210D				;$008422	|
+	LDA $1B					;$008425	|
+	STA.w $210D				;$008427	|
+	LDA $1C					;$00842A	|
+	CLC					;$00842C	|
+	ADC.w $1888				;$00842D	|
+	STA.w $210E				;$008430	|
+	LDA $1D					;$008433	|
+	STA.w $210E				;$008435	|
+	RTS					;$008438	|
 
-full_wait_for_hblank:				;		\ 
-	LDY.b #$20				;$008439	 | Use 166 cycle delay
-wait_for_hblank:				;		 |
-	BIT.w $4212				;$00843B	 |\ Wait for HBlank to occur
-	BVS full_wait_for_hblank		;$00843E	 |/ Only use the full delay if HBlank already passed
-.wait_for_hblank_end				;		 |
-	BIT.w $4212				;$008440	 |\ Wait for HBlank to end so we can wait for the next
-	BVC .wait_for_hblank_end		;$008443	 |/
-.waste_scanline					;		 |
-	DEY					;$008445	 |\ Wait for the next HBlank (minus 6 cycles)
-	BNE .waste_scanline			;$008446	 |/ Remember taken branches cost 3 cycles.
-	RTS					;$008448	/
+CODE_008439:
+	LDY.b #$20
+WaitForHBlank:
+	BIT.w $4212
+	BVS CODE_008439				;$00843E	|
+CODE_008440:
+	BIT.w $4212
+	BVC CODE_008440				;$008443	|
+CODE_008445:
+	DEY
+	BNE CODE_008445				;$008446	|
+	RTS					;$008448	|
 
 DMA_OAM:					;		\ 
 	STZ.w $4300				;$008449	 | DMA mode 0 (p)
@@ -610,13 +610,13 @@ CODE_008496:
 	BPL CODE_008496				;$0084C5	|
 	RTS					;$0084C7	|
 
-load_stripe_image:				;		\ 
-	PHB					;$0084C8	 |\ Set data bank to $00
-	PHK					;$0084C9	 | |
-	PLB					;$0084CA	 |/
-	JSR _load_stripe_image_			;$0084CB	 | Upload the stripe image
-	PLB					;$0084CE	 | Restore bank
-	RTL					;$0084CF	/ Done with stripe image uploading
+load_stripe_image:
+	PHB
+	PHK					;$0084C9	|
+	PLB					;$0084CA	|
+	JSR _load_stripe_image_			;$0084CB	|
+	PLB					;$0084CE	|
+	RTL					;$0084CF	|
 
 stripe_images:
 	dl $7F837D				;		|$7F837D
@@ -706,24 +706,24 @@ stripe_images:
 	dl DATA_0DFD5C				;		|$0DFD5C
 	dl DATA_0CBD02				;		|$0CBD02
 
-_load_stripe_image_:				;		\
-	LDY $12					;$0085D2	 | Load the stripe index pointer
-	LDA.w stripe_images,Y			;$0085D4	 |\ Load and store the low byte
-	STA $00					;$0085D7	 |/
-	LDA.w stripe_images+1,Y			;$0085D9	 |\ Load and store the high byte
-	STA $01					;$0085DC	 |/
-	LDA.w stripe_images+2,Y			;$0085DE	 |\ Load and store the bank byte
-	STA $02					;$0085E1	 |/
-	JSR DMA_stripe_image			;$0085E3	 | DMA the actual stripe image
-	LDA $12					;$0085E6	 |
-	BNE .skip_RAM_clear			;$0085E8	 |
-	STA.l $7F837B				;$0085EA	 |\ Set the stripe RAM index to #$0000
-	STA.l $7F837C				;$0085EE	 |/
-	DEC A					;$0085F2	 |\ Set as "end of data"
-	STA.l $7F837D				;$0085F3	 |/
-.skip_RAM_clear					;		 |
-	STZ $12					;$0085F7	 | Clear the stripe index
-	RTS					;$0085F9	/ Done loading stripe image data
+_load_stripe_image_:
+	LDY $12
+	LDA.w stripe_images,Y			;$0085D4	|
+	STA $00					;$0085D7	|
+	LDA.w stripe_images+1,Y			;$0085D9	|
+	STA $01					;$0085DC	|
+	LDA.w stripe_images+2,Y			;$0085DE	|
+	STA $02					;$0085E1	|
+	JSR DMA_stripe_image			;$0085E3	|
+	LDA $12					;$0085E6	|
+	BNE CODE_0085F7				;$0085E8	|
+	STA.l $7F837B				;$0085EA	|
+	STA.l $7F837C				;$0085EE	|
+	DEC A					;$0085F2	|
+	STA.l $7F837D				;$0085F3	|
+CODE_0085F7:
+	STZ $12
+	RTS					;$0085F9	|
 
 CODE_0085FA:
 	JSR TurnOffIO
@@ -867,82 +867,82 @@ ExecutePtrLong:
 	JMP [$0000]				;$00871B	|
 
 DMA_stripe_image:
-	REP #$10				;$00871E	\ 16 bit XY
-	STA.w $4314				;$008720	 |\ Store DMA source bank
-	LDY.w #$0000				;$008723	 |/
-.next_block					;		 |
-	LDA [$00],Y				;$008726	 |\ Continue while end of data bit not set
-	BPL .upload_stripe_block		;$008728	 |/
-	SEP #$30				;$00872A	 | 8 bit AXY
-	RTS					;$00872C	/ Done with stripe image DMA
+	REP #$10
+	STA.w $4314				;$008720	|
+	LDY.w #$0000				;$008723	|
+CODE_008726:
+	LDA [$00],Y
+	BPL CODE_00872D				;$008728	|
+	SEP #$30				;$00872A	|
+	RTS					;$00872C	|
 
-.upload_stripe_block				;		\ 
-	STA $04					;$00872D	 | preserve the first header byte
-	INY					;$00872F	 |\ Load and preserve the second header byte
-	LDA [$00],Y				;$008730	 | |
-	STA $03					;$008732	 |/
-	INY					;$008734	 |\ Load the third header byte
-	LDA [$00],Y				;$008735	 |/
-	STZ $07					;$008737	 |\ Store bit 7 of the third header byte in $07
-	ASL					;$008739	 | |
-	ROL $07					;$00873A	 |/
-	LDA.b #$18				;$00873C	 |\ Set DMA destination address to $2118
-	STA.w $4311				;$00873E	 |/
-	LDA [$00],Y				;$008741	 |\ Reload the third header byte
-	AND.b #$40				;$008743	 | | Test for and set $05 to the RLE encoding state
-	LSR					;$008745	 | |
-	LSR					;$008746	 | |
-	LSR					;$008747	 | |
-	STA $05					;$008748	 |/
-	STZ $06					;$00874A	 | Zero out $06 (used for 16 bit access)
-	ORA.b #$01				;$00874C	 |\ Set DMA transfer mode to 1 and if the RLE bit
-	STA.w $4310				;$00874E	 |/ Set, fixed transfer mode will also be set.
-	REP #$20				;$008751	 | 16 bit A
-	LDA $03					;$008753	 |\ Load header bytes 1 and 2 (VRAM destination)
-	STA.w $2116				;$008755	 |/
-	LDA [$00],Y				;$008758	 |\ Load leader bytes 3 and 4
-	XBA					;$00875A	 | | Swap the endianess of the bytes
-	AND.w #$3FFF				;$00875B	 | | Isolate the "Length" component of the upload
-	TAX					;$00875E	 | |
-	INX					;$00875F	 |/ And increment the length.
-	INY					;$008760	 |\ Move to the actual stripe data
-	INY					;$008761	 | |
-	TYA					;$008762	 | |
-	CLC					;$008763	 | |
-	ADC $00					;$008764	 | | Add the current index to the pointer
-	STA.w $4312				;$008766	 |/ Store this as the DMA source address
-	STX.w $4315				;$008769	 | Store the DMA transfer size
-	LDA $05					;$00876C	 |\ If the RLE bit is not set skip the RLE DMA
-	BEQ .not_RLE				;$00876E	 |/
-	SEP #$20				;$008770	 | 8 bit A
-	LDA $07					;$008772	 |\ Set VRAM remapping depending on stripe direction
-	STA.w $2115				;$008774	 |/
-	LDA.b #$02				;$008777	 |\ Start DMA on channel 1 to DMA the first RLE byte
-	STA.w $420B				;$008779	 |/
-	LDA.b #$19				;$00877C	 |\ Set DMA destination to $2119
-	STA.w $4311				;$00877E	 |/
-	REP #$21				;$008781	 | 16 bit A and clear carry
-	LDA $03					;$008783	 |\ Reset the VRAM destination address
-	STA.w $2116				;$008785	 |/
-	TYA					;$008788	 |\ Set the new DMA source address
-	ADC $00					;$008789	 | |
-	INC A					;$00878B	 | |
-	STA.w $4312				;$00878C	 |/
-	STX.w $4315				;$00878F	 | Reset the number of bytes to transfer
-	LDX.w #$0002				;$008792	 | Load "two bytes" to move forward in stripe data
-.not_RLE					;		 |
-	STX $03					;$008795	 |\ Update the Y index to after the current stripe data
-	TYA					;$008797	 | |
-	CLC					;$008798	 | |
-	ADC $03					;$008799	 | |
-	TAY					;$00879B	 |/
-	SEP #$20				;$00879C	 | 8 bit A
-	LDA $07					;$00879E	 |\ Load the direction for VRAM remapping and
-	ORA.b #$80				;$0087A0	 | | Set VRAM increment after $2119
-	STA.w $2115				;$0087A2	 |/
-	LDA.b #$02				;$0087A5	 |\ Run DMA on channel 1, second RLE byte or non-RLE
-	STA.w $420B				;$0087A7	 |/
-	JMP .next_block				;$0087AA	/ Continue and read the next block
+CODE_00872D:
+	STA $04
+	INY					;$00872F	|
+	LDA [$00],Y				;$008730	|
+	STA $03					;$008732	|
+	INY					;$008734	|
+	LDA [$00],Y				;$008735	|
+	STZ $07					;$008737	|
+	ASL					;$008739	|
+	ROL $07					;$00873A	|
+	LDA.b #$18				;$00873C	|
+	STA.w $4311				;$00873E	|
+	LDA [$00],Y				;$008741	|
+	AND.b #$40				;$008743	|
+	LSR					;$008745	|
+	LSR					;$008746	|
+	LSR					;$008747	|
+	STA $05					;$008748	|
+	STZ $06					;$00874A	|
+	ORA.b #$01				;$00874C	|
+	STA.w $4310				;$00874E	|
+	REP #$20				;$008751	|
+	LDA $03					;$008753	|
+	STA.w $2116				;$008755	|
+	LDA [$00],Y				;$008758	|
+	XBA					;$00875A	|
+	AND.w #$3FFF				;$00875B	|
+	TAX					;$00875E	|
+	INX					;$00875F	|
+	INY					;$008760	|
+	INY					;$008761	|
+	TYA					;$008762	|
+	CLC					;$008763	|
+	ADC $00					;$008764	|
+	STA.w $4312				;$008766	|
+	STX.w $4315				;$008769	|
+	LDA $05					;$00876C	|
+	BEQ CODE_008795				;$00876E	|
+	SEP #$20				;$008770	|
+	LDA $07					;$008772	|
+	STA.w $2115				;$008774	|
+	LDA.b #$02				;$008777	|
+	STA.w $420B				;$008779	|
+	LDA.b #$19				;$00877C	|
+	STA.w $4311				;$00877E	|
+	REP #$21				;$008781	|
+	LDA $03					;$008783	|
+	STA.w $2116				;$008785	|
+	TYA					;$008788	|
+	ADC $00					;$008789	|
+	INC A					;$00878B	|
+	STA.w $4312				;$00878C	|
+	STX.w $4315				;$00878F	|
+	LDX.w #$0002				;$008792	|
+CODE_008795:
+	STX $03
+	TYA					;$008797	|
+	CLC					;$008798	|
+	ADC $03					;$008799	|
+	TAY					;$00879B	|
+	SEP #$20				;$00879C	|
+	LDA $07					;$00879E	|
+	ORA.b #$80				;$0087A0	|
+	STA.w $2115				;$0087A2	|
+	LDA.b #$02				;$0087A5	|
+	STA.w $420B				;$0087A7	|
+	JMP CODE_008726				;$0087AA	|
 
 CODE_0087AD:
 	SEP #$30
@@ -1254,7 +1254,7 @@ DATA_008A40:
 DATA_008A47:
 	db $01,$18,$A8,$1D,$00,$2C,$00
 
-clear_stack:
+clear_non_stack:
 	REP #$30
 	LDX.w #$1FFE				;$008A50	|
 CODE_008A53:
@@ -2087,25 +2087,25 @@ DATA_009249:
 
 setup_window_HDMA:
 	LDX.b #$04				;$009250	\ Index for DMA set up
-.loop						;                |\ Upload to $4374 to $4370
-	LDA.w window_HDMA_settings,X		;$009252	 | |
-	STA.w $4370,X				;$009255	 | |
-	DEX					;$009258	 | |
-	BPL .loop				;$009259	 |/
-	LDA.b #$00				;$00925B	 |\ HDMA Data bank $00
-	STA.w $4377				;$00925D	 |/
+.loop						;                \ Upload to $4374 to $4370
+	LDA.w window_HDMA_settings,X		;$009252	  |
+	STA.w $4370,X				;$009255	  |
+	DEX					;$009258	  |
+	BPL .loop				;$009259	 /
+	LDA.b #$00				;$00925B	 \ HDMA Data bank $00
+	STA.w $4377				;$00925D	 /
 DisableHDMA:					;                |
 	STZ.w $0D9F				;$009260	 | Disable HDMA
 clear_window_HDMA:				;                |
 	REP #$10				;$009263	 | 16 bit x/y
-	LDX.w #$01BE				;$009265	 |\
-	LDA.b #$FF				;$009268	 | | Initialize the HDMA table to FF00
-.loop						;                | |
-	STA.w $04A0,X				;$00926A	 | |
-	STZ.w $04A1,X				;$00926D	 | |
-	DEX					;$009270	 | |
-	DEX					;$009271	 | |
-	BPL .loop				;$009272	 |/
+	LDX.w #$01BE				;$009265	 \
+	LDA.b #$FF				;$009268	  | Initialize the HDMA table to FF00
+.loop						;                 |
+	STA.w $04A0,X				;$00926A	  |
+	STZ.w $04A1,X				;$00926D	  |
+	DEX					;$009270	  |
+	DEX					;$009271	  |
+	BPL .loop				;$009272	 /
 	SEP #$10				;$009274	 | 8 bit x/y
 	RTS					;$009276	/
 
@@ -2639,7 +2639,7 @@ CODE_0096AB:
 
 CODE_0096AE:
 	STZ.w $4200
-	JSR clear_stack				;$0096B1	|
+	JSR clear_non_stack			;$0096B1	|
 	LDX.b #$07				;$0096B4	|
 	LDA.b #$FF				;$0096B6	|
 CODE_0096B8:
@@ -4260,7 +4260,7 @@ dynamic_sprite_DMA:				;		\
 	LDA.w #$6000				;$00A34D	 |\ Set VRAM address to $6000
 	STA.w $2116				;$00A350	 |/
 	LDX.b #$00				;$00A353	 | Start the DMA counter
-.DMA_upper_16x8_loop				;		 |
+.DMA_upper_8x8_loop				;		 |
 	LDA.w $0D85,X				;$00A355	 |\ Set the next DMA source address (upper 8x8 strips)
 	STA.w $4322				;$00A358	 |/
 	LDA.w #$0040				;$00A35B	 |\ Transfer #$40 bytes
@@ -4270,11 +4270,11 @@ dynamic_sprite_DMA:				;		\
 	INX					;$00A366	 |\ Check if all tiles have been uploaded
 	INX					;$00A367	 | |
 	CPX.w $0D84				;$00A368	 |/
-	BCC .DMA_upper_16x8_loop		;$00A36B	 | Continue uploading if more tiles are ready
+	BCC .DMA_upper_8x8_loop			;$00A36B	 | Continue uploading if more tiles are ready
 	LDA.w #$6100				;$00A36D	 |\ Set VRAM address to $6000
 	STA.w $2116				;$00A370	 |/
 	LDX.b #$00				;$00A373	 | Start the DMA counter
-.DMA_lower_16x8_loop				;		 |
+.DMA_lower_8x8_loop				;		 |
 	LDA.w $0D8F,X				;$00A375	 |\ Set the next DMA source address (lower 8x8 strips)
 	STA.w $4322				;$00A378	 |/
 	LDA.w #$0040				;$00A37B	 |\ Transfer #$40 bytes
@@ -4284,7 +4284,7 @@ dynamic_sprite_DMA:				;		\
 	INX					;$00A386	 |\ Check if all tiles have been uploaded
 	INX					;$00A387	 | |
 	CPX.w $0D84				;$00A388	 |/
-	BCC .DMA_lower_16x8_loop		;$00A38B	 | Continue uploading if more tiles are ready
+	BCC .DMA_lower_8x8_loop			;$00A38B	 | Continue uploading if more tiles are ready
 	SEP #$20				;$00A38D	 | Restore 8 bit AXY
 	RTS					;$00A38F	/ Finished with dynamic sprite DMA
 
@@ -8333,7 +8333,7 @@ CODE_00CD24:
 	STZ $7D					;$00CD2E	|
 CODE_00CD30:
 	JSR CODE_00DC2D
-	JSR CODE_00E92B				;$00CD33	|
+	JSR level_collision			;$00CD33	|
 CODE_00CD36:
 	JSR CODE_00F595
 CODE_00CD39:
@@ -10922,75 +10922,75 @@ DATA_00E911:
 	db $02,$0D
 
 DATA_00E913:
-	db $01,$00,$FF,$FF,$01,$00,$01,$00
-	db $FF,$FF,$FF,$FF
+	dw $0001,$FFFF,$0001,$0001
+	dw $FFFF,$FFFF
 
 DATA_00E91F:
-	db $00,$00,$00,$00,$FF,$FF,$01,$00
-	db $FF,$FF,$01,$00
+	dw $0000,$0000,$FFFF,$0001
+	dw $FFFF,$0001
 
-CODE_00E92B:
-	JSR CODE_00EAA6
-	LDA.w $185C				;$00E92E	|
-	BEQ .collision				;$00E931	|
-	JSR CODE_00EE1D				;$00E933	|
-	BRA no_layer1_collision			;$00E936	|
+level_collision:
+	JSR reset_collision_flags		;$00E92B	\ Reset the collision flags.
+	LDA.w $185C				;$00E92E	 |\ If the fall through layers flag isn't set,
+	BEQ .collision				;$00E931	 |/ process collision.
+	JSR CODE_00EE1D				;$00E933	 |
+	BRA no_layer_collision			;$00E936	/
 
 .collision
-	LDA.w $13EF				;$00E938	|
-	STA $8D					;$00E93B	|
-	STZ.w $13EF				;$00E93D	|
-	LDA $72					;$00E940	|
-	STA $8F					;$00E942	|
-	LDA $5B					;$00E944	|
-	BPL .no_layer2_collision		;$00E946	|
-	AND.b #$82				;$00E948	|
-	STA $8E					;$00E94A	|
-	LDA.b #$01				;$00E94C	|
-	STA.w $1933				;$00E94E	|
-	REP #$20				;$00E951	|
-	LDA $94					;$00E953	|
-	CLC					;$00E955	|
-	ADC $26					;$00E956	|
-	STA $94					;$00E958	|
-	LDA $96					;$00E95A	|
-	CLC					;$00E95C	|
-	ADC $28					;$00E95D	|
-	STA $96					;$00E95F	|
-	SEP #$20				;$00E961	|
-	JSR level_collision			;$00E963	| Process layer 2 level collision.
-	REP #$20				;$00E966	|
-	LDA $94					;$00E968	|
-	SEC					;$00E96A	|
-	SBC $26					;$00E96B	|
-	STA $94					;$00E96D	|
-	LDA $96					;$00E96F	|
-	SEC					;$00E971	|
-	SBC $28					;$00E972	|
-	STA $96					;$00E974	|
-	SEP #$20				;$00E976	|
-.no_layer2_collision				;		|
-	ASL.w $13EF				;$00E978	|
-	LDA $5B					;$00E97B	|
-	AND.b #$41				;$00E97D	|
-	STA $8E					;$00E97F	|
-	ASL					;$00E981	|
-	BMI no_layer1_collision			;$00E982	|
-	STZ.w $1933				;$00E984	|
-	ASL $8D					;$00E987	|
-	JSR level_collision			;$00E989	| Process layer 1 level collision.
-no_layer1_collision:				;		|
-	LDA.w $1B96				;$00E98C	|
-	BEQ CODE_00E9A1				;$00E98F	|
-	REP #$20				;$00E991	|
-	LDA $7E					;$00E993	|
-	CMP.w #$00FA				;$00E995	|
-	SEP #$20				;$00E998	|
-	BCC CODE_00E9FB				;$00E99A	|
-	JSL SubSideExit				;$00E99C	|
-	RTS					;$00E9A0	|
+	LDA.w $13EF				;$00E938	\ \
+	STA $8D					;$00E93B	 | | Backup the on ground flag,
+	STZ.w $13EF				;$00E93D	 | |
+	LDA $72					;$00E940	 | | and the in air flag.
+	STA $8F					;$00E942	 |/
+	LDA $5B					;$00E944	 |\ If layer 2 isn't interactive,
+	BPL .no_layer2_collision		;$00E946	 |/ skip to processing layer 1 collision.
+	AND.b #$82				;$00E948	 |\ Isolate the layer 2 collision flags.
+	STA $8E					;$00E94A	 |/
+	LDA.b #$01				;$00E94C	 |\ Set the layer being processed to layer 2.
+	STA.w $1933				;$00E94E	 |/
+	REP #$20				;$00E951	 |\
+	LDA $94					;$00E953	 | | Offset the player's X position by
+	CLC					;$00E955	 | |
+	ADC $26					;$00E956	 | | layer 2's relative X position to layer 1.
+	STA $94					;$00E958	 | |
+	LDA $96					;$00E95A	 | | Offset the player's Y position by
+	CLC					;$00E95C	 | |
+	ADC $28					;$00E95D	 | | layer 2's relative Y position to layer 1.
+	STA $96					;$00E95F	 | |
+	SEP #$20				;$00E961	 |/
+	JSR layer_collision			;$00E963	 | Process layer 2 collision.
+	REP #$20				;$00E966	 |\
+	LDA $94					;$00E968	 | | Restore the player's previous X position.
+	SEC					;$00E96A	 | |
+	SBC $26					;$00E96B	 | |
+	STA $94					;$00E96D	 | |
+	LDA $96					;$00E96F	 | | Restore the player's previous Y position.
+	SEC					;$00E971	 | |
+	SBC $28					;$00E972	 | |
+	STA $96					;$00E974	 | |
+	SEP #$20				;$00E976	 |/
+.no_layer2_collision				;		 |
+	ASL.w $13EF				;$00E978	 |
+	LDA $5B					;$00E97B	 |\ Isolate the layer 1 collision flags.
+	AND.b #$41				;$00E97D	 | |
+	STA $8E					;$00E97F	 | |
+	ASL					;$00E981	 | |
+	BMI no_layer_collision			;$00E982	 |/ If the sixth bit is set, don't process layer 1 collision.
+	STZ.w $1933				;$00E984	 | Set the layer being processed to layer 1.
+	ASL $8D					;$00E987	 |
+	JSR layer_collision			;$00E989	 | Process layer 1 collision.
+no_layer_collision:				;		 |
+	LDA.w $1B96				;$00E98C	 |\ If side exits are enabled,
+	BEQ .no_side_exits			;$00E98F	 | |
+	REP #$20				;$00E991	 | |
+	LDA $7E					;$00E993	 | |
+	CMP.w #$00FA				;$00E995	 | | and the player is touching the side of the screen,
+	SEP #$20				;$00E998	 | |
+	BCC CODE_00E9FB				;$00E99A	 | |
+	JSL side_exit_level			;$00E99C	 |/ exit the level.
+	RTS					;$00E9A0	/
 
-CODE_00E9A1:
+.no_side_exits
 	LDA $7E
 	CMP.b #$F0				;$00E9A3	|
 	BCS CODE_00EA08				;$00E9A5	|
@@ -11133,15 +11133,15 @@ CODE_00EAA3:
 Return00EAA5:
 	RTS
 
-CODE_00EAA6:
-	STZ.w $13E5
-	STZ $77					;$00EAA9	|
-	STZ.w $13E1				;$00EAAB	|
-	STZ.w $13EE				;$00EAAE	|
-	STZ $8A					;$00EAB1	|
-	STZ $8B					;$00EAB3	|
-	STZ.w $140E				;$00EAB5	|
-	RTS					;$00EAB8	|
+reset_collision_flags:
+	STZ.w $13E5				;$00EAA6	\ Clear the player animation timer index,
+	STZ $77					;$00EAA9	 | the directional blocked status,
+	STZ.w $13E1				;$00EAAB	 |\ the type of slope that the player is on,
+	STZ.w $13EE				;$00EAAE	 |/
+	STZ $8A					;$00EAB1	 | the collision points' swimming flags,
+	STZ $8B					;$00EAB3	 | the collision points' climbing flags,
+	STZ.w $140E				;$00EAB5	 | and the layer 2 touched flag.
+	RTS					;$00EAB8	/
 
 DATA_00EAB9:
 	db $DE,$23
@@ -11150,7 +11150,7 @@ DATA_00EABB:
 	db $20,$E0
 
 DATA_00EABD:
-	db $08,$00,$F8,$FF
+	dw $0008,$FFF8
 
 page_1_water_tiles:
 	db $71,$72,$76,$77,$7B,$7C,$81,$86
@@ -11158,7 +11158,7 @@ page_1_water_tiles:
 	db $9E,$9F,$A3,$A4,$A8,$A9,$AD,$AE
 	db $B2,$B3
 
-level_collision:
+layer_collision:
 	LDA $96					;$00EADB	|
 	AND.b #$0F				;$00EADD	|
 	STA $90					;$00EADF	|
@@ -11254,11 +11254,11 @@ stop_wall_running:
 normal_collision:
 	LDX.b #$00				;$00EB77	\ Initialize collision point index
 	LDA $19					;$00EB79	 |\
-	BEQ .not_big_2				;$00EB7B	 | | If the player is big
+	BEQ .not_big				;$00EB7B	 | | If the player is big
 	LDA $73					;$00EB7D	 | |
-	BNE .not_big_2				;$00EB7F	 | | and not ducking,
+	BNE .not_big				;$00EB7F	 | | and not ducking,
 	LDX.b #$18				;$00EB81	 | | use the big Mario collision point indices.
-.not_big_2					;		 |/
+.not_big					;		 |/
 	LDA.w $187A				;$00EB83	 |\
 	BEQ .not_on_yoshi			;$00EB86	 | | If the player is on yoshi,
 	TXA					;$00EB88	 | |
@@ -11275,12 +11275,12 @@ normal_collision:
 	STA $92					;$00EB97	 | | and set the position within a block.
 	STZ $93					;$00EB99	 |/
 	CPY.b #$08				;$00EB9B	 |\ If the player is on the left side of a block,
-	BCC CODE_00EBA5				;$00EB9D	 | |
+	BCC .right_side				;$00EB9D	 | |
 	TXA					;$00EB9F	 | |
 	ADC.b #$0B				;$00EBA0	 | | use the left side collision point indices.
 	TAX					;$00EBA2	 | |
 	INC $93					;$00EBA3	 | | Set the side of the block that the player is in.
-CODE_00EBA5:					;		 |/
+.right_side					;		 |/
 	LDA $90					;$00EBA5	 |\ Get the player Y,
 	CLC					;$00EBA7	 | |
 	ADC.w collision_y_offsets+6,X		;$00EBA8	 | | add the head offset,
@@ -11289,7 +11289,7 @@ CODE_00EBA5:					;		 |/
 	JSR process_collision_point		;$00EBAF	 | Process the center body collision point.
 	BEQ .center_page_0			;$00EBB2	 |\ Process page 0 tiles, if applicable.
 	CPY.b #$11				;$00EBB4	 | | If it's tiles 100 - 110,
-	BCC .skip_center			;$00EBB6	 | | don't process them.
+	BCC .skip_center			;$00EBB6	 | | ignore it.
 	CPY.b #$6E				;$00EBB8	 | | If it's tiles 111 - 16D,
 	BCC .center_solid			;$00EBBA	 | | process being inside a solid block.
 	TYA					;$00EBBC	 | |
@@ -11321,15 +11321,15 @@ CODE_00EBA5:					;		 |/
 	CMP.b #$01				;$00EBE4	 | | and the tileset is the castle tileset,
 	BEQ .castle_door			;$00EBE6	 |/ process castle door.
 .not_castle_door				;		 |
-	CPY.b #$20				;$00EBE8	 |\ Process lower half of door, if applicable.
+	CPY.b #$20				;$00EBE8	 |\ If applicable, process lower half of a door.
 	BEQ .lower_door				;$00EBEA	 |/
-	CPY.b #$1F				;$00EBEC	 |\ Process upper half of door, if applicable.
+	CPY.b #$1F				;$00EBEC	 |\ If applicable, process upper half of a door.
 	BEQ .upper_door				;$00EBEE	 |/
 	LDA.w $14AD				;$00EBF0	 |\ If the blue P-switch is active,
 	BEQ .process_center			;$00EBF3	 | |
-	CPY.b #$28				;$00EBF5	 | | process lower half of P-switch door, if applicable.
+	CPY.b #$28				;$00EBF5	 | | if applicable, process lower half of a P-switch door.
 	BEQ .lower_door				;$00EBF7	 | |
-	CPY.b #$27				;$00EBF9	 | | Process upper half of P-switch door, if applicable.
+	CPY.b #$27				;$00EBF9	 | | if applicable, process upper half of P-switch door.
 	BNE .process_center			;$00EBFB	 |/
 .upper_door					;		 |
 	LDA $19					;$00EBFD	 |\ If the player is big,
@@ -11355,72 +11355,72 @@ CODE_00EBA5:					;		 |/
 	JSR process_center_page_0_tiles		;$00EC21	\ Process center body page 0 tile collision.
 .skip_center					;		 |
 	JSR process_collision_point		;$00EC24	 | Process the side body collision point.
-	BEQ .side_body_page_0			;$00EC27	 |
-	CPY.b #$11				;$00EC29	 |
-	BCC .skip_side_body			;$00EC2B	 |
-	CPY.b #$6E				;$00EC2D	 |
-	BCS .skip_side_body			;$00EC2F	 |
+	BEQ .side_body_page_0			;$00EC27	 | If applicable, process page 0 tiles.
+	CPY.b #$11				;$00EC29	 |\ If the tile is 100 - 111
+	BCC .skip_side_body			;$00EC2B	 | |
+	CPY.b #$6E				;$00EC2D	 | | or 16E - 1FF,
+	BCS .skip_side_body			;$00EC2F	 |/ ignore it.
 	INX					;$00EC31	 |
 	INX					;$00EC32	 | Skip to the head collision point.
 	BRA .side_body_in_block			;$00EC33	/
 
 .side_body_page_0
-	LDA.b #$10				;$00EC35	|
-	JSR process_page_0_tiles_no_swim	;$00EC37	|
-.skip_side_body					;		|
-	JSR process_collision_point		;$00EC3A	| Process the side head collision point.
-	BNE .side_head_page_1			;$00EC3D	|
-	LDA.b #$08				;$00EC3F	|
-	JSR process_page_0_tiles_no_swim	;$00EC41	|
-	BRA .skip_side_head			;$00EC44	|
+	LDA.b #$10				;$00EC35	\ Load the climbing flag to set.
+	JSR process_page_0_tiles_no_swim	;$00EC37	 | Process side body page 0 tile collision without water.
+.skip_side_body					;		 |
+	JSR process_collision_point		;$00EC3A	 | Process the side head collision point.
+	BNE .side_head_page_1			;$00EC3D	 | If applicable, process page 1 tiles.
+	LDA.b #$08				;$00EC3F	 | Load the climbing flag to set.
+	JSR process_page_0_tiles_no_swim	;$00EC41	 | Process side head page 0 tile collision without water.
+	BRA .skip_side_head			;$00EC44	/
 
 .side_head_page_1
-	CPY.b #$11				;$00EC46	|
-	BCC .skip_side_head			;$00EC48	|
-	CPY.b #$6E				;$00EC4A	|
-	BCS .skip_side_head			;$00EC4C	|
-.side_body_in_block
-	LDA $76					;$00EC4E	|
-	CMP $93					;$00EC50	|
-	BEQ .CODE_00EC5F			;$00EC52	|
-	JSR CODE_00F3C4				;$00EC54	|
-	PHX					;$00EC57	|
-	JSR CODE_00F267				;$00EC58	|
-	LDY.w $1693				;$00EC5B	|
-	PLX					;$00EC5E	|
-.CODE_00EC5F
-	LDA.b #$03
-	STA.w $13E5				;$00EC61	|
-	LDY $93					;$00EC64	|
-	LDA $94					;$00EC66	|
-	AND.b #$0F				;$00EC68	|
-	CMP.w DATA_00E911,Y			;$00EC6A	|
-	BEQ .skip_side_head			;$00EC6D	|
-.center_in_block
-	LDA.w $1402				;$00EC6F	|
-	BEQ .CODE_00EC7B			;$00EC72	|
-	LDA.w $1693				;$00EC74	|
-	CMP.b #$52				;$00EC77	|
-	BEQ .skip_side_head			;$00EC79	|
-.CODE_00EC7B
-	LDA.w DATA_00E90A,Y
-	TSB $77					;$00EC7E	|
-	AND.b #$03				;$00EC80	|
-	TAY					;$00EC82	|
-	LDA.w $1693				;$00EC83	|
-	JSL CODE_00F127				;$00EC86	|
-.skip_side_head					;		|
-	JSR process_collision_point		;$00EC8A	| Process the head collision point.
-	BNE CODE_00ECB1				;$00EC8D	|
-	LDA.b #$02				;$00EC8F	|
-	JSR process_page_0_tiles		;$00EC91	|
-	LDY $7D					;$00EC94	|
-	BPL CODE_00ECA3				;$00EC96	|
-	LDA.w $1693				;$00EC98	|
-	CMP.b #$21				;$00EC9B	|
-	BCC CODE_00ECA3				;$00EC9D	|
-	CMP.b #$25				;$00EC9F	|
-	BCC CODE_00ECA6				;$00ECA1	|
+	CPY.b #$11				;$00EC46	\ \ If the tile is 100 - 111
+	BCC .skip_side_head			;$00EC48	 | |
+	CPY.b #$6E				;$00EC4A	 | | or 16E - 1FF,
+	BCS .skip_side_head			;$00EC4C	 |/ ignore it.
+.side_body_in_block				;		 |
+	LDA $76					;$00EC4E	 |
+	CMP $93					;$00EC50	 |
+	BEQ .CODE_00EC5F			;$00EC52	 |
+	JSR process_horizontal_pipe		;$00EC54	 |
+	PHX					;$00EC57	 |
+	JSR process_throw_block			;$00EC58	 |
+	LDY.w $1693				;$00EC5B	 |
+	PLX					;$00EC5E	 |
+.CODE_00EC5F					;		 |
+	LDA.b #$03				;$00EC5F	 |
+	STA.w $13E5				;$00EC61	 |
+	LDY $93					;$00EC64	 |
+	LDA $94					;$00EC66	 |
+	AND.b #$0F				;$00EC68	 |
+	CMP.w DATA_00E911,Y			;$00EC6A	 |
+	BEQ .skip_side_head			;$00EC6D	 |
+.center_in_block				;		 |
+	LDA.w $1402				;$00EC6F	 |
+	BEQ .on_note_block			;$00EC72	 |
+	LDA.w $1693				;$00EC74	 |
+	CMP.b #$52				;$00EC77	 |
+	BEQ .skip_side_head			;$00EC79	 |
+.on_note_block					;		 |
+	LDA.w DATA_00E90A,Y			;$00EC7B	 |
+	TSB $77					;$00EC7E	 |
+	AND.b #$03				;$00EC80	 |
+	TAY					;$00EC82	 |
+	LDA.w $1693				;$00EC83	 |
+	JSL CODE_00F127				;$00EC86	 |
+.skip_side_head					;		 |
+	JSR process_collision_point		;$00EC8A	 | Process the head collision point.
+	BNE CODE_00ECB1				;$00EC8D	 |
+	LDA.b #$02				;$00EC8F	 |
+	JSR process_page_0_tiles		;$00EC91	 |
+	LDY $7D					;$00EC94	 |
+	BPL CODE_00ECA3				;$00EC96	 |
+	LDA.w $1693				;$00EC98	 |
+	CMP.b #$21				;$00EC9B	 |
+	BCC CODE_00ECA3				;$00EC9D	 |
+	CMP.b #$25				;$00EC9F	 |
+	BCC CODE_00ECA6				;$00ECA1	 |
 CODE_00ECA3:
 	JMP CODE_00ED4A
 
@@ -11683,7 +11683,7 @@ CODE_00EE48:
 	BRA CODE_00EE83				;$00EE55	|
 
 CODE_00EE57:
-	JSR CODE_00F267
+	JSR process_throw_block
 	LDY.b #$03				;$00EE5A	|
 	LDA.w $1693				;$00EE5C	|
 	CMP.b #$1E				;$00EE5F	|
@@ -12224,27 +12224,27 @@ CODE_00F261:
 	BPL CODE_00F24E				;$00F262	|
 	JMP CODE_00F1F6				;$00F264	|
 
-CODE_00F267:
-	CPY.b #$2E
-	BNE Return00F28B			;$00F269	|
-	BIT $16					;$00F26B	|
-	BVC Return00F28B			;$00F26D	|
-	LDA.w $148F				;$00F26F	|
-	ORA.w $187A				;$00F272	|
-	BNE Return00F28B			;$00F275	|
-	LDA.b #$02				;$00F277	|
-	PHA					;$00F279	|
-	PLB					;$00F27A	|
-	JSL CODE_02862F				;$00F27B	|
-	BMI CODE_00F289				;$00F27F	|
-	LDA.b #$02				;$00F281	|
-	STA $9C					;$00F283	|
-	JSL generate_tile			;$00F285	|
-CODE_00F289:
-	PHK
-	PLB					;$00F28A	|
-Return00F28B:
-	RTS
+process_throw_block:
+	CPY.b #$2E				;$00F267	\ If the tile's not a throw block,
+	BNE .return				;$00F269	 | return.
+	BIT $16					;$00F26B	 |\ If the player didn't press X or Y,
+	BVC .return				;$00F26D	 |/ return.
+	LDA.w $148F				;$00F26F	 |\ If the player is already carrying something
+	ORA.w $187A				;$00F272	 | | or on Yoshi,
+	BNE .return				;$00F275	 |/ return.
+	LDA.b #$02				;$00F277	 |\
+	PHA					;$00F279	 | | Set the data bank to $02.
+	PLB					;$00F27A	 | |
+	JSL spawn_throw_block			;$00F27B	 | | Try to spawn a throw block.
+	BMI .no_sprite_slots			;$00F27F	 |/ If there were no sprite slots, return.
+	LDA.b #$02				;$00F281	 |\
+	STA $9C					;$00F283	 | | Clear the tile.
+	JSL generate_tile			;$00F285	 |/
+.no_sprite_slots				;		 |
+	PHK					;$00F289	 |
+	PLB					;$00F28A	 |
+.return						;		 |
+	RTS					;$00F28B	/
 
 process_center_page_0_tiles:
 	TYA					;$00F28C	\
@@ -12425,12 +12425,12 @@ get_level_bit_flag:
 	LDA.l level_bit_masks,X			;$00F3BF	 | and get the bit mask for the level bit flag table.
 	RTS					;$00F3C3	/
 
-CODE_00F3C4:
-	CPY.b #$3F
-	BNE return_00F376			;$00F3C6	|
-	LDY $8F					;$00F3C8	|
-	BEQ CODE_00F3CF				;$00F3CA	|
-	JMP CODE_00F43F				;$00F3CC	|
+process_horizontal_pipe:
+	CPY.b #$3F				;$00F3C4	\
+	BNE return_00F376			;$00F3C6	 | If it's not a exit-enabled horizontal pipe, return.
+	LDY $8F					;$00F3C8	 |
+	BEQ CODE_00F3CF				;$00F3CA	 |
+	JMP CODE_00F43F				;$00F3CC	/
 
 CODE_00F3CF:
 	PHX
@@ -13183,10 +13183,10 @@ DATA_00F8E8:
 	db $ED,$FF
 
 CODE_00F8F2:
-	JSR CODE_00EAA6
+	JSR reset_collision_flags
 	BIT.w $0D9B				;$00F8F5	|
 	BVC CODE_00F94E				;$00F8F8	|
-	JSR CODE_00E92B				;$00F8FA	|
+	JSR level_collision			;$00F8FA	|
 	LDA.w $13FC				;$00F8FD	|
 	ASL					;$00F900	|
 	TAX					;$00F901	|
@@ -13277,7 +13277,7 @@ CODE_00F997:
 	BMI CODE_00F9A5				;$00F9A0	|
 	JSR CODE_00F629				;$00F9A2	|
 CODE_00F9A5:
-	JMP no_layer1_collision
+	JMP no_layer_collision
 
 CODE_00F9A8:
 	REP #$20

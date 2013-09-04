@@ -762,33 +762,33 @@ CODE_0285EF:
 	STA.w $1850,Y				;$02862B	|
 	RTL					;$02862E	|
 
-CODE_02862F:
-	JSL FindFreeSprSlot
-	BMI Return028662			;$028633	|
-	TYX					;$028635	|
-	LDA.b #$0B				;$028636	|
-	STA.w $14C8,X				;$028638	|
-	LDA $96					;$02863B	|
-	STA $D8,X				;$02863D	|
-	LDA $97					;$02863F	|
-	STA.w $14D4,X				;$028641	|
-	LDA $94					;$028644	|
-	STA $E4,X				;$028646	|
-	LDA $95,X				;$028648	|
-	STA.w $14E0,X				;$02864A	|
-	LDA.b #$53				;$02864D	|
-	STA $9E,X				;$02864F	|
-	JSL InitSpriteTables			;$028651	|
-	LDA.b #$FF				;$028655	|
-	STA.w $1540,X				;$028657	|
-	LDA.b #$08				;$02865A	|
-	STA.w $1498				;$02865C	|
-	STA.w $148F				;$02865F	|
-Return028662:
-	RTL
+spawn_throw_block:
+	JSL FindFreeSprSlot			;$02862F	\ Find a free sprite slot.
+	BMI .return				;$028633	 | If unsuccessful, return.
+	TYX					;$028635	 | Set X to the sprite slot.
+	LDA.b #$0B				;$028636	 |
+	STA.w $14C8,X				;$028638	 | Set the throw block as being carried.
+	LDA $96					;$02863B	 |\
+	STA $D8,X				;$02863D	 | | Set the sprite's Y position to the player's Y position.
+	LDA $97					;$02863F	 | |
+	STA.w $14D4,X				;$028641	 |/
+	LDA $94					;$028644	 |\
+	STA $E4,X				;$028646	 | | Set the sprite's X position to the player's X position.
+	LDA $95,X				;$028648	 | |
+	STA.w $14E0,X				;$02864A	 |/
+	LDA.b #$53				;$02864D	 |\ Set the sprite to be a throw block.
+	STA $9E,X				;$02864F	 |/
+	JSL InitSpriteTables			;$028651	 | Initialize the sprite tables.
+	LDA.b #$FF				;$028655	 |\ Set the throw block's disappearance timer.
+	STA.w $1540,X				;$028657	 |/
+	LDA.b #$08				;$02865A	 |\ Set the time to show the player picking something up.
+	STA.w $1498				;$02865C	 |/
+	STA.w $148F				;$02865F	 | Mark the player as carrying an object.
+.return						;		 |
+	RTL					;$028662	/
 
 ShatterBlock:
-	PHX
+	PHX					;$028663	|
 	STA $00					;$028664	|
 	LDY.b #$03				;$028666	|
 	LDX.b #$0B				;$028668	|
