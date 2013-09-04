@@ -411,7 +411,7 @@ CODE_0082F7:					;		 |
 	STA.w $211E				;$00833A	 |
 	LDA $35					;$00833D	 |
 	STA.w $211E				;$00833F	 |
-	JSR SETL1SCROLL				;$008342	 |
+	JSR mode_7_static_background_scroll	;$008342	 |
 	LDA.w $0D9B				;$008345	 |
 	LSR					;$008348	 |
 	BCC CODE_00835C				;$008349	 |
@@ -420,7 +420,7 @@ CODE_0082F7:					;		 |
 	LDA.w $0D9F				;$008351	 |
 	STA.w $420C				;$008354	 |
 	LDA.b #$81				;$008357	 |
-	JMP CODE_0083F3				;$008359	 |
+	JMP mode_7_scroll			;$008359	 |
 CODE_00835C:					;		 |
 	LDY.b #$24				;$00835C	 |
 	BIT.w $0D9B				;$00835E	 |
@@ -446,29 +446,29 @@ IRQ_start:					;		\
 	PHK					;$00837C	 | | Also set the bank to 00
 	PLB					;$00837D	 |/
 	SEP #$30				;$00837E	 | 8 bit A/X/Y
-	LDA.w $4211				;$008380	 |
-	BPL CODE_0083B2				;$008383	 |
-	LDA.b #$81				;$008385	 |
-	LDY.w $0D9B				;$008387	 |
-	BMI CODE_0083BA				;$00838A	 |
+	LDA.w $4211				;$008380	 |\ Read the IRQ status flag
+	BPL IRQ_return				;$008383	 |/ If the IRQ status flag is not triggered skip IRQ
+	LDA.b #$81				;$008385	 | Load NMI enabled, autojoy enabled
+	LDY.w $0D9B				;$008387	 |\ If we are in a mode 7 level branch
+	BMI mode_7_IRQ				;$00838A	 |/
 IRQ_NMI_return:					;		 |
-	STA.w $4200				;$00838C	 |
-	LDY.b #$1F				;$00838F	 |
-	JSR WaitForHBlank			;$008391	 |
-	LDA $22					;$008394	 |
-	STA.w $2111				;$008396	 |
-	LDA $23					;$008399	 |
-	STA.w $2111				;$00839B	 |
-	LDA $24					;$00839E	 |
-	STA.w $2112				;$0083A0	 |
-	LDA $25					;$0083A3	 |
-	STA.w $2112				;$0083A5	 |
-CODE_0083A8:					;		 |
-	LDA $3E					;$0083A8	 |
-	STA.w $2105				;$0083AA	 |
-	LDA $40					;$0083AD	 |
-	STA.w $2131				;$0083AF	 |
-CODE_0083B2:					;		 |
+	STA.w $4200				;$00838C	 | Store interrupt enabled flags
+	LDY.b #$1F				;$00838F	 |\ wait for H-Blank to occur 
+	JSR wait_for_hblank			;$008391	 |/
+	LDA $22					;$008394	 |\ Set layer 3 X position
+	STA.w $2111				;$008396	 | |
+	LDA $23					;$008399	 | |
+	STA.w $2111				;$00839B	 |/
+	LDA $24					;$00839E	 |\ Set layer 3 Y position
+	STA.w $2112				;$0083A0	 | |
+	LDA $25					;$0083A3	 | |
+	STA.w $2112				;$0083A5	 |/
+mode_7_IRQ_return:				;		 |
+	LDA $3E					;$0083A8	 |\ Set the background mode
+	STA.w $2105				;$0083AA	 |/
+	LDA $40					;$0083AD	 |\ Set any color math settings
+	STA.w $2131				;$0083AF	 |/
+IRQ_return:					;		 |
 	REP #$30				;$0083B2	 |\ Restore everything saved at the beginning of NMI
 	PLB					;$0083B4	 | |
 	PLY					;$0083B5	 | |
@@ -478,81 +478,81 @@ CODE_0083B2:					;		 |
 EmptyHandler:					;		 |
 	RTI					;$0083B9	/ Return from NMI
 
-CODE_0083BA:
-	BIT.w $0D9B
-	BVC CODE_0083E3				;$0083BD	|
-	LDY $11					;$0083BF	|
-	BEQ CODE_0083D0				;$0083C1	|
-	STA.w $4200				;$0083C3	|
-	LDY.b #$14				;$0083C6	|
-	JSR WaitForHBlank			;$0083C8	|
-	JSR SETL1SCROLL				;$0083CB	|
-	BRA CODE_0083A8				;$0083CE	|
+mode_7_IRQ:					;		\ 
+	BIT.w $0D9B				;$0083DA	 |\ Platform bosses have only one IRQ
+	BVC .platform_bosses			;$0083BD	 |/ So skip the differentiation code
+	LDY $11					;$0083BF	 |\ If we are in the First IRQ branch
+	BEQ .first_IRQ				;$0083C1	 |/
+	STA.w $4200				;$0083C3	 | Store Interrupt flags
+	LDY.b #$14				;$0083C6	 |\ short wait for HBlank, use a short wait to
+	JSR wait_for_hblank			;$0083C8	 |/ account for the JSR of the scroll routine
+	JSR mode_7_static_background_scroll	;$0083CB	 | Set the status bar scroll
+	BRA mode_7_IRQ_return			;$0083CE	/
 
-CODE_0083D0:
-	INC $11
-	LDA.w $4211				;$0083D2	|
-	LDA.b #$AE				;$0083D5	|
-	SEC					;$0083D7	|
-	SBC.w $1888				;$0083D8	|
-	STA.w $4209				;$0083DB	|
-	STZ.w $420A				;$0083DE	|
-	LDA.b #$A1				;$0083E1	|
-CODE_0083E3:
-	LDY.w $1493
-	BEQ CODE_0083F3				;$0083E6	|
-	LDY.w $1495				;$0083E8	|
-	CPY.b #$40				;$0083EB	|
-	BCC CODE_0083F3				;$0083ED	|
-	LDA.b #$81				;$0083EF	|
-	BRA IRQ_NMI_return			;$0083F1	|
+.first_IRQ					;		\ 
+	INC $11					;$0083D0	 | Set first IRQ as triggered
+	LDA.w $4211				;$0083D2	 | Reread the IRQ flag, this is unneeded
+	LDA.b #$AE				;$0083D5	 |\ Offset the V timer based on the layer 1 relative
+	SEC					;$0083D7	 | | Y position.
+	SBC.w $1888				;$0083D8	 | |
+	STA.w $4209				;$0083DB	 | |
+	STZ.w $420A				;$0083DE	 |/
+	LDA.b #$A1				;$0083E1	 | Load NMI, IRQ, and autojoy enabled
+.platform_bosses				;		 |
+	LDY.w $1493				;$0083E3	 |\ if the level isn't ending, run mode 7 scrolling
+	BEQ mode_7_scroll			;$0083E6	 |/
+	LDY.w $1495				;$0083E8	 |\ Also, if the fade timer is less than #$40
+	CPY.b #$40				;$0083EB	 | | keep on setting the mode 7 scroll
+	BCC mode_7_scroll			;$0083ED	 |/
+	LDA.b #$81				;$0083EF	 | Load NMI and autojoy enabled
+	BRA IRQ_NMI_return			;$0083F1	/ Finish off mode 7 IRQ
 
-CODE_0083F3:
-	STA.w $4200
-	JSR CODE_008439				;$0083F6	|
-	NOP					;$0083F9	|
-	NOP					;$0083FA	|
-	LDA.b #$07				;$0083FB	|
-	STA.w $2105				;$0083FD	|
-	LDA $3A					;$008400	|
-	STA.w $210D				;$008402	|
-	LDA $3B					;$008405	|
-	STA.w $210D				;$008407	|
-	LDA $3C					;$00840A	|
-	STA.w $210E				;$00840C	|
-	LDA $3D					;$00840F	|
-	STA.w $210E				;$008411	|
-	BRA CODE_0083B2				;$008414	|
+mode_7_scroll:					;		\ 
+	STA.w $4200				;$0083F3	 | Store the interrupt flags
+	JSR full_wait_for_hblank		;$0083F6	 |\ Wait for the next H-Blank
+	NOP					;$0083F9	 | |
+	NOP					;$0083FA	 |/
+	LDA.b #$07				;$0083FB	 |\ Enable mode 7
+	STA.w $2105				;$0083FD	 |/
+	LDA $3A					;$008400	 |\ Set layer 1 X position
+	STA.w $210D				;$008402	 | |
+	LDA $3B					;$008405	 | |
+	STA.w $210D				;$008407	 |/
+	LDA $3C					;$00840A	 |\ Set layer 1 X position
+	STA.w $210E				;$00840C	 | |
+	LDA $3D					;$00840F	 | |
+	STA.w $210E				;$008411	 |/
+	BRA IRQ_return				;$008414	/ Finish off IRQ
 
-SETL1SCROLL:
-	LDA.b #$59
-	STA.w $2107				;$008418	|
-	LDA.b #$07				;$00841B	|
-	STA.w $210B				;$00841D	|
-	LDA $1A					;$008420	|
-	STA.w $210D				;$008422	|
-	LDA $1B					;$008425	|
-	STA.w $210D				;$008427	|
-	LDA $1C					;$00842A	|
-	CLC					;$00842C	|
-	ADC.w $1888				;$00842D	|
-	STA.w $210E				;$008430	|
-	LDA $1D					;$008433	|
-	STA.w $210E				;$008435	|
-	RTS					;$008438	|
+mode_7_static_background_scroll:		;		\ 
+	LDA.b #$59				;$008416	 |\ set layer 1 tilemap address to $5800, mirror X
+	STA.w $2107				;$008418	 |/
+	LDA.b #$07				;$00841B	 |\ set layer 1 base character address to $7000
+	STA.w $210B				;$00841D	 |/
+	LDA $1A					;$008420	 |\ Set layer 1 X position.
+	STA.w $210D				;$008422	 | |
+	LDA $1B					;$008425	 | |
+	STA.w $210D				;$008427	 |/
+	LDA $1C					;$00842A	 |\ Set relative layer 1 Y position.
+	CLC					;$00842C	 | |
+	ADC.w $1888				;$00842D	 | | Add in the relative amount.
+	STA.w $210E				;$008430	 | |
+	LDA $1D					;$008433	 | |
+	STA.w $210E				;$008435	 |/
+	RTS					;$008438	/
 
-CODE_008439:
-	LDY.b #$20
-WaitForHBlank:
-	BIT.w $4212
-	BVS CODE_008439				;$00843E	|
-CODE_008440:
-	BIT.w $4212
-	BVC CODE_008440				;$008443	|
-CODE_008445:
-	DEY
-	BNE CODE_008445				;$008446	|
-	RTS					;$008448	|
+full_wait_for_hblank:				;		\ 
+	LDY.b #$20				;$008439	 | Use 166 cycle delay
+wait_for_hblank:				;		 |
+	BIT.w $4212				;$00843B	 |\ Wait for HBlank to occur
+	BVS full_wait_for_hblank		;$00843E	 |/ Only use the full delay if HBlank already passed
+.wait_for_hblank_end				;		 |
+	BIT.w $4212				;$008440	 |\ Wait for HBlank to end so we can wait for the next
+	BVC .wait_for_hblank_end		;$008443	 |/
+.waste_scanline					;		 |
+	DEY					;$008445	 |\ Wait for the next HBlank (minus 6 cycles)
+	BNE .waste_scanline			;$008446	 |/ Remember taken branches cost 3 cycles.
+	RTS					;$008448	/
 
 DMA_OAM:					;		\ 
 	STZ.w $4300				;$008449	 | DMA mode 0 (p)
@@ -4260,7 +4260,7 @@ dynamic_sprite_DMA:				;		\
 	LDA.w #$6000				;$00A34D	 |\ Set VRAM address to $6000
 	STA.w $2116				;$00A350	 |/
 	LDX.b #$00				;$00A353	 | Start the DMA counter
-.DMA_upper_8x8_loop				;		 |
+.DMA_upper_16x8_loop				;		 |
 	LDA.w $0D85,X				;$00A355	 |\ Set the next DMA source address (upper 8x8 strips)
 	STA.w $4322				;$00A358	 |/
 	LDA.w #$0040				;$00A35B	 |\ Transfer #$40 bytes
@@ -4270,11 +4270,11 @@ dynamic_sprite_DMA:				;		\
 	INX					;$00A366	 |\ Check if all tiles have been uploaded
 	INX					;$00A367	 | |
 	CPX.w $0D84				;$00A368	 |/
-	BCC .DMA_upper_8x8_loop			;$00A36B	 | Continue uploading if more tiles are ready
+	BCC .DMA_upper_16x8_loop		;$00A36B	 | Continue uploading if more tiles are ready
 	LDA.w #$6100				;$00A36D	 |\ Set VRAM address to $6000
 	STA.w $2116				;$00A370	 |/
 	LDX.b #$00				;$00A373	 | Start the DMA counter
-.DMA_lower_8x8_loop				;		 |
+.DMA_lower_16x8_loop				;		 |
 	LDA.w $0D8F,X				;$00A375	 |\ Set the next DMA source address (lower 8x8 strips)
 	STA.w $4322				;$00A378	 |/
 	LDA.w #$0040				;$00A37B	 |\ Transfer #$40 bytes
@@ -4284,7 +4284,7 @@ dynamic_sprite_DMA:				;		\
 	INX					;$00A386	 |\ Check if all tiles have been uploaded
 	INX					;$00A387	 | |
 	CPX.w $0D84				;$00A388	 |/
-	BCC .DMA_lower_8x8_loop			;$00A38B	 | Continue uploading if more tiles are ready
+	BCC .DMA_lower_16x8_loop		;$00A38B	 | Continue uploading if more tiles are ready
 	SEP #$20				;$00A38D	 | Restore 8 bit AXY
 	RTS					;$00A38F	/ Finished with dynamic sprite DMA
 
