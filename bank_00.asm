@@ -236,7 +236,7 @@ NMI_start:					;		\
 	STA.w $2130				;$0081C3	 |/
 	LDA.w $0D9B				;$0081C6	 |\ Check for a regular level
 	BPL .regular_level_NMI			;$0081C9	 | |
-	JMP mode_7_NMI				;$0081CB	 |/ Otherwise go to mode 7 routines
+	JMP .mode_7_NMI				;$0081CB	 |/ Otherwise go to mode 7 routines
 .regular_level_NMI				;		 |
 	LDA $40					;$0081CE	 |\ Set up color math on all layers in $40 but three
 	AND.b #$FB				;$0081D0	 | |
@@ -322,7 +322,7 @@ NMI_start:					;		\
 	LDA.b #$81				;$00827A	 | Load Enable NMI and autojoy enabled
 	LDY.w $13C6				;$00827C	 |\ Skip to NMI return if the credits are not playing
 	CPY.b #$08				;$00827F	 | |
-	BNE NMI_return				;$008281	 |/
+	BNE .NMI_return				;$008281	 |/
 	LDY.w $0DAE				;$008283	 |\ Set screen brightness from mirror
 	STY.w $2100				;$008286	 |/
 	LDY.w $0D9F				;$008289	 |\ Enable HDMA channels
@@ -330,13 +330,13 @@ NMI_start:					;		\
 	JMP IRQ_NMI_return			;$00828F	 | Finish off NMI
 .level_NMI_return				;		 |
 	LDY.b #$24				;$008292	 | Load the V timer scanline
-mode_7_NMI_return:				;		 |
+.mode_7_NMI_return				;		 |
 	LDA.w $4211				;$008294	 | Read to clear the IRQ flag
 	STY.w $4209				;$008297	 | Set the V timer low byte (generally #$24)
 	STZ.w $420A				;$00829A	 | Clear the V timer high byte
 	STZ $11					;$00829D	 | Set IRQ id flag to 0 (IRQ #1)
 	LDA.b #$A1				;$00829F	 | Load Enable NMI, vertical IRQ, and autojoy enabled
-NMI_return:					;		 |
+.NMI_return					;		 |
 	STA.w $4200				;$0082A1	 | Store NMI/IRQ/autojoy enabled status
 	STZ.w $2111				;$0082A4	 |\ Reset layer X three scroll position
 	STZ.w $2111				;$0082A7	 |/
@@ -354,86 +354,86 @@ NMI_return:					;		 |
 	PLP					;$0082C2	 |/
 	RTI					;$0082C3	/ Return from NMI
 
-mode_7_NMI:					;		\
-	LDA $10					;$0082C4	 |
-	BNE CODE_0082F7				;$0082C6	 |
-	INC $10					;$0082C8	 |
-	LDA.w $143A				;$0082CA	 |
-	BEQ CODE_0082D4				;$0082CD	 |
-	JSR DMA_transition_screen		;$0082CF	 |
-	BRA CODE_0082E8				;$0082D2	 |
-CODE_0082D4:					;		 |
-	JSR CODE_00A436				;$0082D4	 |
-	JSR dynamic_sprite_DMA			;$0082D7	 |
-	BIT.w $0D9B				;$0082DA	 |
-	BVC CODE_0082E8				;$0082DD	 |
-	JSR CODE_0098A9				;$0082DF	 |
-	LDA.w $0D9B				;$0082E2	 |
-	LSR					;$0082E5	 |
-	BCS CODE_0082EB				;$0082E6	 |
-CODE_0082E8:					;		 |
-	JSR draw_status_bar			;$0082E8	 |
-CODE_0082EB:					;		 |
-	JSR upload_palette			;$0082ED	 |
-	JSR _load_stripe_image_			;$0082EE	 |
-	JSR DMA_OAM				;$0082F1	 |
-	JSR update_controllers			;$0082F4	 |
-CODE_0082F7:					;		 |
+.mode_7_NMI					;		\ 
+	LDA $10					;$0082C4	 |\ if mode 7 is lagging branch
+	BNE .lagging_mode_7_NMI			;$0082C6	 | |
+	INC $10					;$0082C8	 |/ Otherwise increment the lag counter
+	LDA.w $143A				;$0082CA	 |\ Check if the transition screens need DMAed
+	BEQ .skip_mode_7_transition_DMA		;$0082CD	 |/
+	JSR DMA_transition_screen		;$0082CF	 | DMA start/bonus/game over/time up transition screens
+	BRA .draw_status_bar			;$0082D2	 | Skip dynamic graphics DMA
+.skip_mode_7_transition_DMA			;		 |
+	JSR CODE_00A436				;$0082D4	 | <-- 7E0BF6 DMA -- whatever that does.
+	JSR dynamic_sprite_DMA			;$0082D7	 | DMA Mario/Yoshi/Vertical fireball graphics
+	BIT.w $0D9B				;$0082DA	 |\ If we are in a platform boss fight
+	BVC .draw_status_bar			;$0082DD	 |/ Draw the status bar
+	JSR CODE_0098A9				;$0082DF	 | <--some animation stuff, investigate more
+	LDA.w $0D9B				;$0082E2	 |\ If we are fighting bowser, don't draw the status bar
+	LSR					;$0082E5	 | |
+	BCS .skip_status_bar			;$0082E6	 |/
+.draw_status_bar				;		 |
+	JSR draw_status_bar			;$0082E8	 | Draw the status bar
+.skip_status_bar				;		 |
+	JSR upload_palette			;$0082ED	 | Upload any pending palette changes
+	JSR _load_stripe_image_			;$0082EE	 | Load stripe images from $12
+	JSR DMA_OAM				;$0082F1	 | DMA sprite tiles to OAM
+	JSR update_controllers			;$0082F4	 | Update the controller input
+.lagging_mode_7_NMI				;		 |
 	LDA.b #$09				;$0082F7	 |
 	STA.w $2105				;$0082F9	 |
-	LDA $2A					;$0082FC	 |
-	CLC					;$0082FE	 |
-	ADC.b #$80				;$0082FF	 |
-	STA.w $211F				;$008301	 |
-	LDA $2B					;$008304	 |
-	ADC.b #$00				;$008306	 |
-	STA.w $211F				;$008308	 |
-	LDA $2C					;$00830B	 |
-	CLC					;$00830D	 |
-	ADC.b #$80				;$00830E	 |
-	STA.w $2120				;$008310	 |
-	LDA $2D					;$008313	 |
-	ADC.b #$00				;$008315	 |
-	STA.w $2120				;$008317	 |
-	LDA $2E					;$00831A	 |
-	STA.w $211B				;$00831C	 |
-	LDA $2F					;$00831F	 |
-	STA.w $211B				;$008321	 |
-	LDA $30					;$008324	 |
-	STA.w $211C				;$008326	 |
-	LDA $31					;$008329	 |
-	STA.w $211C				;$00832B	 |
-	LDA $32					;$00832E	 |
-	STA.w $211D				;$008330	 |
-	LDA $33					;$008333	 |
-	STA.w $211D				;$008335	 |
-	LDA $34					;$008338	 |
-	STA.w $211E				;$00833A	 |
-	LDA $35					;$00833D	 |
-	STA.w $211E				;$00833F	 |
+	LDA $2A					;$0082FC	 |\ Set the mode 7 center X position
+	CLC					;$0082FE	 | |
+	ADC.b #$80				;$0082FF	 | | Offset the center by #$80
+	STA.w $211F				;$008301	 | |
+	LDA $2B					;$008304	 | |
+	ADC.b #$00				;$008306	 | | Handle carry if needed
+	STA.w $211F				;$008308	 |/
+	LDA $2C					;$00830B	 |\ Set the mode 7 center Y position
+	CLC					;$00830D	 | |
+	ADC.b #$80				;$00830E	 | | Offset the center by #$80
+	STA.w $2120				;$008310	 | |
+	LDA $2D					;$008313	 | |
+	ADC.b #$00				;$008315	 | | Handle carry if needed
+	STA.w $2120				;$008317	 |/
+	LDA $2E					;$00831A	 |\ Update mode 7 matrix value A
+	STA.w $211B				;$00831C	 | |
+	LDA $2F					;$00831F	 | |
+	STA.w $211B				;$008321	 |/
+	LDA $30					;$008324	 |\ Update mode 7 matrix value B
+	STA.w $211C				;$008326	 | |
+	LDA $31					;$008329	 | |
+	STA.w $211C				;$00832B	 |/
+	LDA $32					;$00832E	 |\ Update mode 7 matrix value C
+	STA.w $211D				;$008330	 | |
+	LDA $33					;$008333	 | |
+	STA.w $211D				;$008335	 |/
+	LDA $34					;$008338	 |\ Update mode 7 matrix value D
+	STA.w $211E				;$00833A	 | |
+	LDA $35					;$00833D	 | |
+	STA.w $211E				;$00833F	 |/
 	JSR SETL1SCROLL				;$008342	 |
-	LDA.w $0D9B				;$008345	 |
-	LSR					;$008348	 |
-	BCC CODE_00835C				;$008349	 |
-	LDA.w $0DAE				;$00834B	 |
-	STA.w $2100				;$00834E	 |
-	LDA.w $0D9F				;$008351	 |
-	STA.w $420C				;$008354	 |
-	LDA.b #$81				;$008357	 |
-	JMP CODE_0083F3				;$008359	 |
-CODE_00835C:					;		 |
-	LDY.b #$24				;$00835C	 |
-	BIT.w $0D9B				;$00835E	 |
-	BVC CODE_008371				;$008361	 |
-	LDA.w $13FC				;$008363	 |
-	ASL					;$008366	 |
-	TAX					;$008367	 |
-	LDA.w DATA_00F8E8,X			;$008368	 |
-	CMP.b #$2A				;$00836B	 |
-	BNE CODE_008371				;$00836D	 |
-	LDY.b #$2D				;$00836F	 |
-CODE_008371:					;		 |
-	JMP mode_7_NMI_return			;$008371	/ Finish off mode 7 NMI
+	LDA.w $0D9B				;$008345	 |\ If we are not at bowser there are a few extra
+	LSR					;$008348	 | | Items we still need to process otherwise
+	BCC .skip_bowser			;$008349	 |/ We can finish off NMI
+	LDA.w $0DAE				;$00834B	 |\ Set the screen brightness from $0DAE
+	STA.w $2100				;$00834E	 |/
+	LDA.w $0D9F				;$008351	 |\ Enable HDMA channels
+	STA.w $420C				;$008354	 |/
+	LDA.b #$81				;$008357	 | Enable NMI and autojoy
+	JMP mode_7_scroll			;$008359	 | Set the mode 7 scroll values -- statusbar unused
+.skip_bowser					;		 |
+	LDY.b #$24				;$00835C	 | Load the VTimer trigger
+	BIT.w $0D9B				;$00835E	 |\ If we are running in the platform boss mode
+	BVC .skip_vtimer_change			;$008361	 |/ skip to the end of NMI
+	LDA.w $13FC				;$008363	 |\ If we are fighting Morton or Roy
+	ASL					;$008366	 | |
+	TAX					;$008367	 | |
+	LDA.w boss_ceiling_height,X		;$008368	 | | Check against the boss ceiling height
+	CMP.b #$2A				;$00836B	 | | Instead of something simple like CMP #$02 : BCC
+	BNE .skip_vtimer_change			;$00836D	 |/ Skip the VTimer change
+	LDY.b #$2D				;$00836F	 | Load altnerative VTimer trigger position
+.skip_vtimer_change				;		 |
+	JMP .mode_7_NMI_return			;$008371	/ Finish off mode 7 NMI
 
 IRQ_start:					;		\
 	SEI					;$008374	 | Disable interrupts to stop interrupting an interrupt
@@ -2965,7 +2965,7 @@ CODE_00995B:
 	ASL					;$009963	|
 	TAX					;$009964	|
 	LDY.w #$02C0				;$009965	|
-	LDA.w DATA_00F8E8,X			;$009968	|
+	LDA.w boss_ceiling_height,X		;$009968	|
 	BPL CODE_009970				;$00996B	|
 	LDY.w #$FB80				;$00996D	|
 CODE_009970:
@@ -13178,7 +13178,7 @@ DATA_00F8DF:
 	db $0C,$0C,$08,$00,$20,$04,$0A,$0D
 	db $0D
 
-DATA_00F8E8:
+boss_ceiling_height:
 	db $2A,$00,$2A,$00,$12,$00,$00,$00
 	db $ED,$FF
 
@@ -13195,9 +13195,9 @@ CODE_00F8F2:
 	BPL CODE_00F91E				;$00F905	|
 	REP #$20				;$00F907	|
 	LDA $96					;$00F909	|
-	CMP.w DATA_00F8E8,X			;$00F90B	|
+	CMP.w boss_ceiling_height,X		;$00F90B	|
 	BPL CODE_00F91E				;$00F90E	|
-	LDA.w DATA_00F8E8,X			;$00F910	|
+	LDA.w boss_ceiling_height,X		;$00F910	|
 	STA $96					;$00F913	|
 	SEP #$20				;$00F915	|
 	STZ $7D					;$00F917	|
@@ -13206,7 +13206,7 @@ CODE_00F8F2:
 CODE_00F91E:
 	SEP #$20
 	PLX					;$00F920	|
-	LDA.w DATA_00F8E8,X			;$00F921	|
+	LDA.w boss_ceiling_height,X		;$00F921	|
 	CMP.b #$2A				;$00F924	|
 	BNE Return00F94D			;$00F926	|
 	REP #$20				;$00F928	|
