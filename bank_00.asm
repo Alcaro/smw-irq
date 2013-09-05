@@ -286,7 +286,7 @@ NMI_start:					;		\
 	DEY					;$00822D	 | | and handle the regular overworld routines
 	CPY.b #$04				;$00822E	 | |
 	BCS .regular_overworld_handle		;$008230	 |/
-	JSR CODE_00A529				;$008232	 | <-- OW layer DMA
+	JSR DMA_overworld_tilemap		;$008232	 | Overworld layer 1 and 2 DMA
 	BRA .regular_overworld_bypass		;$008235	 | Skip over various unneeded overworld DMAs
 .regular_overworld_handle			;		 |
 	JSR DMA_animated_overworld_tiles	;$008237	 | DMA animated overworld tiles (plus animated palettes)
@@ -4360,35 +4360,35 @@ animate_red_level_tile:				;		 |
 	STA.w $2122				;$00A432	 |/
 	RTS					;$00A435	/
 
-CODE_00A436:
-	LDA.w $1935
-	BEQ Return00A47E			;$00A439	|
-	STZ.w $1935				;$00A43B	|
-	REP #$20				;$00A43E	|
-	LDY.b #$80				;$00A440	|
-	STY.w $2115				;$00A442	|
-	LDA.w #$64A0				;$00A445	|
-	STA.w $2116				;$00A448	|
-	LDA.w #$1801				;$00A44B	|
-	STA.w $4320				;$00A44E	|
-	LDA.w #$0BF6				;$00A451	|
-	STA.w $4322				;$00A454	|
-	LDY.b #$00				;$00A457	|
-	STY.w $4324				;$00A459	|
-	LDA.w #$00C0				;$00A45C	|
-	STA.w $4325				;$00A45F	|
-	LDX.b #$04				;$00A462	|
-	STX.w $420B				;$00A464	|
-	LDA.w #$65A0				;$00A467	|
-	STA.w $2116				;$00A46A	|
-	LDA.w #$0CB6				;$00A46D	|
-	STA.w $4322				;$00A470	|
-	LDA.w #$00C0				;$00A473	|
-	STA.w $4325				;$00A476	|
-	STX.w $420B				;$00A479	|
-	SEP #$20				;$00A47C	|
-Return00A47E:
-	RTS
+CODE_00A436:					;		\ (This routine is pretty much useless in vanilla SMW) 
+	LDA.w $1935				;$00A436	 |\ Check for a request to DMA tiles 4A-4F and 5A-5F 
+	BEQ .return				;$00A439	 |/
+	STZ.w $1935				;$00A43B	 | Prevent continuous tile uploading
+	REP #$20				;$00A43E	 | 16 bit A
+	LDY.b #$80				;$00A440	 |\ Set VRAM to increment after $2119 writes
+	STY.w $2115				;$00A442	 |/
+	LDA.w #$64A0				;$00A445	 |\ Set VRAM destination to $64A0
+	STA.w $2116				;$00A448	 |/
+	LDA.w #$1801				;$00A44B	 |\ Set DMA transfer mode 1 with DMA destination $2118
+	STA.w $4320				;$00A44E	 |/
+	LDA.w #$0BF6				;$00A451	 |\ Set DMA source to $000BF6
+	STA.w $4322				;$00A454	 | |
+	LDY.b #$00				;$00A457	 | |
+	STY.w $4324				;$00A459	 |/
+	LDA.w #$00C0				;$00A45C	 |\ Set the transfer to #$C0 bytes
+	STA.w $4325				;$00A45F	 |/
+	LDX.b #$04				;$00A462	 |\ Run DMA on channel 2
+	STX.w $420B				;$00A464	 |/
+	LDA.w #$65A0				;$00A467	 |\ Set VRAM destination to $65A0
+	STA.w $2116				;$00A46A	 |/
+	LDA.w #$0CB6				;$00A46D	 |\ Set DMA source to $000CB6
+	STA.w $4322				;$00A470	 |/
+	LDA.w #$00C0				;$00A473	 |\ Set the transfer to #$C0 bytes
+	STA.w $4325				;$00A476	 |/
+	STX.w $420B				;$00A479	 | Run DMA on channel 2
+	SEP #$20				;$00A47C	 | 8 bit A
+.return						;		 |
+	RTS					;$00A47E	/ Done with tile 4A-4F and 5A-5F DMA
 
 RAM_color_pointers:
 	db $82,$06,$00,$05,$09,$00,$03,$07,$00
@@ -4466,62 +4466,62 @@ DMA_animated_overworld_tiles:			;		\
 	LDA.b #$7D				;$00A51C	 | Load CGRAM color address
 	JMP animate_red_level_tile		;$00A51E	/ Set the red level tile palette animation and return
 
-DATA_00A521:
+overworld_VRAM_DMA_offset:
 	db $00,$04,$08,$0C
 
-DATA_00A525:
+overworld_layer_2_DMA_offsets:
 	db $00,$08,$10,$18
 
-CODE_00A529:
-	LDA.b #$80
-	STA.w $2115				;$00A52B	|
-	STZ.w $2116				;$00A52E	|
-	LDA.b #$30				;$00A531	|
-	CLC					;$00A533	|
-	ADC.w DATA_00A521,Y			;$00A534	|
-	STA.w $2117				;$00A537	|
-	LDX.b #$06				;$00A53A	|
-CODE_00A53C:
-	LDA.w DATA_00A586,X
-	STA.w $4310,X				;$00A53F	|
-	DEX					;$00A542	|
-	BPL CODE_00A53C				;$00A543	|
-	LDA.w $0DD6				;$00A545	|
-	LSR					;$00A548	|
-	LSR					;$00A549	|
-	TAX					;$00A54A	|
-	LDA.w $1F11,X				;$00A54B	|
-	BEQ CODE_00A555				;$00A54E	|
-	LDA.b #$60				;$00A550	|
-	STA.w $4313				;$00A552	|
-CODE_00A555:
-	LDA.w $4313
-	CLC					;$00A558	|
-	ADC.w DATA_00A525,Y			;$00A559	|
-	STA.w $4313				;$00A55C	|
-	LDA.b #$02				;$00A55F	|
-	STA.w $420B				;$00A561	|
-	LDA.b #$80				;$00A564	|
-	STA.w $2115				;$00A566	|
-	STZ.w $2116				;$00A569	|
-	LDA.b #$20				;$00A56C	|
-	CLC					;$00A56E	|
-	ADC.w DATA_00A521,Y			;$00A56F	|
-	STA.w $2117				;$00A572	|
-	LDX.b #$06				;$00A575	|
-CODE_00A577:
-	LDA.w DATA_00A58D,X
-	STA.w $4310,X				;$00A57A	|
-	DEX					;$00A57D	|
-	BPL CODE_00A577				;$00A57E	|
-	LDA.b #$02				;$00A580	|
-	STA.w $420B				;$00A582	|
-	RTS					;$00A585	|
+DMA_overworld_tilemap:					;		\ 
+	LDA.b #$80				;$00A529	 |\ Set VRAM mode increment after $2119 writes
+	STA.w $2115				;$00A52B	 |/
+	STZ.w $2116				;$00A52E	 |\ Set the VRAM address to $3000 plus the block
+	LDA.b #$30				;$00A531	 | | Offset, $3000 is the layer 2 tilemap
+	CLC					;$00A533	 | |
+	ADC.w overworld_VRAM_DMA_offset,Y	;$00A534	 | |
+	STA.w $2117				;$00A537	 |/
+	LDX.b #$06				;$00A53A	 | Number of settings to load
+.layer_2_DMA_copy_loop				;		 |\ DMA copy loop
+	LDA.w overworld_layer_2_DMA_settings,X	;$00A53C	 | | DMA mode 1, destination $2118
+	STA.w $4310,X				;$00A53F	 | | Source $7F4000, size $0800 byte
+	DEX					;$00A542	 | |
+	BPL .layer_2_DMA_copy_loop		;$00A543	 |/
+	LDA.w $0DD6				;$00A545	 |\ Check the map of the current player
+	LSR					;$00A548	 | |
+	LSR					;$00A549	 | |
+	TAX					;$00A54A	 | |
+	LDA.w $1F11,X				;$00A54B	 | |
+	BEQ .main_OW_DMA			;$00A54E	 |/ And branch if they are not going to a submap
+	LDA.b #$60				;$00A550	 |\ Set the DMA source high byte to submap tile data
+	STA.w $4313				;$00A552	 |/
+.main_OW_DMA					;		 |
+	LDA.w $4313				;$00A555	 |\ Offset the DMA source high byte to the current 
+	CLC					;$00A558	 | | Block of layer 2 data
+	ADC.w overworld_layer_2_DMA_offsets,Y	;$00A559	 | |
+	STA.w $4313				;$00A55C	 |/
+	LDA.b #$02				;$00A55F	 |\ Run DMA on channel 1
+	STA.w $420B				;$00A561	 |/
+	LDA.b #$80				;$00A564	 |\ Set VRAM mode increment after $2119 writes
+	STA.w $2115				;$00A566	 |/
+	STZ.w $2116				;$00A569	 |\ Set the VRAM address to $2000 plus the block
+	LDA.b #$20				;$00A56C	 | | Offset, $2000 is the layer 1 tilemap
+	CLC					;$00A56E	 | |
+	ADC.w overworld_VRAM_DMA_offset,Y	;$00A56F	 | |
+	STA.w $2117				;$00A572	 |/
+	LDX.b #$06				;$00A575	 | Number of settings to load
+.layer_1_DMA_copy_loop				;		 |\ DMA copy loop
+	LDA.w overworld_layer_1_DMA_settings,X	;$00A577	 | | DMA mode 1, destination $2118
+	STA.w $4310,X				;$00A57A	 | | Source $7EE400, size $0800 bytes
+	DEX					;$00A57D	 | |
+	BPL .layer_1_DMA_copy_loop		;$00A57E	 |/
+	LDA.b #$02				;$00A580	 |\ Run DMA on channel 1
+	STA.w $420B				;$00A582	 |/
+	RTS					;$00A585	 / Finished with overworld DMA
 
-DATA_00A586:
+overworld_layer_2_DMA_settings:
 	db $01,$18,$00,$40,$7F,$00,$08
 
-DATA_00A58D:
+overworld_layer_1_DMA_settings:
 	db $01,$18,$00,$E4,$7E,$00,$08
 
 CODE_00A594:
