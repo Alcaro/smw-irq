@@ -500,14 +500,14 @@ CODE_0083D0:
 	LDA.b #$A1				;$0083E1	|
 CODE_0083E3:
 	LDY.w $1493
-	BEQ CODE_0083F3				;$0083E6	|
+	BEQ mode_7_scroll			;$0083E6	|
 	LDY.w $1495				;$0083E8	|
 	CPY.b #$40				;$0083EB	|
-	BCC CODE_0083F3				;$0083ED	|
+	BCC mode_7_scroll			;$0083ED	|
 	LDA.b #$81				;$0083EF	|
 	BRA IRQ_NMI_return			;$0083F1	|
 
-CODE_0083F3:
+mode_7_scroll:
 	STA.w $4200
 	JSR CODE_008439				;$0083F6	|
 	NOP					;$0083F9	|
@@ -8225,47 +8225,47 @@ DATA_00CC5C:
 	db $FE,$FF,$FA,$FF
 
 no_animation:
-	LDA $17
-	AND.b #$20				;$00CC6A	|
-	BEQ CODE_00CC81				;$00CC6C	|
-	LDA $18					;$00CC6E	|
-	CMP.b #$80				;$00CC70	|
-	BNE CODE_00CC81				;$00CC72	|
-	INC.w $1E01				;$00CC74	|
-	LDA.w $1E01				;$00CC77	|
-	CMP.b #$03				;$00CC7A	|
-	BCC CODE_00CC81				;$00CC7C	|
-	STZ.w $1E01				;$00CC7E	|
+	LDA $17					;$00CC68	\
+	AND.b #$20				;$00CC6A	 |
+	BEQ CODE_00CC81				;$00CC6C	 |
+	LDA $18					;$00CC6E	 |
+	CMP.b #$80				;$00CC70	 |
+	BNE CODE_00CC81				;$00CC72	 |
+	INC.w $1E01				;$00CC74	 |
+	LDA.w $1E01				;$00CC77	 |
+	CMP.b #$03				;$00CC7A	 |
+	BCC CODE_00CC81				;$00CC7C	 |
+	STZ.w $1E01				;$00CC7E	 |
 CODE_00CC81:
-	LDA.w $1E01
-	BRA CODE_00CCBB				;$00CC84	|
+	LDA.w $1E01				;$00CC81	 |
+	BRA CODE_00CCBB				;$00CC84	/ Skip some debugging code.
 
-	LSR					;$00CC86	|
-	BEQ ADDR_00CCB3				;$00CC87	|
-	LDA.b #$FF				;$00CC89	|
-	STA.w $1497				;$00CC8B	|
-	LDA $15					;$00CC8E	|
-	AND.b #$03				;$00CC90	|
-	ASL					;$00CC92	|
-	ASL					;$00CC93	|
-	LDX.b #$00				;$00CC94	|
-	JSR ADDR_00CC9F				;$00CC96	|
-	LDA $15					;$00CC99	|
-	AND.b #$0C				;$00CC9B	|
-	LDX.b #$02				;$00CC9D	|
+	LSR					;$00CC86	\
+	BEQ ADDR_00CCB3				;$00CC87	 |
+	LDA.b #$FF				;$00CC89	 |
+	STA.w $1497				;$00CC8B	 |
+	LDA $15					;$00CC8E	 |
+	AND.b #$03				;$00CC90	 |
+	ASL					;$00CC92	 |
+	ASL					;$00CC93	 |
+	LDX.b #$00				;$00CC94	 |
+	JSR ADDR_00CC9F				;$00CC96	 |
+	LDA $15					;$00CC99	 |
+	AND.b #$0C				;$00CC9B	 |
+	LDX.b #$02				;$00CC9D	 |
 ADDR_00CC9F:
-	BIT $15
-	BVC ADDR_00CCA5				;$00CCA1	|
-	ORA.b #$02				;$00CCA3	|
+	BIT $15					;$00CC9F	 |
+	BVC ADDR_00CCA5				;$00CCA1	 |
+	ORA.b #$02				;$00CCA3	 |
 ADDR_00CCA5:
-	TAY
-	REP #$20				;$00CCA6	|
-	LDA $94,X				;$00CCA8	|
-	CLC					;$00CCAA	|
-	ADC.w DATA_00CC5C,Y			;$00CCAB	|
-	STA $94,X				;$00CCAE	|
-	SEP #$20				;$00CCB0	|
-	RTS					;$00CCB2	|
+	TAY					;$00CCA5	 |
+	REP #$20				;$00CCA6	 |
+	LDA $94,X				;$00CCA8	 |
+	CLC					;$00CCAA	 |
+	ADC.w DATA_00CC5C,Y			;$00CCAB	 |
+	STA $94,X				;$00CCAE	 |
+	SEP #$20				;$00CCB0	 |
+	RTS					;$00CCB2	/
 
 ADDR_00CCB3:
 	LDA.b #$70
@@ -8834,129 +8834,130 @@ DATA_00D0AE:
 	db $7C,$00,$80,$00,$00,$06,$00,$01
 
 death_animation:
-	STZ $19
-	LDA.b #$3E				;$00D0B8	|
-	STA.w $13E0				;$00D0BA	|
-	LDA $13					;$00D0BD	|
-	AND.b #$03				;$00D0BF	|
-	BNE CODE_00D0C6				;$00D0C1	|
-	DEC.w $1496				;$00D0C3	|
-CODE_00D0C6:
-	LDA.w $1496
-	BNE DeathNotDone			;$00D0C9	|
-	LDA.b #$80				;$00D0CB	|
-	STA.w $0DD5				;$00D0CD	|
-	LDA.w $1B9B				;$00D0D0	|
-	BNE CODE_00D0D8				;$00D0D3	|
-	STZ.w $0DC1				;$00D0D5	|
-CODE_00D0D8:
-	DEC.w $0DBE
-	BPL DeathNotGameOver			;$00D0DB	|
-	LDA.b #$0A				;$00D0DD	|
-	STA.w $1DFB				;$00D0DF	|
-	LDX.b #$14				;$00D0E2	|
-	BRA DeathShowMessage			;$00D0E4	|
+	STZ $19					;$00D0B6	\ Clear the player's powerup.
+	LDA.b #$3E				;$00D0B8	 |\ Set the death pose.
+	STA.w $13E0				;$00D0BA	 |/
+	LDA $13					;$00D0BD	 |\
+	AND.b #$03				;$00D0BF	 | | Every four frames,
+	BNE .no_decrement			;$00D0C1	 | |
+	DEC.w $1496				;$00D0C3	 | | decrease the player animation timer.
+.no_decrement					;		 |/
+	LDA.w $1496				;$00D0C6	 |\ If it's not zero,
+	BNE .not_done				;$00D0C9	 |/ keep letting the player fall.
+	LDA.b #$80				;$00D0CB	 |\ Exit the level without events occuring.
+	STA.w $0DD5				;$00D0CD	 |/
+	LDA.w $1B9B				;$00D0D0	 |\ If yoshi has not been left behind,
+	BNE .keep_yoshi				;$00D0D3	 | |
+	STZ.w $0DC1				;$00D0D5	 | | get rid of him.
+.keep_yoshi					;		 |/
+	DEC.w $0DBE				;$00D0D8	 |\ Decrease the player's lives.
+	BPL .not_game_over			;$00D0DB	 |/ If it's negative, show "GAME OVER"
+	LDA.b #$0A				;$00D0DD	 |\ Play the game over music.
+	STA.w $1DFB				;$00D0DF	 |/
+	LDX.b #$14				;$00D0E2	 | Show the "GAME OVER" message.
+	BRA .show_message			;$00D0E4	/
 
-DeathNotGameOver:
-	LDY.b #$0B
-	LDA.w $0F31				;$00D0E8	|
-	ORA.w $0F32				;$00D0EB	|
-	ORA.w $0F33				;$00D0EE	|
-	BNE DeathNotTimeUp			;$00D0F1	|
-	LDX.b #$1D				;$00D0F3	|
-DeathShowMessage:
-	STX.w $143B
-	LDA.b #$C0				;$00D0F8	|
-	STA.w $143C				;$00D0FA	|
-	LDA.b #$FF				;$00D0FD	|
-	STA.w $143D				;$00D0FF	|
-	LDY.b #$15				;$00D102	|
-DeathNotTimeUp:
-	STY.w $0100
-	RTS					;$00D107	|
+.not_game_over
+	LDY.b #$0B				;$00D0E6	\ Load the fade to overworld game mode.
+	LDA.w $0F31				;$00D0E8	 |\ If the hundreds place of the time,
+	ORA.w $0F32				;$00D0EB	 | | the tens place,
+	ORA.w $0F33				;$00D0EE	 | | and the ones place are zero,
+	BNE .not_time_up			;$00D0F1	 | |
+	LDX.b #$1D				;$00D0F3	 | | show the "TIME UP" message.
+.show_message					;		 |/
+	STX.w $143B				;$00D0F5	 | Set the death message.
+	LDA.b #$C0				;$00D0F8	 |\ Set the death message timer.
+	STA.w $143C				;$00D0FA	 |/
+	LDA.b #$FF				;$00D0FD	 |\ Set how long the death message should persist.
+	STA.w $143D				;$00D0FF	 |/
+	LDY.b #$15				;$00D102	 | Load the "GAME OVER" or "TIME UP" game mode,
+.not_time_up					;		 |
+	STY.w $0100				;$00D104	 | and set the game mode.
+	RTS					;$00D107	/
 
-DeathNotDone:
-	CMP.b #$26
-	BCS DeathNotDoneEnd			;$00D10A	|
-	STZ $7B					;$00D10C	|
-	JSR CODE_00DC2D				;$00D10E	|
-	JSR CODE_00D92E				;$00D111	|
-	LDA $13					;$00D114	|
-	LSR					;$00D116	|
-	LSR					;$00D117	|
-	AND.b #$01				;$00D118	|
-	STA $76					;$00D11A	|
-DeathNotDoneEnd:
-	RTS
+.not_done
+	CMP.b #$26				;$00D108	\ Keep the player still for a bit.
+	BCS .return				;$00D10A	 |
+	STZ $7B					;$00D10C	 | Clear the player's X speed,
+	JSR CODE_00DC2D				;$00D10E	 | update the player's X and Y positions,
+	JSR CODE_00D92E				;$00D111	 | update the player's gravity,
+	LDA $13					;$00D114	 |\
+	LSR					;$00D116	 | |
+	LSR					;$00D117	 | | and flip the player's direction every four frames.
+	AND.b #$01				;$00D118	 | |
+	STA $76					;$00D11A	 |/
+.return						;		 |
+	RTS					;$00D11C	/
 
-GrowingAniImgs:
+growing_hurt_poses:
 	db $00,$3D,$00,$3D,$00,$3D,$46,$3D
 	db $46,$3D,$46,$3D
 
 hurt_animation:
-	LDA.w $1496
-	BEQ CODE_00D140				;$00D12C	|
-	LSR					;$00D12E	|
-	LSR					;$00D12F	|
-CODE_00D130:
-	TAY
-	LDA.w GrowingAniImgs,Y			;$00D131	|
-	STA.w $13E0				;$00D134	|
-CODE_00D137:
-	LDA.w $1496
-	BEQ Return00D13F			;$00D13A	|
-	DEC.w $1496				;$00D13C	|
-Return00D13F:
-	RTS
+	LDA.w $1496				;$00D129	\ If the animation timer has ended,
+	BEQ set_invincibility			;$00D12C	 | set temporary invincibility.
+	LSR					;$00D12E	 |\
+	LSR					;$00D12F	 | | Divide the timer by four,
+set_growing_poses:				;		 | |
+	TAY					;$00D130	 | |
+	LDA.w growing_hurt_poses,Y		;$00D131	 | | and set the player's pose based on the timer
+	STA.w $13E0				;$00D134	 |/ and the sequence of hurt poses.
+decrement_animation_timer:			;		 |
+	LDA.w $1496				;$00D137	 |\ If the animation timer is nonzero,
+	BEQ .return				;$00D13A	 | |
+	DEC.w $1496				;$00D13C	 |/ decrement it.
+.return						;		 |
+	RTS					;$00D13F	/
 
-CODE_00D140:
-	LDA.b #$7F
-	STA.w $1497				;$00D142	|
-	BRA CODE_00D158				;$00D145	|
+set_invincibility:
+	LDA.b #$7F				;$00D140	\ Set invincibility for $7F frames.
+	STA.w $1497				;$00D142	 |
+	BRA reset_animation			;$00D145	/ Reset the animation.
 
 mushroom_animation:
-	LDA.w $1496
-	BEQ CODE_00D156				;$00D14A	|
-	LSR					;$00D14C	|
-	LSR					;$00D14D	|
-	EOR.b #$FF				;$00D14E	|
-	INC A					;$00D150	|
-	CLC					;$00D151	|
-	ADC.b #$0B				;$00D152	|
-	BRA CODE_00D130				;$00D154	|
+	LDA.w $1496				;$00D147	\ If the animation timer has ended,
+	BEQ .set_powerup			;$00D14A	 | set the player's powerup.
+	LSR					;$00D14C	 |\
+	LSR					;$00D14D	 | | Divide the timer by four,
+	EOR.b #$FF				;$00D14E	 | |
+	INC A					;$00D150	 | |
+	CLC					;$00D151	 | |
+	ADC.b #$0B				;$00D152	 |/ and set the player's pose based on the timer
+	BRA set_growing_poses			;$00D154	/ and the reversed sequence of hurt poses.
 
-CODE_00D156:
-	INC $19
-CODE_00D158:
-	LDA.b #$00
-	STA $71					;$00D15A	|
-	STZ $9D					;$00D15C	|
-Return00D15E:
-	RTS
+.set_powerup
+	INC $19					;$00D156	\ Set the player as big.
+reset_animation:				;		 |
+	LDA.b #$00				;$00D158	 |\ Reset the player animation,
+	STA $71					;$00D15A	 | |
+	STZ $9D					;$00D15C	 |/ and clear the lock sprites flag.
+return_00D15E:					;		 |
+	RTS					;$00D15E	/
 
 cape_animation:
-	LDA.b #$7F
-	STA $78					;$00D161	|
-	DEC.w $1496				;$00D163	|
-	BNE Return00D15E			;$00D166	|
-	LDA $19					;$00D168	|
-	LSR					;$00D16A	|
-	BEQ CODE_00D140				;$00D16B	|
-	BNE CODE_00D158				;$00D16D	|
+	LDA.b #$7F				;$00D15F	\ Hide all of the player.
+	STA $78					;$00D161	 |
+	DEC.w $1496				;$00D163	 |\ Decrement the animation timer.
+	BNE return_00D15E			;$00D166	 |/ If it's not zero, return.
+	LDA $19					;$00D168	 |\ If the player is small or big,
+	LSR					;$00D16A	 | |
+	BEQ set_invincibility			;$00D16B	 |/ set invincibility.
+	BNE reset_animation			;$00D16D	/ Reset the animation.
+
 flower_animation:
-	LDA.w $13ED
-	AND.b #$80				;$00D172	|
-	ORA.w $1407				;$00D174	|
-	BEQ CODE_00D187				;$00D177	|
-	STZ.w $1407				;$00D179	|
-	LDA.w $13ED				;$00D17C	|
-	AND.b #$7F				;$00D17F	|
-	STA.w $13ED				;$00D181	|
-	STZ.w $13E0				;$00D184	|
-CODE_00D187:
-	DEC.w $149B
-	BEQ CODE_00D158				;$00D18A	|
-	RTS					;$00D18C	|
+	LDA.w $13ED				;$00D16F	\ \ If the player is cape-sliding on the ground
+	AND.b #$80				;$00D172	 | |
+	ORA.w $1407				;$00D174	 | | or flying in the air,
+	BEQ CODE_00D187				;$00D177	 |/
+	STZ.w $1407				;$00D179	 |\ stop flying,
+	LDA.w $13ED				;$00D17C	 | |
+	AND.b #$7F				;$00D17F	 | |
+	STA.w $13ED				;$00D181	 | | stop cape-sliding on the ground,
+	STZ.w $13E0				;$00D184	 |/ and reset the player's pose.
+CODE_00D187:					;		 |
+	DEC.w $149B				;$00D187	 |\ Decrease the palette cycle timer.
+	BEQ reset_animation			;$00D18A	 |/ If it's zero, reset the animation.
+	RTS					;$00D18C	/
 
 pipe_x_speeds:
 	db $F8,$08
@@ -9021,7 +9022,7 @@ CODE_00D1F4:
 	BEQ CODE_00D1FC				;$00D1F7	|
 	DEC.w $14A2				;$00D1F9	|
 CODE_00D1FC:
-	JMP CODE_00D137
+	JMP decrement_animation_timer
 
 PipeCntrBoundryX:
 	db $0A,$06
@@ -9088,7 +9089,7 @@ CODE_00D268:
 CODE_00D26A:
 	STZ.w $13F9
 	STZ.w $1419				;$00D26D	|
-	JMP CODE_00D158				;$00D270	|
+	JMP reset_animation			;$00D270	|
 
 go_to_sublevel:
 	INC.w $141A				;$00D273	\ Increase the sub-level counter,
