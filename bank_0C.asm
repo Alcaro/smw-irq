@@ -2336,7 +2336,7 @@ CODE_0CA75A:
 	LDA.b #$00				;$0CA75B	|
 	PHA					;$0CA75D	|
 	PLB					;$0CA75E	|
-	JSL CODE_00CEB1				;$0CA75F	|
+	JSL set_player_pose			;$0CA75F	|
 	PLB					;$0CA763	|
 CODE_0CA764:
 	STZ.w $13F9

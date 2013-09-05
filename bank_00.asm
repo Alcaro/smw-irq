@@ -1626,7 +1626,7 @@ CODE_008E60:
 	ORA.w $0F32				;$008E63	|
 	ORA.w $0F33				;$008E66	|
 	BNE CODE_008E6F				;$008E69	|
-	JSL kill_mario				;$008E6B	|
+	JSL kill_player				;$008E6B	|
 CODE_008E6F:
 	LDA.w $0F31
 	STA.w $0F25				;$008E72	|
@@ -2428,7 +2428,7 @@ CODE_0094E2:
 	JSR CODE_00A635				;$0094EB	|
 	STZ $76					;$0094EE	|
 	STZ $72					;$0094F0	|
-	JSL CODE_00CEB1				;$0094F2	|
+	JSL set_player_pose			;$0094F2	|
 	LDX.b #$17				;$0094F6	|
 	LDY.b #$00				;$0094F8	|
 	JSR CODE_009622				;$0094FA	|
@@ -7470,8 +7470,8 @@ Return00C592:
 	RTS
 
 CODE_00C593:
-	LDA $71
-	JSL ExecutePtr				;$00C595	|
+	LDA $71					;$00C593	\ Execute animation code.
+	JSL ExecutePtr				;$00C595	/
 
 animation_pointers:
 	dw no_animation
@@ -7508,7 +7508,7 @@ CODE_00C5D1:
 	LDA.b #$07				;$00C5D6	|
 	STA.w $1928				;$00C5D8	|
 	JSR disable_controls			;$00C5DB	|
-	JMP CODE_00CD24				;$00C5DE	|
+	JMP no_special_collision		;$00C5DE	|
 
 DATA_00C5E1:
 	db $10,$30,$31,$32,$33,$34,$0E
@@ -7555,7 +7555,7 @@ DATA_00C6DF:
 castle_destroy_animation:
 	JSR disable_controls
 	STZ.w $13DE				;$00C6EA	|
-	JSR CODE_00DC2D				;$00C6ED	|
+	JSR apply_player_speeds			;$00C6ED	|
 	LDA $7D					;$00C6F0	|
 	BMI CODE_00C73F				;$00C6F2	|
 	LDA $96					;$00C6F4	|
@@ -7709,7 +7709,7 @@ CODE_00C7E9:
 	LDA.w $C5DA,Y				;$00C7EA	|
 	STA.w $13E0				;$00C7ED	|
 	STZ.w $148F				;$00C7F0	|
-	JSR CODE_00D7E4				;$00C7F3	|
+	JSR aerial_physics			;$00C7F3	|
 CODE_00C7F6:
 	DEC $88
 Return00C7F8:
@@ -7722,7 +7722,7 @@ yoshi_wings_animation:
 	JSR disable_controls
 	LDA.b #$0B				;$00C800	|
 	STA $72					;$00C802	|
-	JSR CODE_00D7E4				;$00C804	|
+	JSR aerial_physics			;$00C804	|
 	LDA $7D					;$00C807	|
 	BPL CODE_00C80F				;$00C809	|
 	CMP.b #$90				;$00C80B	|
@@ -7744,7 +7744,7 @@ CODE_00C81E:
 	BVC CODE_00C827				;$00C823	|
 	STZ $7B					;$00C825	|
 CODE_00C827:
-	JSR CODE_00DC2D
+	JSR apply_player_speeds
 	REP #$20				;$00C82A	|
 	LDY.w $1B95				;$00C82C	|
 	LDA $80					;$00C82F	|
@@ -7819,7 +7819,7 @@ CODE_00C8BC:
 CODE_00C8CE:
 	STY.w $18D9
 CODE_00C8D1:
-	JSR CODE_00DC2D
+	JSR apply_player_speeds
 	LDA.b #$24				;$00C8D4	|
 	STA $72					;$00C8D6	|
 	LDA.b #$6F				;$00C8D8	|
@@ -7840,7 +7840,7 @@ CODE_00C8EC:
 	STZ $72					;$00C8F3	|
 	STZ.w $140D				;$00C8F5	|
 CODE_00C8F8:
-	JMP CODE_00CD82
+	JMP use_land_physics
 
 CODE_00C8FB:
 	INC.w $141D
@@ -7856,7 +7856,7 @@ CODE_00C90A:
 	STA.w $1DFA				;$00C911	|
 	RTS					;$00C914	|
 
-CODE_00C915:
+ending_level:
 	JSR disable_controls
 	STZ.w $18C2				;$00C918	|
 	STZ.w $13DE				;$00C91B	|
@@ -7869,7 +7869,7 @@ CODE_00C915:
 	BEQ CODE_00C96B				;$00C92C	|
 	LDA $72					;$00C92E	|
 	BEQ CODE_00C935				;$00C930	|
-	JSR CODE_00CCE0				;$00C932	|
+	JSR not_frozen_physics			;$00C932	|
 CODE_00C935:
 	LDA.w $13D2
 	BNE CODE_00C948				;$00C938	|
@@ -7929,7 +7929,7 @@ CODE_00C98B:
 	STA.w $1494				;$00C99E	|
 	STZ.w $1495				;$00C9A1	|
 CODE_00C9A4:
-	JMP CODE_00CD24
+	JMP no_special_collision
 
 DATA_00C9A7:
 	db $25,$07,$40,$0E,$20,$1A,$34,$32
@@ -7949,7 +7949,7 @@ CODE_00C9C2:
 	JSR CODE_00CA44
 	LDA.b #$01				;$00C9C5	|
 	STA $15					;$00C9C7	|
-	JSR CODE_00CD24				;$00C9C9	|
+	JSR no_special_collision		;$00C9C9	|
 	LDA.w $1433				;$00C9CC	|
 	BNE Return00CA30			;$00C9CF	|
 	LDA.w $141C				;$00C9D1	|
@@ -8220,150 +8220,150 @@ CODE_00CC14:
 	PLY					;$00CC5A	|
 	RTS					;$00CC5B	|
 
-DATA_00CC5C:
-	db $00,$00,$00,$00,$02,$00,$06,$00
-	db $FE,$FF,$FA,$FF
-
+free_roaming_speeds:
+	dw $0000,$0000,$0002,$0006
+	dw $FFFE,$FFFA
+	
 no_animation:
-	LDA $17					;$00CC68	\
-	AND.b #$20				;$00CC6A	 |
-	BEQ CODE_00CC81				;$00CC6C	 |
-	LDA $18					;$00CC6E	 |
-	CMP.b #$80				;$00CC70	 |
-	BNE CODE_00CC81				;$00CC72	 |
-	INC.w $1E01				;$00CC74	 |
-	LDA.w $1E01				;$00CC77	 |
-	CMP.b #$03				;$00CC7A	 |
-	BCC CODE_00CC81				;$00CC7C	 |
-	STZ.w $1E01				;$00CC7E	 |
-CODE_00CC81:
+	LDA $17					;$00CC68	\ \ If not pressing L, don't cycle the debug action.
+	AND.b #$20				;$00CC6A	 | |
+	BEQ .no_cycle				;$00CC6C	 |/
+	LDA $18					;$00CC6E	 |\ If A isn't pressed, don't cycle the debug action.
+	CMP.b #$80				;$00CC70	 | |
+	BNE .no_cycle				;$00CC72	 |/
+	INC.w $1E01				;$00CC74	 | Increase the debug action.
+	LDA.w $1E01				;$00CC77	 |\ If the debug action is $03,
+	CMP.b #$03				;$00CC7A	 | |
+	BCC .no_cycle				;$00CC7C	 | | reset it to $00.
+	STZ.w $1E01				;$00CC7E	 |/
+.no_cycle					;		 |
 	LDA.w $1E01				;$00CC81	 |
-	BRA CODE_00CCBB				;$00CC84	/ Skip some debugging code.
+	BRA .skip_debug				;$00CC84	/ Skip the debugging code.
 
-	LSR					;$00CC86	\
-	BEQ ADDR_00CCB3				;$00CC87	 |
-	LDA.b #$FF				;$00CC89	 |
-	STA.w $1497				;$00CC8B	 |
-	LDA $15					;$00CC8E	 |
-	AND.b #$03				;$00CC90	 |
-	ASL					;$00CC92	 |
-	ASL					;$00CC93	 |
-	LDX.b #$00				;$00CC94	 |
-	JSR ADDR_00CC9F				;$00CC96	 |
-	LDA $15					;$00CC99	 |
-	AND.b #$0C				;$00CC9B	 |
-	LDX.b #$02				;$00CC9D	 |
-ADDR_00CC9F:
-	BIT $15					;$00CC9F	 |
-	BVC ADDR_00CCA5				;$00CCA1	 |
-	ORA.b #$02				;$00CCA3	 |
-ADDR_00CCA5:
-	TAY					;$00CCA5	 |
-	REP #$20				;$00CCA6	 |
-	LDA $94,X				;$00CCA8	 |
-	CLC					;$00CCAA	 |
-	ADC.w DATA_00CC5C,Y			;$00CCAB	 |
-	STA $94,X				;$00CCAE	 |
-	SEP #$20				;$00CCB0	 |
+	LSR					;$00CC86	\ \ If the debug action is $01,
+	BEQ .instant_run			;$00CC87	 |/ do instant running.
+	LDA.b #$FF				;$00CC89	 |\ Make the player invincible.
+	STA.w $1497				;$00CC8B	 |/
+	LDA $15					;$00CC8E	 |\
+	AND.b #$03				;$00CC90	 | | Isolate the left and right controller flags,
+	ASL					;$00CC92	 | |
+	ASL					;$00CC93	 | | multiply by two,
+	LDX.b #$00				;$00CC94	 | | and run free roaming with the X position.
+	JSR .free_roam				;$00CC96	 |/
+	LDA $15					;$00CC99	 |\ Isolate the up and down controller flags,
+	AND.b #$0C				;$00CC9B	 | |
+	LDX.b #$02				;$00CC9D	 |/ and run free roaming with the Y position.
+.free_roam					;		 |
+	BIT $15					;$00CC9F	 |\ If X or Y is pressed,
+	BVC .not_fast				;$00CCA1	 | | increase the speed.
+	ORA.b #$02				;$00CCA3	 | |
+.not_fast					;		 | |
+	TAY					;$00CCA5	 |/
+	REP #$20				;$00CCA6	 |\
+	LDA $94,X				;$00CCA8	 | | Move the player's X or Y position by
+	CLC					;$00CCAA	 | |
+	ADC.w free_roaming_speeds,Y		;$00CCAB	 | | the free roaming speed.
+	STA $94,X				;$00CCAE	 | |
+	SEP #$20				;$00CCB0	 |/
 	RTS					;$00CCB2	/
 
-ADDR_00CCB3:
-	LDA.b #$70
-	STA.w $13E4				;$00CCB5	|
-	STA.w $149F				;$00CCB8	|
-CODE_00CCBB:
-	LDA.w $1493
-	BEQ CODE_00CCC3				;$00CCBE	|
-	JMP CODE_00C915				;$00CCC0	|
+.instant_run
+	LDA.b #$70				;$00CCB3	\ \
+	STA.w $13E4				;$00CCB5	 | | Set the maximum dash time
+	STA.w $149F				;$00CCB8	 |/ and flying time.
+.skip_debug					;		 |
+	LDA.w $1493				;$00CCBB	 | If $1493 is non-zero,
+	BEQ .not_ending_level			;$00CCBE	 |
+	JMP ending_level			;$00CCC0	/ run level ending code.
 
-CODE_00CCC3:
-	JSR CODE_00CDDD
-	LDA $9D					;$00CCC6	|
-	BNE Return00CCDF			;$00CCC8	|
-	STZ.w $13E8				;$00CCCA	|
-	STZ.w $13DE				;$00CCCD	|
-	LDA.w $18BD				;$00CCD0	|
-	BEQ CODE_00CCE0				;$00CCD3	|
-	DEC.w $18BD				;$00CCD5	|
-	STZ $7B					;$00CCD8	|
-	LDA.b #$0F				;$00CCDA	|
-	STA.w $13E0				;$00CCDC	|
-Return00CCDF:
-	RTS
+.not_ending_level
+	JSR screen_scrolling			;$00CCC3	\ Process screen scrolling.
+	LDA $9D					;$00CCC6	 |\ If sprites are locked, return.
+	BNE .return				;$00CCC8	 |/
+	STZ.w $13E8				;$00CCCA	 | Clear the cape spin interaction flag.
+	STZ.w $13DE				;$00CCCD	 | Clear the looking up flag.
+	LDA.w $18BD				;$00CCD0	 |\ If the player is not frozen,
+	BEQ not_frozen_physics			;$00CCD3	 |/ run regular physics.
+	DEC.w $18BD				;$00CCD5	 | Decrease the freeze timer.
+	STZ $7B					;$00CCD8	 | Freeze the player's X position.
+	LDA.b #$0F				;$00CCDA	 |\ Make the player face the screen.
+	STA.w $13E0				;$00CCDC	 |/
+.return						;		 |
+	RTS					;$00CCDF	/
 
-CODE_00CCE0:
-	LDA.w $0D9B
-	BPL CODE_00CD24				;$00CCE3	|
-	LSR					;$00CCE5	|
-	BCS CODE_00CD24				;$00CCE6	|
-	BIT.w $0D9B				;$00CCE8	|
-	BVS CODE_00CD1C				;$00CCEB	|
-	LDA $72					;$00CCED	|
-	BNE CODE_00CD1C				;$00CCEF	|
-	REP #$20				;$00CCF1	|
-	LDA.w $1436				;$00CCF3	|
-	STA $94					;$00CCF6	|
-	LDA.w $1438				;$00CCF8	|
-	STA $96					;$00CCFB	|
-	SEP #$20				;$00CCFD	|
-	JSR CODE_00DC2D				;$00CCFF	|
-	REP #$20				;$00CD02	|
-	LDA $94					;$00CD04	|
-	STA.w $1436				;$00CD06	|
-	STA.w $14B4				;$00CD09	|
-	LDA $96					;$00CD0C	|
-	AND.w #$FFF0				;$00CD0E	|
-	STA.w $1438				;$00CD11	|
-	STA.w $14B6				;$00CD14	|
-	JSR CODE_00F9C9				;$00CD17	|
-	BRA CODE_00CD1F				;$00CD1A	|
+not_frozen_physics:
+	LDA.w $0D9B				;$00CCE0	\ \ If fighting the mode 7 koopalings,
+	BPL no_special_collision		;$00CCE3	 | | use special collision.
+	LSR					;$00CCE5	 | |
+	BCS no_special_collision		;$00CCE6	 |/
+	BIT.w $0D9B				;$00CCE8	 |\ If fighting Morton, Roy, or Ludwig,
+	BVS .not_platform			;$00CCEB	 |/ don't use the platform collision.
+	LDA $72					;$00CCED	 |\ If in the air,
+	BNE .not_platform			;$00CCEF	 |/ use a solid boss room.
+	REP #$20				;$00CCF1	 |\
+	LDA.w $1436				;$00CCF3	 | | Set the player's platform X position.
+	STA $94					;$00CCF6	 | |
+	LDA.w $1438				;$00CCF8	 | | Set the player's platform Y position.
+	STA $96					;$00CCFB	 | |
+	SEP #$20				;$00CCFD	 |/
+	JSR apply_player_speeds			;$00CCFF	 | Apply the player's speeds.
+	REP #$20				;$00CD02	 |\
+	LDA $94					;$00CD04	 | |
+	STA.w $1436				;$00CD06	 | | Update the platform X position,
+	STA.w $14B4				;$00CD09	 | |
+	LDA $96					;$00CD0C	 | | and update the platform Y position.
+	AND.w #$FFF0				;$00CD0E	 | |
+	STA.w $1438				;$00CD11	 | |
+	STA.w $14B6				;$00CD14	 |/
+	JSR boss_platform_collision		;$00CD17	 | Apply the platform collision.
+	BRA .apply_boss_room_collision		;$00CD1A	/
 
-CODE_00CD1C:
-	JSR CODE_00DC2D
-CODE_00CD1F:
-	JSR CODE_00F8F2
-	BRA CODE_00CD36				;$00CD22	|
+.not_platform					;		\
+	JSR apply_player_speeds			;$00CD1C	 | Apply the player's speeds.
+.apply_boss_room_collision			;		 |
+	JSR boss_room_collision			;$00CD1F	 | Apply boss room collision.
+	BRA skip_standard_collision		;$00CD22	/ 
 
-CODE_00CD24:
-	LDA $7D
-	BPL CODE_00CD30				;$00CD26	|
-	LDA $77					;$00CD28	|
-	AND.b #$08				;$00CD2A	|
-	BEQ CODE_00CD30				;$00CD2C	|
-	STZ $7D					;$00CD2E	|
-CODE_00CD30:
-	JSR CODE_00DC2D
-	JSR level_collision			;$00CD33	|
-CODE_00CD36:
-	JSR CODE_00F595
-CODE_00CD39:
-	STZ.w $13DD
-	LDY.w $13F3				;$00CD3C	|
-	BNE CODE_00CD95				;$00CD3F	|
-	LDA.w $18BE				;$00CD41	|
-	BEQ CODE_00CD4A				;$00CD44	|
-	LDA.b #$1F				;$00CD46	|
-	STA $8B					;$00CD48	|
-CODE_00CD4A:
-	LDA $74
-	BNE CODE_00CD72				;$00CD4C	|
-	LDA.w $148F				;$00CD4E	|
-	ORA.w $187A				;$00CD51	|
-	BNE CODE_00CD79				;$00CD54	|
-	LDA $8B					;$00CD56	|
-	AND.b #$1B				;$00CD58	|
-	CMP.b #$1B				;$00CD5A	|
-	BNE CODE_00CD79				;$00CD5C	|
-	LDA $15					;$00CD5E	|
-	AND.b #$0C				;$00CD60	|
-	BEQ CODE_00CD79				;$00CD62	|
-	LDY $72					;$00CD64	|
-	BNE CODE_00CD72				;$00CD66	|
-	AND.b #$08				;$00CD68	|
-	BNE CODE_00CD72				;$00CD6A	|
-	LDA $8B					;$00CD6C	|
-	AND.b #$04				;$00CD6E	|
-	BEQ CODE_00CD79				;$00CD70	|
+no_special_collision:
+	LDA $7D					;$00CD24	\ \ If the player is rising
+	BPL .no_hit_ceiling			;$00CD26	 | |
+	LDA $77					;$00CD28	 | |
+	AND.b #$08				;$00CD2A	 | | and hit the ceiling,
+	BEQ .no_hit_ceiling			;$00CD2C	 | |
+	STZ $7D					;$00CD2E	 |/ clear his Y speed.
+.no_hit_ceiling					;		 |
+	JSR apply_player_speeds			;$00CD30	 | Apply the player's speeds.
+	JSR level_collision			;$00CD33	 | Apply standard level collision.
+skip_standard_collision:			;		 |
+	JSR check_y_position			;$00CD36	 | Check the player's Y position.
+CODE_00CD39:					;		 |
+	STZ.w $13DD				;$00CD39	 | Clear the turning around pose.
+	LDY.w $13F3				;$00CD3C	 |\ If the player is still getting a P-balloon,
+	BNE p_balloon				;$00CD3F	 |/ run the inflation code.
+	LDA.w $18BE				;$00CD41	 |\ If the player can climb on air,
+	BEQ .no_climb_on_air			;$00CD44	 | |
+	LDA.b #$1F				;$00CD46	 | | set the climbing flag.
+	STA $8B					;$00CD48	 |/
+.no_climb_on_air				;		 |
+	LDA $74					;$00CD4A	 |
+	BNE CODE_00CD72				;$00CD4C	 |
+	LDA.w $148F				;$00CD4E	 |
+	ORA.w $187A				;$00CD51	 |
+	BNE CODE_00CD79				;$00CD54	 |
+	LDA $8B					;$00CD56	 |
+	AND.b #$1B				;$00CD58	 |
+	CMP.b #$1B				;$00CD5A	 |
+	BNE CODE_00CD79				;$00CD5C	 |
+	LDA $15					;$00CD5E	 |
+	AND.b #$0C				;$00CD60	 |
+	BEQ CODE_00CD79				;$00CD62	 |
+	LDY $72					;$00CD64	 |
+	BNE CODE_00CD72				;$00CD66	 |
+	AND.b #$08				;$00CD68	 |
+	BNE CODE_00CD72				;$00CD6A	 |
+	LDA $8B					;$00CD6C	 |
+	AND.b #$04				;$00CD6E	 |
+	BEQ CODE_00CD79				;$00CD70	 |
 CODE_00CD72:
 	LDA $8B
 	STA $74					;$00CD74	|
@@ -8371,23 +8371,23 @@ CODE_00CD72:
 
 CODE_00CD79:
 	LDA $75
-	BEQ CODE_00CD82				;$00CD7B	|
-	JSR CODE_00D988				;$00CD7D	|
+	BEQ use_land_physics			;$00CD7B	|
+	JSR water_physics			;$00CD7D	|
 	BRA CODE_00CD8F				;$00CD80	|
 
-CODE_00CD82:
-	JSR CODE_00D5F2
-	JSR CODE_00D062				;$00CD85	|
-	JSR CODE_00D7E4				;$00CD88	|
+use_land_physics:
+	JSR land_physics			;$00CD82	|
+	JSR powerup_physics			;$00CD85	|
+	JSR aerial_physics			;$00CD88	|
 CODE_00CD8B:
-	JSL CODE_00CEB1
+	JSL set_player_pose
 CODE_00CD8F:
-	LDY.w $187A
+	LDY.w $187A				;$00CD8F	|
 	BNE CODE_00CDAD				;$00CD92	|
 	RTS					;$00CD94	|
 
-CODE_00CD95:
-	LDA.b #$42
+p_balloon:
+	LDA.b #$42				;$00CD95	|
 	LDX $19					;$00CD97	|
 	BEQ CODE_00CD9D				;$00CD99	|
 	LDA.b #$43				;$00CD9B	|
@@ -8431,7 +8431,7 @@ CODE_00CDC6:
 Return00CDDC:
 	RTS
 
-CODE_00CDDD:
+screen_scrolling:
 	LDA.w $1411
 	BEQ Return00CDDC			;$00CDE0	|
 	LDY.w $13FE				;$00CDE2	|
@@ -8531,8 +8531,8 @@ DATA_00CEA1:
 DATA_00CEA9:
 	db $02,$07,$06,$09,$02,$07,$06,$09
 
-CODE_00CEB1:
-	LDA.w $14A2
+set_player_pose:
+	LDA.w $14A2				;$00CEB1	|
 	BNE lbl14A2Not0				;$00CEB4	|
 	LDX.w $13DF				;$00CEB6	|
 	LDA $72					;$00CEB9	|
@@ -8788,47 +8788,47 @@ CODE_00D044:
 	SEP #$20				;$00D05F	|
 	RTS					;$00D061	|
 
-CODE_00D062:
-	LDA $19
+powerup_physics:
+	LDA $19					;$00D062	|
 	CMP.b #$02				;$00D064	|
-	BNE CODE_00D081				;$00D066	|
+	BNE .caped				;$00D066	|
 	BIT $16					;$00D068	|
-	BVC Return00D0AD			;$00D06A	|
+	BVC .return				;$00D06A	|
 	LDA $73					;$00D06C	|
 	ORA.w $187A				;$00D06E	|
 	ORA.w $140D				;$00D071	|
-	BNE Return00D0AD			;$00D074	|
+	BNE .return				;$00D074	|
 	LDA.b #$12				;$00D076	|
 	STA.w $14A6				;$00D078	|
 	LDA.b #$04				;$00D07B	|
 	STA.w $1DFC				;$00D07D	|
 	RTS					;$00D080	|
 
-CODE_00D081:
+.caped
 	CMP.b #$03
-	BNE Return00D0AD			;$00D083	|
+	BNE .return				;$00D083	|
 	LDA $73					;$00D085	|
 	ORA.w $187A				;$00D087	|
-	BNE Return00D0AD			;$00D08A	|
+	BNE .return				;$00D08A	|
 	BIT $16					;$00D08C	|
-	BVS CODE_00D0AA				;$00D08E	|
+	BVS .shoot_fireball			;$00D08E	|
 	LDA.w $140D				;$00D090	|
-	BEQ Return00D0AD			;$00D093	|
+	BEQ .return				;$00D093	|
 	INC.w $13E2				;$00D095	|
 	LDA.w $13E2				;$00D098	|
 	AND.b #$0F				;$00D09B	|
-	BNE Return00D0AD			;$00D09D	|
+	BNE .return				;$00D09D	|
 	TAY					;$00D09F	|
 	LDA.w $13E2				;$00D0A0	|
 	AND.b #$10				;$00D0A3	|
-	BEQ CODE_00D0A8				;$00D0A5	|
+	BEQ .CODE_00D0A8			;$00D0A5	|
 	INY					;$00D0A7	|
-CODE_00D0A8:
+.CODE_00D0A8
 	STY $76
-CODE_00D0AA:
+.shoot_fireball
 	JSR shoot_fireball
-Return00D0AD:
-	RTS
+.return
+	RTS					;$00D0AD	|
 
 DATA_00D0AE:
 	db $7C,$00,$80,$00,$00,$06,$00,$01
@@ -8879,7 +8879,7 @@ death_animation:
 	CMP.b #$26				;$00D108	\ Keep the player still for a bit.
 	BCS .return				;$00D10A	 |
 	STZ $7B					;$00D10C	 | Clear the player's X speed,
-	JSR CODE_00DC2D				;$00D10E	 | update the player's X and Y positions,
+	JSR apply_player_speeds			;$00D10E	 | apply the player's X and Y speeds,
 	JSR CODE_00D92E				;$00D111	 | update the player's gravity,
 	LDA $13					;$00D114	 |\
 	LSR					;$00D116	 | |
@@ -8974,7 +8974,7 @@ DATA_00D193:
 horizontal_pipe_animation:
 	JSR disable_controls
 	STZ.w $13DE				;$00D19A	|
-	JSL CODE_00CEB1				;$00D19D	|
+	JSL set_player_pose			;$00D19D	|
 	JSL CODE_00CFBC				;$00D1A1	|
 	JSR CODE_00D1F4				;$00D1A5	|
 	LDA.w $187A				;$00D1A8	|
@@ -9082,7 +9082,7 @@ CODE_00D259:
 	LDA.w pipe_y_speeds,Y			;$00D25E	|
 	STA $7D					;$00D261	|
 	STZ $72					;$00D263	|
-	JMP CODE_00DC2D				;$00D265	|
+	JMP apply_player_speeds			;$00D265	|
 
 CODE_00D268:
 	BCC go_to_sublevel
@@ -9132,7 +9132,7 @@ CODE_00D2B2:
 	STA $7B					;$00D2B4	|
 	LDA.b #$C0				;$00D2B6	|
 	STA $7D					;$00D2B8	|
-	JMP CODE_00DC2D				;$00D2BA	|
+	JMP apply_player_speeds			;$00D2BA	|
 
 DATA_00D2BD:
 	db $B0,$B6,$AE,$B4,$AB,$B2,$A9,$B0
@@ -9265,8 +9265,8 @@ DATA_00D5EE:
 DATA_00D5F0:
 	db $1C,$0C
 
-CODE_00D5F2:
-	LDA $72
+land_physics:
+	LDA $72					;$00D5F2	|
 	BEQ CODE_00D5F9				;$00D5F4	|
 	JMP CODE_00D682				;$00D5F6	|
 
@@ -9547,8 +9547,8 @@ DATA_00D7D9:
 	db $00,$00,$00,$F8,$F8,$F8,$F4,$F0
 	db $C8,$02,$01
 
-CODE_00D7E4:
-	LDY.w $1407
+aerial_physics:
+	LDY.w $1407				;$00D7E4	|
 	BNE CODE_00D824				;$00D7E7	|
 	LDA $72					;$00D7E9	|
 	BEQ CODE_00D811				;$00D7EB	|
@@ -9795,8 +9795,8 @@ DATA_00D980:
 DATA_00D984:
 	db $E8,$F8,$D0,$D0
 
-CODE_00D988:
-	STZ.w $13ED
+water_physics:
+	STZ.w $13ED				;$00D988	|
 	STZ $73					;$00D98B	|
 	STZ.w $1407				;$00D98D	|
 	STZ.w $140D				;$00D990	|
@@ -9950,8 +9950,8 @@ CODE_00DA69:
 CODE_00DA79:
 	JSR CODE_00D772
 CODE_00DA7C:
-	JSR CODE_00D062
-	JSL CODE_00CEB1				;$00DA7F	|
+	JSR powerup_physics
+	JSL set_player_pose			;$00DA7F	|
 	LDA.w $14A6				;$00DA83	|
 	BNE Return00DA8C			;$00DA86	|
 	LDA $72					;$00DA88	|
@@ -10179,53 +10179,53 @@ CODE_00DC16:
 Return00DC2C:
 	RTS
 
-CODE_00DC2D:
-	LDA $7D
-	STA $8A					;$00DC2F	|
-	LDA.w $13E3				;$00DC31	|
-	BEQ CODE_00DC40				;$00DC34	|
-	LSR					;$00DC36	|
-	LDA $7B					;$00DC37	|
-	BCC CODE_00DC3E				;$00DC39	|
-	EOR.b #$FF				;$00DC3B	|
-	INC A					;$00DC3D	|
-CODE_00DC3E:
-	STA $7D
-CODE_00DC40:
-	LDX.b #$00
-	JSR CODE_00DC4F				;$00DC42	|
-	LDX.b #$02				;$00DC45	|
-	JSR CODE_00DC4F				;$00DC47	|
-	LDA $8A					;$00DC4A	|
-	STA $7D					;$00DC4C	|
-	RTS					;$00DC4E	|
+apply_player_speeds:
+	LDA $7D					;$00DC2D	\ \ Backup the Y speed.
+	STA $8A					;$00DC2F	 |/
+	LDA.w $13E3				;$00DC31	 |\ If the player is wall running,
+	BEQ .not_wall_running			;$00DC34	 |/
+	LSR					;$00DC36	 |
+	LDA $7B					;$00DC37	 | Load the player's X speed,
+	BCC .no_flip_speed			;$00DC39	 |
+	EOR.b #$FF				;$00DC3B	 |\ flip it depending on the wall running direction,
+	INC A					;$00DC3D	 |/
+.no_flip_speed					;		 |
+	STA $7D					;$00DC3E	 | and set the player's Y speed.
+.not_wall_running				;		 |
+	LDX.b #$00				;$00DC40	 |\ Apply the player's X speed.
+	JSR .apply_speed			;$00DC42	 |/
+	LDX.b #$02				;$00DC45	 |\ Apply the player's Y speed.
+	JSR .apply_speed			;$00DC47	 |/
+	LDA $8A					;$00DC4A	 |\ Restore the Y speed.
+	STA $7D					;$00DC4C	 |/
+	RTS					;$00DC4E	/
 
-CODE_00DC4F:
-	LDA $7B,X
-	ASL					;$00DC51	|
-	ASL					;$00DC52	|
-	ASL					;$00DC53	|
-	ASL					;$00DC54	|
-	CLC					;$00DC55	|
-	ADC.w $13DA,X				;$00DC56	|
-	STA.w $13DA,X				;$00DC59	|
-	REP #$20				;$00DC5C	|
-	PHP					;$00DC5E	|
-	LDA $7B,X				;$00DC5F	|
-	LSR					;$00DC61	|
-	LSR					;$00DC62	|
-	LSR					;$00DC63	|
-	LSR					;$00DC64	|
-	AND.w #$000F				;$00DC65	|
-	CMP.w #$0008				;$00DC68	|
-	BCC CODE_00DC70				;$00DC6B	|
-	ORA.w #$FFF0				;$00DC6D	|
-CODE_00DC70:
-	PLP
-	ADC $94,X				;$00DC71	|
-	STA $94,X				;$00DC73	|
-	SEP #$20				;$00DC75	|
-	RTS					;$00DC77	|
+.apply_speed
+	LDA $7B,X				;$00DC4F	\ Load the player's speed,
+	ASL					;$00DC51	 |\ get the lower nybble and multiply by 16,
+	ASL					;$00DC52	 | |
+	ASL					;$00DC53	 | |
+	ASL					;$00DC54	 |/
+	CLC					;$00DC55	 |\ and add to the player's fractional position.
+	ADC.w $13DA,X				;$00DC56	 | | If the fractional overflows, then the carry bit is set.
+	STA.w $13DA,X				;$00DC59	 |/
+	REP #$20				;$00DC5C	 |
+	PHP					;$00DC5E	 | Preserve the carry bit.
+	LDA $7B,X				;$00DC5F	 | Load the player's speed,
+	LSR					;$00DC61	 |\ divide by 16,
+	LSR					;$00DC62	 | |
+	LSR					;$00DC63	 | |
+	LSR					;$00DC64	 |/
+	AND.w #$000F				;$00DC65	 | remove garbage bits,
+	CMP.w #$0008				;$00DC68	 |\ flip the speed if it's negative,
+	BCC .nonnegative			;$00DC6B	 | |
+	ORA.w #$FFF0				;$00DC6D	 |/
+.nonnegative					;		 |
+	PLP					;$00DC70	 | restore the carry bit,
+	ADC $94,X				;$00DC71	 |\ and add the fractional bit and speed
+	STA $94,X				;$00DC73	 |/ to the player's position.
+	SEP #$20				;$00DC75	 |
+	RTS					;$00DC77	/
 
 NumWalkingFrames:
 	db $01,$02,$02,$02
@@ -12716,27 +12716,27 @@ conditional_map16:
 .return						;		 |
 	RTL					;$00F594	/
 
-CODE_00F595:
-	REP #$20				;$00F595	|
-	LDA.w #$FF80				;$00F597	|
-	CLC					;$00F59A	|
-	ADC $1C					;$00F59B	|
-	CMP $96					;$00F59D	|
-	BMI CODE_00F5A3				;$00F59F	|
-	STA $96					;$00F5A1	|
-CODE_00F5A3:
-	SEP #$20
-	LDA $81					;$00F5A5	|
-	DEC A					;$00F5A7	|
-	BMI Return00F5B6			;$00F5A8	|
-	LDA.w $1B95				;$00F5AA	|
-	BEQ CODE_00F5B2				;$00F5AD	|
-	JMP CODE_00C95B				;$00F5AF	|
+check_y_position:
+	REP #$20				;$00F595	\
+	LDA.w #$FF80				;$00F597	 |\ If the player is more than 32 pixels above the
+	CLC					;$00F59A	 | | Y position of layer 1,
+	ADC $1C					;$00F59B	 | |
+	CMP $96					;$00F59D	 | |
+	BMI .below_y_position_limit		;$00F59F	 | |
+	STA $96					;$00F5A1	 | | keep the player at that level.
+.below_y_position_limit				;		 |/
+	SEP #$20				;$00F5A3	 |
+	LDA $81					;$00F5A5	 |\ If the player is below the screen,
+	DEC A					;$00F5A7	 | |
+	BMI .return				;$00F5A8	 | |
+	LDA.w $1B95				;$00F5AA	 | | and it's a Yoshi wing level,
+	BEQ .kill				;$00F5AD	 | |
+	JMP CODE_00C95B				;$00F5AF	 |/ exit and clear the level.
 
-CODE_00F5B2:
-	JSL CODE_00F60A
-Return00F5B6:
-	RTS
+.kill
+	JSL kill_player_no_speed		;$00F5B2	 | Otherwise, kill the player without throwing him upwards.
+.return
+	RTS					;		/
 
 HurtMario:
 	LDA $71
@@ -12755,7 +12755,7 @@ HurtMario:
 	PLB					;$00F5D4	|
 CODE_00F5D5:
 	LDA $19
-	BEQ kill_mario				;$00F5D7	|
+	BEQ kill_player				;$00F5D7	|
 	CMP.b #$02				;$00F5D9	|
 	BNE PowerDown				;$00F5DB	|
 	LDA.w $1407				;$00F5DD	|
@@ -12779,29 +12779,29 @@ PowerDown:
 	LDA.b #$2F				;$00F602	|
 	BRA CODE_00F61D				;$00F604	|
 
-kill_mario:
-	LDA.b #$90
-	STA $7D					;$00F608	|
-CODE_00F60A:
-	LDA.b #$09
-	STA.w $1DFB				;$00F60C	|
-	LDA.b #$FF				;$00F60F	|
-	STA.w $0DDA				;$00F611	|
-	LDA.b #$09				;$00F614	|
-	STA $71					;$00F616	|
-	STZ.w $140D				;$00F618	|
-	LDA.b #$30				;$00F61B	|
-CODE_00F61D:
-	STA.w $1496
-	STA $9D					;$00F620	|
-CODE_00F622:
-	STZ.w $1407
-	STZ.w $188A				;$00F625	|
-Return00F628:
-	RTL
+kill_player:
+	LDA.b #$90				;$00F606	\ \ Throw the player up.
+	STA $7D					;$00F608	 |/
+kill_player_no_speed:				;		 |
+	LDA.b #$09				;$00F60A	 |\ Play the death music.
+	STA.w $1DFB				;$00F60C	 |/
+	LDA.b #$FF				;$00F60F	 |
+	STA.w $0DDA				;$00F611	 |
+	LDA.b #$09				;$00F614	 |\ Set the player death animation.
+	STA $71					;$00F616	 |/
+	STZ.w $140D				;$00F618	 | Disable spin jumping.
+	LDA.b #$30				;$00F61B	 |\
+CODE_00F61D:					;		 | | Set the player animation timer
+	STA.w $1496				;$00F61D	 | | and the sprite lock timer.
+	STA $9D					;$00F620	 |/
+CODE_00F622:					;		 |
+	STZ.w $1407				;$00F622	 | Stop flying.
+	STZ.w $188A				;$00F625	 |
+Return00F628:					;		 |
+	RTL					;$00F628	/
 
 CODE_00F629:
-	JSL kill_mario
+	JSL kill_player
 disable_controls:
 	STZ $15
 	STZ $16					;$00F62F	|
@@ -13183,8 +13183,8 @@ boss_ceiling_height:
 	db $2A,$00,$2A,$00,$12,$00,$00,$00
 	db $ED,$FF
 
-CODE_00F8F2:
-	JSR reset_collision_flags
+boss_room_collision:
+	JSR reset_collision_flags		;$00F8F2	|
 	BIT.w $0D9B				;$00F8F5	|
 	BVC CODE_00F94E				;$00F8F8	|
 	JSR level_collision			;$00F8FA	|
@@ -13256,7 +13256,7 @@ CODE_00F962:
 	AND.w #$00F0				;$00F977	|
 	STA.w $14B6				;$00F97A	|
 	STA.w $1438				;$00F97D	|
-	JSR CODE_00F9C9				;$00F980	|
+	JSR boss_platform_collision		;$00F980	|
 CODE_00F983:
 	LDA $36
 	CLC					;$00F985	|
@@ -13300,8 +13300,8 @@ CODE_00F9BC:
 	PLB					;$00F9C7	|
 	RTS					;$00F9C8	|
 
-CODE_00F9C9:
-	LDA $36
+boss_platform_collision:
+	LDA $36					;$00F9C9	|
 	PHA					;$00F9CB	|
 	EOR.w #$FFFF				;$00F9CC	|
 	INC A					;$00F9CF	|

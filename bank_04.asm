@@ -644,7 +644,7 @@ CODE_0485A7:
 	LDA.b #$00				;$0485C1	|
 	PHA					;$0485C3	|
 	PLB					;$0485C4	|
-	JSL CODE_00CEB1				;$0485C5	|
+	JSL set_player_pose			;$0485C5	|
 	PLB					;$0485C9	|
 	LDA.b #$03				;$0485CA	|
 	STA.w $13F9				;$0485CC	|
