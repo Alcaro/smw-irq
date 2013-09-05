@@ -292,7 +292,7 @@ NMI_start:					;		\
 	JSR DMA_animated_overworld_tiles	;$008237	 | DMA animated overworld tiles (plus animated palettes)
 	JSR dynamic_sprite_DMA			;$00823A	 | DMA Mario/Yoshi/Vertical fireball
 .skip_overworld_NMI:				;		 |
-	JSR _load_stripe_image_			;$00823D	 | <-- Upload Stripe image data
+	JSR _load_stripe_image_			;$00823D	 | Upload Stripe image data
 	JSR DMA_OAM				;$008240	 | DMA Sprite tiles to the screen
 .regular_overworld_bypass			;		 |
 	JSR update_controllers			;$008243	 | Run the controller update routine
@@ -411,7 +411,7 @@ NMI_start:					;		\
 	STA.w $211E				;$00833A	 | |
 	LDA $35					;$00833D	 | |
 	STA.w $211E				;$00833F	 |/
-	JSR SETL1SCROLL				;$008342	 |
+	JSR mode_7_static_background_scroll	;$008342	 |
 	LDA.w $0D9B				;$008345	 |\ If we are not at bowser there are a few extra
 	LSR					;$008348	 | | Items we still need to process otherwise
 	BCC .skip_bowser			;$008349	 |/ We can finish off NMI
@@ -446,29 +446,29 @@ IRQ_start:					;		\
 	PHK					;$00837C	 | | Also set the bank to 00
 	PLB					;$00837D	 |/
 	SEP #$30				;$00837E	 | 8 bit A/X/Y
-	LDA.w $4211				;$008380	 |
-	BPL CODE_0083B2				;$008383	 |
-	LDA.b #$81				;$008385	 |
-	LDY.w $0D9B				;$008387	 |
-	BMI CODE_0083BA				;$00838A	 |
+	LDA.w $4211				;$008380	 |\ Read the IRQ status flag
+	BPL IRQ_return				;$008383	 |/ If the IRQ status flag is not triggered skip IRQ
+	LDA.b #$81				;$008385	 | Load NMI enabled, autojoy enabled
+	LDY.w $0D9B				;$008387	 |\ If we are in a mode 7 level branch
+	BMI mode_7_IRQ				;$00838A	 |/
 IRQ_NMI_return:					;		 |
-	STA.w $4200				;$00838C	 |
-	LDY.b #$1F				;$00838F	 |
-	JSR WaitForHBlank			;$008391	 |
-	LDA $22					;$008394	 |
-	STA.w $2111				;$008396	 |
-	LDA $23					;$008399	 |
-	STA.w $2111				;$00839B	 |
-	LDA $24					;$00839E	 |
-	STA.w $2112				;$0083A0	 |
-	LDA $25					;$0083A3	 |
-	STA.w $2112				;$0083A5	 |
-CODE_0083A8:					;		 |
-	LDA $3E					;$0083A8	 |
-	STA.w $2105				;$0083AA	 |
-	LDA $40					;$0083AD	 |
-	STA.w $2131				;$0083AF	 |
-CODE_0083B2:					;		 |
+	STA.w $4200				;$00838C	 | Store interrupt enabled flags
+	LDY.b #$1F				;$00838F	 |\ wait for H-Blank to occur 
+	JSR wait_for_hblank			;$008391	 |/
+	LDA $22					;$008394	 |\ Set layer 3 X position
+	STA.w $2111				;$008396	 | |
+	LDA $23					;$008399	 | |
+	STA.w $2111				;$00839B	 |/
+	LDA $24					;$00839E	 |\ Set layer 3 Y position
+	STA.w $2112				;$0083A0	 | |
+	LDA $25					;$0083A3	 | |
+	STA.w $2112				;$0083A5	 |/
+mode_7_IRQ_return:				;		 |
+	LDA $3E					;$0083A8	 |\ Set the background mode
+	STA.w $2105				;$0083AA	 |/
+	LDA $40					;$0083AD	 |\ Set any color math settings
+	STA.w $2131				;$0083AF	 |/
+IRQ_return:					;		 |
 	REP #$30				;$0083B2	 |\ Restore everything saved at the beginning of NMI
 	PLB					;$0083B4	 | |
 	PLY					;$0083B5	 | |
@@ -478,81 +478,81 @@ CODE_0083B2:					;		 |
 EmptyHandler:					;		 |
 	RTI					;$0083B9	/ Return from NMI
 
-CODE_0083BA:
-	BIT.w $0D9B
-	BVC CODE_0083E3				;$0083BD	|
-	LDY $11					;$0083BF	|
-	BEQ CODE_0083D0				;$0083C1	|
-	STA.w $4200				;$0083C3	|
-	LDY.b #$14				;$0083C6	|
-	JSR WaitForHBlank			;$0083C8	|
-	JSR SETL1SCROLL				;$0083CB	|
-	BRA CODE_0083A8				;$0083CE	|
+mode_7_IRQ:					;		\ 
+	BIT.w $0D9B				;$0083DA	 |\ Platform bosses have only one IRQ
+	BVC .platform_bosses			;$0083BD	 |/ So skip the differentiation code
+	LDY $11					;$0083BF	 |\ If we are in the First IRQ branch
+	BEQ .first_IRQ				;$0083C1	 |/
+	STA.w $4200				;$0083C3	 | Store Interrupt flags
+	LDY.b #$14				;$0083C6	 |\ short wait for HBlank, use a short wait to
+	JSR wait_for_hblank			;$0083C8	 |/ account for the JSR of the scroll routine
+	JSR mode_7_static_background_scroll	;$0083CB	 | Set the status bar scroll
+	BRA mode_7_IRQ_return			;$0083CE	/
 
-CODE_0083D0:
-	INC $11
-	LDA.w $4211				;$0083D2	|
-	LDA.b #$AE				;$0083D5	|
-	SEC					;$0083D7	|
-	SBC.w $1888				;$0083D8	|
-	STA.w $4209				;$0083DB	|
-	STZ.w $420A				;$0083DE	|
-	LDA.b #$A1				;$0083E1	|
-CODE_0083E3:
-	LDY.w $1493
-	BEQ mode_7_scroll			;$0083E6	|
-	LDY.w $1495				;$0083E8	|
-	CPY.b #$40				;$0083EB	|
-	BCC mode_7_scroll			;$0083ED	|
-	LDA.b #$81				;$0083EF	|
-	BRA IRQ_NMI_return			;$0083F1	|
+.first_IRQ					;		\ 
+	INC $11					;$0083D0	 | Set first IRQ as triggered
+	LDA.w $4211				;$0083D2	 | Reread the IRQ flag, this is unneeded
+	LDA.b #$AE				;$0083D5	 |\ Offset the V timer based on the layer 1 relative
+	SEC					;$0083D7	 | | Y position.
+	SBC.w $1888				;$0083D8	 | |
+	STA.w $4209				;$0083DB	 | |
+	STZ.w $420A				;$0083DE	 |/
+	LDA.b #$A1				;$0083E1	 | Load NMI, IRQ, and autojoy enabled
+.platform_bosses				;		 |
+	LDY.w $1493				;$0083E3	 |\ if the level isn't ending, run mode 7 scrolling
+	BEQ mode_7_scroll			;$0083E6	 |/
+	LDY.w $1495				;$0083E8	 |\ Also, if the fade timer is less than #$40
+	CPY.b #$40				;$0083EB	 | | keep on setting the mode 7 scroll
+	BCC mode_7_scroll			;$0083ED	 |/
+	LDA.b #$81				;$0083EF	 | Load NMI and autojoy enabled
+	BRA IRQ_NMI_return			;$0083F1	/ Finish off mode 7 IRQ
 
-mode_7_scroll:
-	STA.w $4200
-	JSR CODE_008439				;$0083F6	|
-	NOP					;$0083F9	|
-	NOP					;$0083FA	|
-	LDA.b #$07				;$0083FB	|
-	STA.w $2105				;$0083FD	|
-	LDA $3A					;$008400	|
-	STA.w $210D				;$008402	|
-	LDA $3B					;$008405	|
-	STA.w $210D				;$008407	|
-	LDA $3C					;$00840A	|
-	STA.w $210E				;$00840C	|
-	LDA $3D					;$00840F	|
-	STA.w $210E				;$008411	|
-	BRA CODE_0083B2				;$008414	|
+mode_7_scroll:					;		\ 
+	STA.w $4200				;$0083F3	 | Store the interrupt flags
+	JSR full_wait_for_hblank		;$0083F6	 |\ Wait for the next H-Blank
+	NOP					;$0083F9	 | |
+	NOP					;$0083FA	 |/
+	LDA.b #$07				;$0083FB	 |\ Enable mode 7
+	STA.w $2105				;$0083FD	 |/
+	LDA $3A					;$008400	 |\ Set layer 1 X position
+	STA.w $210D				;$008402	 | |
+	LDA $3B					;$008405	 | |
+	STA.w $210D				;$008407	 |/
+	LDA $3C					;$00840A	 |\ Set layer 1 X position
+	STA.w $210E				;$00840C	 | |
+	LDA $3D					;$00840F	 | |
+	STA.w $210E				;$008411	 |/
+	BRA IRQ_return				;$008414	/ Finish off IRQ
 
-SETL1SCROLL:
-	LDA.b #$59
-	STA.w $2107				;$008418	|
-	LDA.b #$07				;$00841B	|
-	STA.w $210B				;$00841D	|
-	LDA $1A					;$008420	|
-	STA.w $210D				;$008422	|
-	LDA $1B					;$008425	|
-	STA.w $210D				;$008427	|
-	LDA $1C					;$00842A	|
-	CLC					;$00842C	|
-	ADC.w $1888				;$00842D	|
-	STA.w $210E				;$008430	|
-	LDA $1D					;$008433	|
-	STA.w $210E				;$008435	|
-	RTS					;$008438	|
+mode_7_static_background_scroll:		;		\ 
+	LDA.b #$59				;$008416	 |\ set layer 1 tilemap address to $5800, mirror X
+	STA.w $2107				;$008418	 |/
+	LDA.b #$07				;$00841B	 |\ set layer 1 base character address to $7000
+	STA.w $210B				;$00841D	 |/
+	LDA $1A					;$008420	 |\ Set layer 1 X position.
+	STA.w $210D				;$008422	 | |
+	LDA $1B					;$008425	 | |
+	STA.w $210D				;$008427	 |/
+	LDA $1C					;$00842A	 |\ Set relative layer 1 Y position.
+	CLC					;$00842C	 | |
+	ADC.w $1888				;$00842D	 | | Add in the relative amount.
+	STA.w $210E				;$008430	 | |
+	LDA $1D					;$008433	 | |
+	STA.w $210E				;$008435	 |/
+	RTS					;$008438	/
 
-CODE_008439:
-	LDY.b #$20
-WaitForHBlank:
-	BIT.w $4212
-	BVS CODE_008439				;$00843E	|
-CODE_008440:
-	BIT.w $4212
-	BVC CODE_008440				;$008443	|
-CODE_008445:
-	DEY
-	BNE CODE_008445				;$008446	|
-	RTS					;$008448	|
+full_wait_for_hblank:				;		\ 
+	LDY.b #$20				;$008439	 | Use 166 cycle delay
+wait_for_hblank:				;		 |
+	BIT.w $4212				;$00843B	 |\ Wait for HBlank to occur
+	BVS full_wait_for_hblank		;$00843E	 |/ Only use the full delay if HBlank already passed
+.wait_for_hblank_end				;		 |
+	BIT.w $4212				;$008440	 |\ Wait for HBlank to end so we can wait for the next
+	BVC .wait_for_hblank_end		;$008443	 |/
+.waste_scanline					;		 |
+	DEY					;$008445	 |\ Wait for the next HBlank (minus 6 cycles)
+	BNE .waste_scanline			;$008446	 |/ Remember taken branches cost 3 cycles.
+	RTS					;$008448	/
 
 DMA_OAM:					;		\ 
 	STZ.w $4300				;$008449	 | DMA mode 0 (p)
@@ -610,13 +610,13 @@ CODE_008496:
 	BPL CODE_008496				;$0084C5	|
 	RTS					;$0084C7	|
 
-load_stripe_image:
-	PHB
-	PHK					;$0084C9	|
-	PLB					;$0084CA	|
-	JSR _load_stripe_image_			;$0084CB	|
-	PLB					;$0084CE	|
-	RTL					;$0084CF	|
+load_stripe_image:				;		\ 
+	PHB					;$0084C8	 |\ Set data bank to $00
+	PHK					;$0084C9	 | |
+	PLB					;$0084CA	 |/
+	JSR _load_stripe_image_			;$0084CB	 | Upload the stripe image
+	PLB					;$0084CE	 | Restore bank
+	RTL					;$0084CF	/ Done with stripe image uploading
 
 stripe_images:
 	dl $7F837D				;		|$7F837D
@@ -706,24 +706,24 @@ stripe_images:
 	dl DATA_0DFD5C				;		|$0DFD5C
 	dl DATA_0CBD02				;		|$0CBD02
 
-_load_stripe_image_:
-	LDY $12
-	LDA.w stripe_images,Y			;$0085D4	|
-	STA $00					;$0085D7	|
-	LDA.w stripe_images+1,Y			;$0085D9	|
-	STA $01					;$0085DC	|
-	LDA.w stripe_images+2,Y			;$0085DE	|
-	STA $02					;$0085E1	|
-	JSR DMA_stripe_image			;$0085E3	|
-	LDA $12					;$0085E6	|
-	BNE CODE_0085F7				;$0085E8	|
-	STA.l $7F837B				;$0085EA	|
-	STA.l $7F837C				;$0085EE	|
-	DEC A					;$0085F2	|
-	STA.l $7F837D				;$0085F3	|
-CODE_0085F7:
-	STZ $12
-	RTS					;$0085F9	|
+_load_stripe_image_:				;		\
+	LDY $12					;$0085D2	 | Load the stripe index pointer
+	LDA.w stripe_images,Y			;$0085D4	 |\ Load and store the low byte
+	STA $00					;$0085D7	 |/
+	LDA.w stripe_images+1,Y			;$0085D9	 |\ Load and store the high byte
+	STA $01					;$0085DC	 |/
+	LDA.w stripe_images+2,Y			;$0085DE	 |\ Load and store the bank byte
+	STA $02					;$0085E1	 |/
+	JSR DMA_stripe_image			;$0085E3	 | DMA the actual stripe image
+	LDA $12					;$0085E6	 |
+	BNE .skip_RAM_clear			;$0085E8	 |
+	STA.l $7F837B				;$0085EA	 |\ Set the stripe RAM index to #$0000
+	STA.l $7F837C				;$0085EE	 |/
+	DEC A					;$0085F2	 |\ Set as "end of data"
+	STA.l $7F837D				;$0085F3	 |/
+.skip_RAM_clear					;		 |
+	STZ $12					;$0085F7	 | Clear the stripe index
+	RTS					;$0085F9	/ Done loading stripe image data
 
 CODE_0085FA:
 	JSR TurnOffIO
@@ -867,82 +867,82 @@ ExecutePtrLong:
 	JMP [$0000]				;$00871B	|
 
 DMA_stripe_image:
-	REP #$10
-	STA.w $4314				;$008720	|
-	LDY.w #$0000				;$008723	|
-CODE_008726:
-	LDA [$00],Y
-	BPL CODE_00872D				;$008728	|
-	SEP #$30				;$00872A	|
-	RTS					;$00872C	|
+	REP #$10				;$00871E	\ 16 bit XY
+	STA.w $4314				;$008720	 |\ Store DMA source bank
+	LDY.w #$0000				;$008723	 |/
+.next_block					;		 |
+	LDA [$00],Y				;$008726	 |\ Continue while end of data bit not set
+	BPL .upload_stripe_block		;$008728	 |/
+	SEP #$30				;$00872A	 | 8 bit AXY
+	RTS					;$00872C	/ Done with stripe image DMA
 
-CODE_00872D:
-	STA $04
-	INY					;$00872F	|
-	LDA [$00],Y				;$008730	|
-	STA $03					;$008732	|
-	INY					;$008734	|
-	LDA [$00],Y				;$008735	|
-	STZ $07					;$008737	|
-	ASL					;$008739	|
-	ROL $07					;$00873A	|
-	LDA.b #$18				;$00873C	|
-	STA.w $4311				;$00873E	|
-	LDA [$00],Y				;$008741	|
-	AND.b #$40				;$008743	|
-	LSR					;$008745	|
-	LSR					;$008746	|
-	LSR					;$008747	|
-	STA $05					;$008748	|
-	STZ $06					;$00874A	|
-	ORA.b #$01				;$00874C	|
-	STA.w $4310				;$00874E	|
-	REP #$20				;$008751	|
-	LDA $03					;$008753	|
-	STA.w $2116				;$008755	|
-	LDA [$00],Y				;$008758	|
-	XBA					;$00875A	|
-	AND.w #$3FFF				;$00875B	|
-	TAX					;$00875E	|
-	INX					;$00875F	|
-	INY					;$008760	|
-	INY					;$008761	|
-	TYA					;$008762	|
-	CLC					;$008763	|
-	ADC $00					;$008764	|
-	STA.w $4312				;$008766	|
-	STX.w $4315				;$008769	|
-	LDA $05					;$00876C	|
-	BEQ CODE_008795				;$00876E	|
-	SEP #$20				;$008770	|
-	LDA $07					;$008772	|
-	STA.w $2115				;$008774	|
-	LDA.b #$02				;$008777	|
-	STA.w $420B				;$008779	|
-	LDA.b #$19				;$00877C	|
-	STA.w $4311				;$00877E	|
-	REP #$21				;$008781	|
-	LDA $03					;$008783	|
-	STA.w $2116				;$008785	|
-	TYA					;$008788	|
-	ADC $00					;$008789	|
-	INC A					;$00878B	|
-	STA.w $4312				;$00878C	|
-	STX.w $4315				;$00878F	|
-	LDX.w #$0002				;$008792	|
-CODE_008795:
-	STX $03
-	TYA					;$008797	|
-	CLC					;$008798	|
-	ADC $03					;$008799	|
-	TAY					;$00879B	|
-	SEP #$20				;$00879C	|
-	LDA $07					;$00879E	|
-	ORA.b #$80				;$0087A0	|
-	STA.w $2115				;$0087A2	|
-	LDA.b #$02				;$0087A5	|
-	STA.w $420B				;$0087A7	|
-	JMP CODE_008726				;$0087AA	|
+.upload_stripe_block				;		\ 
+	STA $04					;$00872D	 | preserve the first header byte
+	INY					;$00872F	 |\ Load and preserve the second header byte
+	LDA [$00],Y				;$008730	 | |
+	STA $03					;$008732	 |/
+	INY					;$008734	 |\ Load the third header byte
+	LDA [$00],Y				;$008735	 |/
+	STZ $07					;$008737	 |\ Store bit 7 of the third header byte in $07
+	ASL					;$008739	 | |
+	ROL $07					;$00873A	 |/
+	LDA.b #$18				;$00873C	 |\ Set DMA destination address to $2118
+	STA.w $4311				;$00873E	 |/
+	LDA [$00],Y				;$008741	 |\ Reload the third header byte
+	AND.b #$40				;$008743	 | | Test for and set $05 to the RLE encoding state
+	LSR					;$008745	 | |
+	LSR					;$008746	 | |
+	LSR					;$008747	 | |
+	STA $05					;$008748	 |/
+	STZ $06					;$00874A	 | Zero out $06 (used for 16 bit access)
+	ORA.b #$01				;$00874C	 |\ Set DMA transfer mode to 1 and if the RLE bit
+	STA.w $4310				;$00874E	 |/ Set, fixed transfer mode will also be set.
+	REP #$20				;$008751	 | 16 bit A
+	LDA $03					;$008753	 |\ Load header bytes 1 and 2 (VRAM destination)
+	STA.w $2116				;$008755	 |/
+	LDA [$00],Y				;$008758	 |\ Load leader bytes 3 and 4
+	XBA					;$00875A	 | | Swap the endianess of the bytes
+	AND.w #$3FFF				;$00875B	 | | Isolate the "Length" component of the upload
+	TAX					;$00875E	 | |
+	INX					;$00875F	 |/ And increment the length.
+	INY					;$008760	 |\ Move to the actual stripe data
+	INY					;$008761	 | |
+	TYA					;$008762	 | |
+	CLC					;$008763	 | |
+	ADC $00					;$008764	 | | Add the current index to the pointer
+	STA.w $4312				;$008766	 |/ Store this as the DMA source address
+	STX.w $4315				;$008769	 | Store the DMA transfer size
+	LDA $05					;$00876C	 |\ If the RLE bit is not set skip the RLE DMA
+	BEQ .not_RLE				;$00876E	 |/
+	SEP #$20				;$008770	 | 8 bit A
+	LDA $07					;$008772	 |\ Set VRAM remapping depending on stripe direction
+	STA.w $2115				;$008774	 |/
+	LDA.b #$02				;$008777	 |\ Start DMA on channel 1 to DMA the first RLE byte
+	STA.w $420B				;$008779	 |/
+	LDA.b #$19				;$00877C	 |\ Set DMA destination to $2119
+	STA.w $4311				;$00877E	 |/
+	REP #$21				;$008781	 | 16 bit A and clear carry
+	LDA $03					;$008783	 |\ Reset the VRAM destination address
+	STA.w $2116				;$008785	 |/
+	TYA					;$008788	 |\ Set the new DMA source address
+	ADC $00					;$008789	 | |
+	INC A					;$00878B	 | |
+	STA.w $4312				;$00878C	 |/
+	STX.w $4315				;$00878F	 | Reset the number of bytes to transfer
+	LDX.w #$0002				;$008792	 | Load "two bytes" to move forward in stripe data
+.not_RLE					;		 |
+	STX $03					;$008795	 |\ Update the Y index to after the current stripe data
+	TYA					;$008797	 | |
+	CLC					;$008798	 | |
+	ADC $03					;$008799	 | |
+	TAY					;$00879B	 |/
+	SEP #$20				;$00879C	 | 8 bit A
+	LDA $07					;$00879E	 |\ Load the direction for VRAM remapping and
+	ORA.b #$80				;$0087A0	 | | Set VRAM increment after $2119
+	STA.w $2115				;$0087A2	 |/
+	LDA.b #$02				;$0087A5	 |\ Run DMA on channel 1, second RLE byte or non-RLE
+	STA.w $420B				;$0087A7	 |/
+	JMP .next_block				;$0087AA	/ Continue and read the next block
 
 CODE_0087AD:
 	SEP #$30
@@ -2087,25 +2087,25 @@ DATA_009249:
 
 setup_window_HDMA:
 	LDX.b #$04				;$009250	\ Index for DMA set up
-.loop						;                \ Upload to $4374 to $4370
-	LDA.w window_HDMA_settings,X		;$009252	  |
-	STA.w $4370,X				;$009255	  |
-	DEX					;$009258	  |
-	BPL .loop				;$009259	 /
-	LDA.b #$00				;$00925B	 \ HDMA Data bank $00
-	STA.w $4377				;$00925D	 /
+.loop						;                |\ Upload to $4374 to $4370
+	LDA.w window_HDMA_settings,X		;$009252	 | |
+	STA.w $4370,X				;$009255	 | |
+	DEX					;$009258	 | |
+	BPL .loop				;$009259	 |/
+	LDA.b #$00				;$00925B	 |\ HDMA Data bank $00
+	STA.w $4377				;$00925D	 |/
 DisableHDMA:					;                |
 	STZ.w $0D9F				;$009260	 | Disable HDMA
 clear_window_HDMA:				;                |
 	REP #$10				;$009263	 | 16 bit x/y
-	LDX.w #$01BE				;$009265	 \
-	LDA.b #$FF				;$009268	  | Initialize the HDMA table to FF00
-.loop						;                 |
-	STA.w $04A0,X				;$00926A	  |
-	STZ.w $04A1,X				;$00926D	  |
-	DEX					;$009270	  |
-	DEX					;$009271	  |
-	BPL .loop				;$009272	 /
+	LDX.w #$01BE				;$009265	 |\
+	LDA.b #$FF				;$009268	 | | Initialize the HDMA table to FF00
+.loop						;                | |
+	STA.w $04A0,X				;$00926A	 | |
+	STZ.w $04A1,X				;$00926D	 | |
+	DEX					;$009270	 | |
+	DEX					;$009271	 | |
+	BPL .loop				;$009272	 |/
 	SEP #$10				;$009274	 | 8 bit x/y
 	RTS					;$009276	/
 
@@ -4260,7 +4260,7 @@ dynamic_sprite_DMA:				;		\
 	LDA.w #$6000				;$00A34D	 |\ Set VRAM address to $6000
 	STA.w $2116				;$00A350	 |/
 	LDX.b #$00				;$00A353	 | Start the DMA counter
-.DMA_upper_8x8_loop				;		 |
+.DMA_upper_16x8_loop				;		 |
 	LDA.w $0D85,X				;$00A355	 |\ Set the next DMA source address (upper 8x8 strips)
 	STA.w $4322				;$00A358	 |/
 	LDA.w #$0040				;$00A35B	 |\ Transfer #$40 bytes
@@ -4270,11 +4270,11 @@ dynamic_sprite_DMA:				;		\
 	INX					;$00A366	 |\ Check if all tiles have been uploaded
 	INX					;$00A367	 | |
 	CPX.w $0D84				;$00A368	 |/
-	BCC .DMA_upper_8x8_loop			;$00A36B	 | Continue uploading if more tiles are ready
+	BCC .DMA_upper_16x8_loop		;$00A36B	 | Continue uploading if more tiles are ready
 	LDA.w #$6100				;$00A36D	 |\ Set VRAM address to $6000
 	STA.w $2116				;$00A370	 |/
 	LDX.b #$00				;$00A373	 | Start the DMA counter
-.DMA_lower_8x8_loop				;		 |
+.DMA_lower_16x8_loop				;		 |
 	LDA.w $0D8F,X				;$00A375	 |\ Set the next DMA source address (lower 8x8 strips)
 	STA.w $4322				;$00A378	 |/
 	LDA.w #$0040				;$00A37B	 |\ Transfer #$40 bytes
@@ -4284,7 +4284,7 @@ dynamic_sprite_DMA:				;		\
 	INX					;$00A386	 |\ Check if all tiles have been uploaded
 	INX					;$00A387	 | |
 	CPX.w $0D84				;$00A388	 |/
-	BCC .DMA_lower_8x8_loop			;$00A38B	 | Continue uploading if more tiles are ready
+	BCC .DMA_lower_16x8_loop		;$00A38B	 | Continue uploading if more tiles are ready
 	SEP #$20				;$00A38D	 | Restore 8 bit AXY
 	RTS					;$00A38F	/ Finished with dynamic sprite DMA
 

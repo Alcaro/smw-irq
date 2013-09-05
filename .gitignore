@@ -11,3 +11,6 @@
 smw.0*
 *.usage
 *.dump.bin
+*.patch
+*.orig
+*.rej
