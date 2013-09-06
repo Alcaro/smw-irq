@@ -3480,10 +3480,13 @@ AnimatedTileData:
 	db $00,$95,$00,$95,$00,$95,$00,$95
 	db $00,$95,$00,$95,$00,$95,$00,$95
 	db $00,$9D,$00,$9F,$00,$A1,$00,$A3
-DATA_05BA39:
+	
+mode_7_lava_tile_pointers:		;TODO when I get home fix pointers
 	db $80,$8E,$80,$90,$80,$92,$80,$94
 	db $00,$7D,$00,$7F,$00,$81,$00,$83
 	db $00,$83,$00,$81,$00,$7F,$00,$7D
+
+;global TODO start adding labels names to constants where applicable
 	db $00,$9E,$00,$A0,$00,$A2,$00,$A0
 	db $00,$9D,$00,$9F,$00,$A1,$00,$A3
 	db $00,$A5,$00,$A7,$00,$A9,$00,$AB

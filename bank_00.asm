@@ -252,7 +252,7 @@ NMI_start:					;		\
 .no_lag						;		 |
 	INC $10					;$0081E7	 | Allow the game loop to run after NMI
 	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
-	LDA.w $0D9B				;$0081EC	 |\ Seperate the current level mode
+	LDA.w $0D9B				;$0081EC	 |\ Separate the current level mode
 	LSR					;$0081EF	 |/
 	BNE .overworld_NMI			;$0081F0	 | $0D9B was 02, run OW code
 	BCS .transition_NMI			;$0081F2	 | $0D9B was 01(transition), Skip the status bar draw
@@ -274,7 +274,7 @@ NMI_start:					;		\
 .skip_transition_DMA				;		 |
 	JSR DMA_animated_level_tiles		;$008217	 | DMA animated level tiles (plus animated palettes)
 .draw_mario					;		 |
-	JSR CODE_00A436				;$00821A	 | <-- 7E0BF6 DMA -- whatever that does.
+	JSR restore_SP1_tiles			;$00821A	 | DMA $0BF6 to VRAM, redundant due to graphics upload
 	JSR dynamic_sprite_DMA			;$00821D	 | DMA Mario/Yoshi/Vertical fireball
 	BRA .skip_overworld_NMI			;$008220	 | Skip over a majority of the overworld NMI
 .overworld_NMI					;		 |
@@ -363,11 +363,11 @@ NMI_start:					;		\
 	JSR DMA_transition_screen		;$0082CF	 | DMA start/bonus/game over/time up transition screens
 	BRA .draw_status_bar			;$0082D2	 | Skip dynamic graphics DMA
 .skip_mode_7_transition_DMA			;		 |
-	JSR CODE_00A436				;$0082D4	 | <-- 7E0BF6 DMA -- whatever that does.
+	JSR restore_SP1_tiles			;$0082D4	 | DMA $0BF6 to VRAM, redundant due to graphics upload
 	JSR dynamic_sprite_DMA			;$0082D7	 | DMA Mario/Yoshi/Vertical fireball graphics
 	BIT.w $0D9B				;$0082DA	 |\ If we are in a platform boss fight
 	BVC .draw_status_bar			;$0082DD	 |/ Draw the status bar
-	JSR CODE_0098A9				;$0082DF	 | <--some animation stuff, investigate more
+	JSR DMA_mode_7_animations		;$0082DF	 | <--some animation stuff, investigate more
 	LDA.w $0D9B				;$0082E2	 |\ If we are fighting bowser, don't draw the status bar
 	LSR					;$0082E5	 | |
 	BCS .skip_status_bar			;$0082E6	 |/
@@ -431,7 +431,7 @@ NMI_start:					;		\
 	LDA.w boss_ceiling_height,X		;$008368	 | | Check against the boss ceiling height
 	CMP.b #$2A				;$00836B	 | | Instead of something simple like CMP #$02 : BCC
 	BNE .skip_vtimer_change			;$00836D	 |/ Skip the VTimer change
-	LDY.b #$2D				;$00836F	 | Load altnerative VTimer trigger position
+	LDY.b #$2D				;$00836F	 | Load alternative VTimer trigger position
 .skip_vtimer_change				;		 |
 	JMP .mode_7_NMI_return			;$008371	/ Finish off mode 7 NMI
 
@@ -2870,69 +2870,69 @@ CODE_009888:
 	JSL CODE_03C0C6				;$00988C	|
 	RTS					;$009890	|
 
-DATA_009891:
+mode_7_VRAM_addresses:				;TODO: convert to word length at home
 	db $9E,$12,$1E,$12,$9E,$11,$1E,$11
 	db $1E,$16,$9E,$15,$1E,$15,$9E,$14
 	db $1E,$14,$9E,$13,$1E,$13,$9E,$16
 
-CODE_0098A9:
-	LDA.w $0D9B
-	LSR					;$0098AC	|
-	BCS CODE_0098E1				;$0098AD	|
-	LDA $14					;$0098AF	|
-	LSR					;$0098B1	|
-	LSR					;$0098B2	|
-	AND.b #$06				;$0098B3	|
-	TAX					;$0098B5	|
-	REP #$20				;$0098B6	|
-	LDY.b #$80				;$0098B8	|
-	STY.w $2115				;$0098BA	|
-	LDA.w #$1801				;$0098BD	|
-	STA.w $4320				;$0098C0	|
-	LDA.w #$7800				;$0098C3	|
-	STA.w $2116				;$0098C6	|
-	LDA.l DATA_05BA39,X			;$0098C9	|
-	STA.w $4322				;$0098CD	|
-	LDY.b #$7E				;$0098D0	|
-	STY.w $4324				;$0098D2	|
-	LDA.w #$0080				;$0098D5	|
-	STA.w $4325				;$0098D8	|
-	LDY.b #$04				;$0098DB	|
-	STY.w $420B				;$0098DD	|
-	CLC					;$0098E0	|
-CODE_0098E1:
-	REP #$20
-	LDA.w #$0004				;$0098E3	|
-	LDY.b #$06				;$0098E6	|
-	BCC CODE_0098EF				;$0098E8	|
-	LDA.w #$0008				;$0098EA	|
-	LDY.b #$16				;$0098ED	|
-CODE_0098EF:
-	STA $00
-	LDA.w #$C680				;$0098F1	|
-	STA $02					;$0098F4	|
-	STZ.w $2115				;$0098F6	|
-	LDA.w #$1800				;$0098F9	|
-	STA.w $4320				;$0098FC	|
-	LDX.b #$7E				;$0098FF	|
-	STX.w $4324				;$009901	|
-	LDX.b #$04				;$009904	|
-CODE_009906:
-	LDA.w DATA_009891,Y
-	STA.w $2116				;$009909	|
-	LDA $02					;$00990C	|
-	STA.w $4322				;$00990E	|
-	CLC					;$009911	|
-	ADC $00					;$009912	|
-	STA $02					;$009914	|
-	LDA $00					;$009916	|
-	STA.w $4325				;$009918	|
-	STX.w $420B				;$00991B	|
-	DEY					;$00991E	|
-	DEY					;$00991F	|
-	BPL CODE_009906				;$009920	|
-	SEP #$20				;$009922	|
-	RTS					;$009924	|
+DMA_mode_7_animations:				;		\ 
+	LDA.w $0D9B				;$0098A9	 |\ If we are at bowser skip uploading lava tiles
+	LSR					;$0098AC	 | |
+	BCS .bowser				;$0098AD	 |/
+	LDA $14					;$0098AF	 |\ Get the animation index relative
+	LSR					;$0098B1	 | | To the frame counter
+	LSR					;$0098B2	 | | ($14 >> 2) & #$06
+	AND.b #$06				;$0098B3	 | |
+	TAX					;$0098B5	 |/
+	REP #$20				;$0098B6	 | 16 bit A
+	LDY.b #$80				;$0098B8	 |\ Set VRAM increment after writes to $2119
+	STY.w $2115				;$0098BA	 |/
+	LDA.w #$1801				;$0098BD	 |\ Set DMA transfer mode 1, DMA destination $2118
+	STA.w $4320				;$0098C0	 |/
+	LDA.w #$7800				;$0098C3	 |\ Set VRAM destination address $7800
+	STA.w $2116				;$0098C6	 |/
+	LDA.l mode_7_lava_tile_pointers,X	;$0098C9	 |\ Load the lava animation pointer and 
+	STA.w $4322				;$0098CD	 |/ Store it to the DMA source
+	LDY.b #$7E				;$0098D0	 |\ Set the DMA source bank to $7E
+	STY.w $4324				;$0098D2	 |/
+	LDA.w #$0080				;$0098D5	 |\ Set the transfer to by #$80 bytes
+	STA.w $4325				;$0098D8	 |/
+	LDY.b #$04				;$0098DB	 |\ Run DMA on channel 2
+	STY.w $420B				;$0098DD	 |/
+	CLC					;$0098E0	 | Clear the carry to distinguish bowser from others
+.bowser						;		 |
+	REP #$20				;$0098E1	 | 16 bit A
+	LDA.w #$0004				;$0098E3	 | Number of bytes to transfer per iteration 
+	LDY.b #$06				;$0098E6	 | Number of DMA transfers
+	BCC .not_bowser				;$0098E8	 | If the carry is clear, we are not at bowser
+	LDA.w #$0008				;$0098EA	 | Number of bytes to transfer per iteration
+	LDY.b #$16				;$0098ED	 | Number of DMA transfers
+.not_bowser					;		 |
+	STA $00					;$0098EF	 |
+	LDA.w #$C680				;$0098F1	 |\ Store the initial mode 7 tilemap address
+	STA $02					;$0098F4	 |/
+	STZ.w $2115				;$0098F6	 | Set increment after $2118 writes
+	LDA.w #$1800				;$0098F9	 |\ Set DMA transfer mode 0, DMA destination $2118
+	STA.w $4320				;$0098FC	 |/
+	LDX.b #$7E				;$0098FF	 |\ Set DMA source bank $7E
+	STX.w $4324				;$009901	 |/
+	LDX.b #$04				;$009904	 | Load DMA channel 2 for all transfers
+.upload_loop					;		 |
+	LDA.w mode_7_VRAM_addresses,Y		;$009906	 |\ Load and store the target DMA address
+	STA.w $2116				;$009909	 |/
+	LDA $02					;$00990C	 |\ Load and store the DMA source offset
+	STA.w $4322				;$00990E	 |/
+	CLC					;$009911	 |\ Add the DMA size to the source offset
+	ADC $00					;$009912	 | |
+	STA $02					;$009914	 |/
+	LDA $00					;$009916	 |\ Load the number of bytes to transfer
+	STA.w $4325				;$009918	 |/ #$04 bytes for non-bowser, #$08 bytes for bowser
+	STX.w $420B				;$00991B	 | Run DMA on channel 2
+	DEY					;$00991E	 |\ Decrement pointer index and loop until 
+	DEY					;$00991F	 | | The pointer index is less than zero
+	BPL .upload_loop			;$009920	 |/
+	SEP #$20				;$009922	 | 8 bit A
+	RTS					;$009924	 / Finsihed with mode 7 animated tile DMA
 
 CODE_009925:
 	STZ $97
@@ -4360,7 +4360,7 @@ animate_red_level_tile:				;		 |
 	STA.w $2122				;$00A432	 |/
 	RTS					;$00A435	/
 
-CODE_00A436:					;		\ (This routine is pretty much useless in vanilla SMW) 
+restore_SP1_tiles:					;		\ (This routine is pretty much useless in vanilla SMW) 
 	LDA.w $1935				;$00A436	 |\ Check for a request to DMA tiles 4A-4F and 5A-5F 
 	BEQ .return				;$00A439	 |/
 	STZ.w $1935				;$00A43B	 | Prevent continuous tile uploading
