@@ -8224,8 +8224,8 @@ free_roaming_speeds:
 	dw $0000,$0000,$0002,$0006
 	dw $FFFE,$FFFA
 	
-no_animation:
-	LDA $17					;$00CC68	\ \ If not pressing L, don't cycle the debug action.
+no_animation:					;		\
+	LDA $17					;$00CC68	 |\ If L isn't held, don't cycle the debug action.
 	AND.b #$20				;$00CC6A	 | |
 	BEQ .no_cycle				;$00CC6C	 |/
 	LDA $18					;$00CC6E	 |\ If A isn't pressed, don't cycle the debug action.
@@ -8239,8 +8239,8 @@ no_animation:
 .no_cycle					;		 |
 	LDA.w $1E01				;$00CC81	 |
 	BRA .skip_debug				;$00CC84	/ Skip the debugging code.
-
-	LSR					;$00CC86	\ \ If the debug action is $01,
+						;		\
+	LSR					;$00CC86	 |\ If the debug action is $01,
 	BEQ .instant_run			;$00CC87	 |/ do instant running.
 	LDA.b #$FF				;$00CC89	 |\ Make the player invincible.
 	STA.w $1497				;$00CC8B	 |/
@@ -8267,8 +8267,8 @@ no_animation:
 	SEP #$20				;$00CCB0	 |/
 	RTS					;$00CCB2	/
 
-.instant_run
-	LDA.b #$70				;$00CCB3	\ \
+.instant_run					;		\
+	LDA.b #$70				;$00CCB3	 |\
 	STA.w $13E4				;$00CCB5	 | | Set the maximum dash time
 	STA.w $149F				;$00CCB8	 |/ and flying time.
 .skip_debug					;		 |
@@ -8291,8 +8291,8 @@ no_animation:
 .return						;		 |
 	RTS					;$00CCDF	/
 
-not_frozen_physics:
-	LDA.w $0D9B				;$00CCE0	\ \ If fighting the mode 7 koopalings,
+not_frozen_physics:				;		\
+	LDA.w $0D9B				;$00CCE0	 |\ If fighting the mode 7 koopalings,
 	BPL no_special_collision		;$00CCE3	 | | use special collision.
 	LSR					;$00CCE5	 | |
 	BCS no_special_collision		;$00CCE6	 |/
@@ -8324,8 +8324,8 @@ not_frozen_physics:
 	JSR boss_room_collision			;$00CD1F	 | Apply boss room collision.
 	BRA skip_standard_collision		;$00CD22	/ 
 
-no_special_collision:
-	LDA $7D					;$00CD24	\ \ If the player is rising
+no_special_collision:				;		\
+	LDA $7D					;$00CD24	 |\ If the player is rising
 	BPL .no_hit_ceiling			;$00CD26	 | |
 	LDA $77					;$00CD28	 | |
 	AND.b #$08				;$00CD2A	 | | and hit the ceiling,
@@ -8944,8 +8944,8 @@ cape_animation:
 	BEQ set_invincibility			;$00D16B	 |/ set invincibility.
 	BNE reset_animation			;$00D16D	/ Reset the animation.
 
-flower_animation:
-	LDA.w $13ED				;$00D16F	\ \ If the player is cape-sliding on the ground
+flower_animation:				;		\
+	LDA.w $13ED				;$00D16F	 |\ If the player is cape-sliding on the ground
 	AND.b #$80				;$00D172	 | |
 	ORA.w $1407				;$00D174	 | | or flying in the air,
 	BEQ CODE_00D187				;$00D177	 |/
@@ -10179,8 +10179,8 @@ CODE_00DC16:
 Return00DC2C:
 	RTS
 
-apply_player_speeds:
-	LDA $7D					;$00DC2D	\ \ Backup the Y speed.
+apply_player_speeds:				;		\
+	LDA $7D					;$00DC2D	 |\ Backup the Y speed.
 	STA $8A					;$00DC2F	 |/
 	LDA.w $13E3				;$00DC31	 |\ If the player is wall running,
 	BEQ .not_wall_running			;$00DC34	 |/
@@ -10937,8 +10937,8 @@ level_collision:
 	JSR CODE_00EE1D				;$00E933	 |
 	BRA no_layer_collision			;$00E936	/
 
-.collision
-	LDA.w $13EF				;$00E938	\ \
+.collision					;		\
+	LDA.w $13EF				;$00E938	 |\
 	STA $8D					;$00E93B	 | | Backup the on ground flag,
 	STZ.w $13EF				;$00E93D	 | |
 	LDA $72					;$00E940	 | | and the in air flag.
@@ -11375,8 +11375,8 @@ normal_collision:
 	JSR process_page_0_tiles_no_swim	;$00EC41	 | Process side head page 0 tile collision without water.
 	BRA .skip_side_head			;$00EC44	/
 
-.side_head_page_1
-	CPY.b #$11				;$00EC46	\ \ If the tile is 100 - 111
+.side_head_page_1				;		\
+	CPY.b #$11				;$00EC46	 |\ If the tile is 100 - 111
 	BCC .skip_side_head			;$00EC48	 | |
 	CPY.b #$6E				;$00EC4A	 | | or 16E - 1FF,
 	BCS .skip_side_head			;$00EC4C	 |/ ignore it.
@@ -12779,8 +12779,8 @@ PowerDown:
 	LDA.b #$2F				;$00F602	|
 	BRA CODE_00F61D				;$00F604	|
 
-kill_player:
-	LDA.b #$90				;$00F606	\ \ Throw the player up.
+kill_player:					;		\
+	LDA.b #$90				;$00F606	 |\ Throw the player up.
 	STA $7D					;$00F608	 |/
 kill_player_no_speed:				;		 |
 	LDA.b #$09				;$00F60A	 |\ Play the death music.
