@@ -8383,7 +8383,7 @@ CODE_00CD8B:
 	JSL set_player_pose
 CODE_00CD8F:
 	LDY.w $187A				;$00CD8F	|
-	BNE CODE_00CDAD				;$00CD92	|
+	BNE set_yoshi_pose			;$00CD92	|
 	RTS					;$00CD94	|
 
 p_balloon:
@@ -8397,43 +8397,42 @@ CODE_00CD9D:
 	STY.w $13F3				;$00CDA0	|
 	LDA.b #$0F				;$00CDA3	|
 CODE_00CDA5:
-	STA.w $13E0
-CODE_00CDA8:
-	RTS
+	STA.w $13E0				;$00CDA5	|
+	RTS					;$00CDA8	|
 
-OnYoshiAnimations:
+yoshi_poses:
 	db $20,$21,$27,$28
 
-CODE_00CDAD:
-	LDX.w $14A3
-	BEQ CODE_00CDBA				;$00CDB0	|
-	LDY.b #$03				;$00CDB2	|
-	CPX.b #$0C				;$00CDB4	|
-	BCS CODE_00CDBA				;$00CDB6	|
-	LDY.b #$04				;$00CDB8	|
-CODE_00CDBA:
-	LDA.w CODE_00CDA8,Y
-	DEY					;$00CDBD	|
-	BNE CODE_00CDC6				;$00CDBE	|
-	LDY $73					;$00CDC0	|
-	BEQ CODE_00CDC6				;$00CDC2	|
-	LDA.b #$1D				;$00CDC4	|
-CODE_00CDC6:
-	STA.w $13E0
-	LDA.w $141E				;$00CDC9	|
-	CMP.b #$01				;$00CDCC	|
-	BNE Return00CDDC			;$00CDCE	|
-	BIT $16					;$00CDD0	|
-	BVC Return00CDDC			;$00CDD2	|
-	LDA.b #$08				;$00CDD4	|
-	STA.w $18DB				;$00CDD6	|
-	JSR shoot_fireball			;$00CDD9	|
-Return00CDDC:
-	RTS
+set_yoshi_pose:					;		\
+	LDX.w $14A3				;$00CDAD	 |\ If Yoshi isn't sticking his tongue out,
+	BEQ .load_pose				;$00CDB0	 |/ skip to loading the pose.
+	LDY.b #$03				;$00CDB2	 | Get ready to lose pose $27.
+	CPX.b #$0C				;$00CDB4	 |\ If he's still at the beginning of sticking his tongue out,
+	BCS .load_pose				;$00CDB6	 |/
+	LDY.b #$04				;$00CDB8	 | Use pose $28.
+.load_pose					;		 |
+	LDA.w yoshi_poses-1,Y			;$00CDBA	 | Load the pose.
+	DEY					;$00CDBD	 |\ If the player isn't turning around or sticking
+	BNE .set_pose				;$00CDBE	 | | Yoshi's tongue out,
+	LDY $73					;$00CDC0	 | | and the player is ducking,
+	BEQ .set_pose				;$00CDC2	 | |
+	LDA.b #$1D				;$00CDC4	 | | use pose $1D.
+.set_pose					;		 | |
+	STA.w $13E0				;$00CDC6	 |/ set the player's pose.
+	LDA.w $141E				;$00CDC9	 |\ If the shoot fireballs while on Yoshi flag is set,
+	CMP.b #$01				;$00CDCC	 | |
+	BNE return_00CDDC			;$00CDCE	 |/
+	BIT $16					;$00CDD0	 |\ and X or Y is tapped,
+	BVC return_00CDDC			;$00CDD2	 |/
+	LDA.b #$08				;$00CDD4	 |\
+	STA.w $18DB				;$00CDD6	 |/
+	JSR shoot_fireball			;$00CDD9	 | then shoot a fireball.
+return_00CDDC:					;		 |
+	RTS					;$00CDDC	/
 
 screen_scrolling:
 	LDA.w $1411
-	BEQ Return00CDDC			;$00CDE0	|
+	BEQ return_00CDDC			;$00CDE0	|
 	LDY.w $13FE				;$00CDE2	|
 	LDA.w $13FD				;$00CDE5	|
 	STA $9D					;$00CDE8	|
@@ -8788,47 +8787,47 @@ CODE_00D044:
 	SEP #$20				;$00D05F	|
 	RTS					;$00D061	|
 
-powerup_physics:
-	LDA $19					;$00D062	|
-	CMP.b #$02				;$00D064	|
-	BNE .caped				;$00D066	|
-	BIT $16					;$00D068	|
-	BVC .return				;$00D06A	|
-	LDA $73					;$00D06C	|
-	ORA.w $187A				;$00D06E	|
-	ORA.w $140D				;$00D071	|
-	BNE .return				;$00D074	|
-	LDA.b #$12				;$00D076	|
-	STA.w $14A6				;$00D078	|
-	LDA.b #$04				;$00D07B	|
-	STA.w $1DFC				;$00D07D	|
-	RTS					;$00D080	|
+powerup_physics:				;		\
+	LDA $19					;$00D062	 |\ If the player is caped,
+	CMP.b #$02				;$00D064	 |/
+	BNE .not_caped				;$00D066	 |
+	BIT $16					;$00D068	 |\ and X or Y are tapped,
+	BVC .return				;$00D06A	 |/
+	LDA $73					;$00D06C	 |\ and the player is neither ducking,
+	ORA.w $187A				;$00D06E	 | | nor on Yoshi,
+	ORA.w $140D				;$00D071	 | | nor spin jumping,
+	BNE .return				;$00D074	 |/
+	LDA.b #$12				;$00D076	 |\ then set the cape spin timer
+	STA.w $14A6				;$00D078	 |/
+	LDA.b #$04				;$00D07B	 |\ and play the cape spin sound.
+	STA.w $1DFC				;$00D07D	 |/
+	RTS					;$00D080	/
 
-.caped
-	CMP.b #$03
-	BNE .return				;$00D083	|
-	LDA $73					;$00D085	|
-	ORA.w $187A				;$00D087	|
-	BNE .return				;$00D08A	|
-	BIT $16					;$00D08C	|
-	BVS .shoot_fireball			;$00D08E	|
-	LDA.w $140D				;$00D090	|
-	BEQ .return				;$00D093	|
-	INC.w $13E2				;$00D095	|
-	LDA.w $13E2				;$00D098	|
-	AND.b #$0F				;$00D09B	|
-	BNE .return				;$00D09D	|
-	TAY					;$00D09F	|
-	LDA.w $13E2				;$00D0A0	|
-	AND.b #$10				;$00D0A3	|
-	BEQ .CODE_00D0A8			;$00D0A5	|
-	INY					;$00D0A7	|
-.CODE_00D0A8
-	STY $76
-.shoot_fireball
-	JSR shoot_fireball
-.return
-	RTS					;$00D0AD	|
+.not_caped					;		\
+	CMP.b #$03				;$00D081	 |\ If the player is fiery,
+	BNE .return				;$00D083	 |/ 
+	LDA $73					;$00D085	 |\ and not on Yoshi,
+	ORA.w $187A				;$00D087	 | |
+	BNE .return				;$00D08A	 |/
+	BIT $16					;$00D08C	 |\ and X or Y are tapped,
+	BVS .shoot_fireball			;$00D08E	 |/ shoot a fireball.
+	LDA.w $140D				;$00D090	 |\ If the player is spinjumping,
+	BEQ .return				;$00D093	 |/
+	INC.w $13E2				;$00D095	 | increment the spinjump fireball timer.
+	LDA.w $13E2				;$00D098	 |\ Every 16 frames,
+	AND.b #$0F				;$00D09B	 | | shoot a fireball,
+	BNE .return				;$00D09D	 |/
+	TAY					;$00D09F	 |
+	LDA.w $13E2				;$00D0A0	 |\
+	AND.b #$10				;$00D0A3	 | |
+	BEQ .face_left				;$00D0A5	 | | and also flip the player's direction.
+	INY					;$00D0A7	 | |
+.face_left					;		 | |
+	STY $76					;$00D0A8	 |/
+.shoot_fireball					;		 |
+	JSR shoot_fireball			;$00D0AA	 | Shoot a fireball.
+.return						;		 |
+	RTS					;$00D0AD	/
 
 DATA_00D0AE:
 	db $7C,$00,$80,$00,$00,$06,$00,$01
@@ -13965,66 +13964,66 @@ CODE_00FE8A:
 	STA.w $17CC,Y				;$00FE90	|
 	RTS					;$00FE93	|
 
-DATA_00FE94:
+fireball_x_speeds:
 	db $FD,$03
 
-DATA_00FE96:
+fireball_x_offsets:
 	db $00,$08,$F8,$10,$F8,$10
 
-DATA_00FE9C:
+fireball_x_high_offsets:
 	db $00,$00,$FF,$00,$FF,$00
 
-DATA_00FEA2:
+fireball_y_offsets:
 	db $08,$08,$0C,$0C,$14,$14
 
 shoot_fireball:
-	LDX.b #$09
-CODE_00FEAA:
-	LDA.w $170B,X
-	BEQ CODE_00FEB5				;$00FEAD	|
-	DEX					;$00FEAF	|
-	CPX.b #$07				;$00FEB0	|
-	BNE CODE_00FEAA				;$00FEB2	|
-	RTS					;$00FEB4	|
+	LDX.b #$09				;$00FEA8	\ Initialize the loop counter.
+.loop						;		 |
+	LDA.w $170B,X				;$00FEAA	 |\ If the extended sprite slot is free,
+	BEQ .spawn_fireball			;$00FEAD	 |/ spawn a fireball.
+	DEX					;$00FEAF	 |\ Otherwise,
+	CPX.b #$07				;$00FEB0	 | | check extended sprite slot $08 before quitting.
+	BNE .loop				;$00FEB2	 |/
+	RTS					;$00FEB4	/
 
-CODE_00FEB5:
-	LDA.b #$06
-	STA.w $1DFC				;$00FEB7	|
-	LDA.b #$0A				;$00FEBA	|
-	STA.w $149C				;$00FEBC	|
-	LDA.b #$05				;$00FEBF	|
-	STA.w $170B,X				;$00FEC1	|
-	LDA.b #$30				;$00FEC4	|
-	STA.w $173D,X				;$00FEC6	|
-	LDY $76					;$00FEC9	|
-	LDA.w DATA_00FE94,Y			;$00FECB	|
-	STA.w $1747,X				;$00FECE	|
-	LDA.w $187A				;$00FED1	|
-	BEQ CODE_00FEDF				;$00FED4	|
-	INY					;$00FED6	|
-	INY					;$00FED7	|
-	LDA.w $18DC				;$00FED8	|
-	BEQ CODE_00FEDF				;$00FEDB	|
-	INY					;$00FEDD	|
-	INY					;$00FEDE	|
-CODE_00FEDF:
-	LDA $94
-	CLC					;$00FEE1	|
-	ADC.w DATA_00FE96,Y			;$00FEE2	|
-	STA.w $171F,X				;$00FEE5	|
-	LDA $95					;$00FEE8	|
-	ADC.w DATA_00FE9C,Y			;$00FEEA	|
-	STA.w $1733,X				;$00FEED	|
-	LDA $96					;$00FEF0	|
-	CLC					;$00FEF2	|
-	ADC.w DATA_00FEA2,Y			;$00FEF3	|
-	STA.w $1715,X				;$00FEF6	|
-	LDA $97					;$00FEF9	|
-	ADC.b #$00				;$00FEFB	|
-	STA.w $1729,X				;$00FEFD	|
-	LDA.w $13F9				;$00FF00	|
-	STA.w $1779,X				;$00FF03	|
-	RTS					;$00FF06	|
+.spawn_fireball					;		\
+	LDA.b #$06				;$00FEB5	 |\ Play the fireball shoot sound.
+	STA.w $1DFC				;$00FEB7	 |/
+	LDA.b #$0A				;$00FEBA	 |\ Set the time to show the shooting pose.
+	STA.w $149C				;$00FEBC	 |/
+	LDA.b #$05				;$00FEBF	 |\ Set the extended sprite number.
+	STA.w $170B,X				;$00FEC1	 |/
+	LDA.b #$30				;$00FEC4	 |\ Set the fireball's Y speed.
+	STA.w $173D,X				;$00FEC6	 |/
+	LDY $76					;$00FEC9	 |\ Set the fireball's X speed
+	LDA.w fireball_x_speeds,Y		;$00FECB	 | | depending on the player's direction.
+	STA.w $1747,X				;$00FECE	 |/
+	LDA.w $187A				;$00FED1	 |\ If on Yoshi,
+	BEQ .not_on_yoshi			;$00FED4	 | | use the next two position offsets.
+	INY					;$00FED6	 | |
+	INY					;$00FED7	 |/
+	LDA.w $18DC				;$00FED8	 |\ If also ducking while on Yoshi,
+	BEQ .not_on_yoshi			;$00FEDB	 | | use the next two position offsets.
+	INY					;$00FEDD	 | |
+	INY					;$00FEDE	 |/
+.not_on_yoshi					;		 |
+	LDA $94					;$00FEDF	 |\ Offset the fireball's X position
+	CLC					;$00FEE1	 | | based on the player's current X position,
+	ADC.w fireball_x_offsets,Y		;$00FEE2	 | |
+	STA.w $171F,X				;$00FEE5	 |/
+	LDA $95					;$00FEE8	 |\ and offset the fireball's X position high byte.
+	ADC.w fireball_x_high_offsets,Y		;$00FEEA	 | |
+	STA.w $1733,X				;$00FEED	 |/
+	LDA $96					;$00FEF0	 |\ Offset the fireball's Y position
+	CLC					;$00FEF2	 | | based on the player's current Y position,
+	ADC.w fireball_y_offsets,Y		;$00FEF3	 | |
+	STA.w $1715,X				;$00FEF6	 |/
+	LDA $97					;$00FEF9	 |\ and offset the fireball's Y position high byte.
+	ADC.b #$00				;$00FEFB	 | |
+	STA.w $1729,X				;$00FEFD	 |/
+	LDA.w $13F9				;$00FF00	 |\ Set the fireball's layer.
+	STA.w $1779,X				;$00FF03	 |/
+	RTS					;$00FF06	/
 
 ADDR_00FF07:
 	REP #$20
