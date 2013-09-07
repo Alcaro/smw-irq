@@ -2870,10 +2870,10 @@ CODE_009888:
 	JSL CODE_03C0C6				;$00988C	|
 	RTS					;$009890	|
 
-mode_7_VRAM_addresses:				;TODO: convert to word length at home
-	db $9E,$12,$1E,$12,$9E,$11,$1E,$11
-	db $1E,$16,$9E,$15,$1E,$15,$9E,$14
-	db $1E,$14,$9E,$13,$1E,$13,$9E,$16
+mode_7_VRAM_addresses:
+	dw $129E,$121E,$119E,$111E
+	dw $161E,$159E,$151E,$149E
+	dw $141E,$139E,$131E,$169E 
 
 DMA_mode_7_animations:				;		\ 
 	LDA.w $0D9B				;$0098A9	 |\ If we are at bowser skip uploading lava tiles
