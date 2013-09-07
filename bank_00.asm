@@ -266,7 +266,7 @@ NMI_start:					;		\
 	JSL DMA_credits_background		;$008203	 | Update the Credits background
 	BRA .draw_mario				;$008207	 | Continue with NMI by drawing mario
 .not_end_credits				;		 |
-	JSL CODE_0087AD				;$008209	 | <-- get this later.  It is evil. (level DMA)
+	JSL generic_layer_1_and_2_upload	;$008209	 | Primary level data DMA
 	LDA.w $143A				;$00820D	 |\ Check if the transition screens need DMAed
 	BEQ .skip_transition_DMA		;$008210	 |/
 	JSR DMA_transition_screen		;$008212	 | DMA start/bonus/game over/time up transition screens
@@ -915,7 +915,7 @@ DMA_stripe_image:
 	LDA $05					;$00876C	 |\ If the RLE bit is not set skip the RLE DMA
 	BEQ .not_RLE				;$00876E	 |/
 	SEP #$20				;$008770	 | 8 bit A
-	LDA $07					;$008772	 |\ Set VRAM remapping depending on stripe direction
+	LDA $07					;$008772	 |\ Set VRAM increment depending on stripe direction
 	STA.w $2115				;$008774	 |/
 	LDA.b #$02				;$008777	 |\ Start DMA on channel 1 to DMA the first RLE byte
 	STA.w $420B				;$008779	 |/
@@ -937,321 +937,321 @@ DMA_stripe_image:
 	ADC $03					;$008799	 | |
 	TAY					;$00879B	 |/
 	SEP #$20				;$00879C	 | 8 bit A
-	LDA $07					;$00879E	 |\ Load the direction for VRAM remapping and
+	LDA $07					;$00879E	 |\ Load the direction for VRAM incrementing setting and
 	ORA.b #$80				;$0087A0	 | | Set VRAM increment after $2119
 	STA.w $2115				;$0087A2	 |/
 	LDA.b #$02				;$0087A5	 |\ Run DMA on channel 1, second RLE byte or non-RLE
 	STA.w $420B				;$0087A7	 |/
 	JMP .next_block				;$0087AA	/ Continue and read the next block
 
-CODE_0087AD:
-	SEP #$30
-	LDA.w $1BE4				;$0087AF	|
-	BNE CODE_0087B7				;$0087B2	|
-	JMP CODE_0088DD				;$0087B4	|
+generic_layer_1_and_2_upload:			;		\ 
+	SEP #$30				;$0087AD	 | 8 bit AXY
+	LDA.w $1BE4				;$0087AF	 |\ if a kayer 1 VRAM destination is set, 
+	BNE .layer_1_direction_check		;$0087B2	 |/ Handle layer 1 tilemap DMA
+	JMP .layer_2_upload_check		;$0087B4	/ If not, jump to the layer 2 DMA check
 
-CODE_0087B7:
-	LDA $5B
-	AND.b #$01				;$0087B9	|
-	BEQ CODE_0087C0				;$0087BB	|
-	JMP CODE_008849				;$0087BD	|
+.layer_1_direction_check			;		\ 
+	LDA $5B					;$0087B7	 |\ If the layer 1 data is not vertical
+	AND.b #$01				;$0087B9	 | | Branch and handle horizontal uploads
+	BEQ .horizontal_layer_1_DMA		;$0087BB	 |/
+	JMP .vertical_layer_1			;$0087BD	/ Handle vertical layer 1 data (includes overworld)
 
-CODE_0087C0:
-	LDY.b #$81
-	STY.w $2115				;$0087C2	|
-	LDA.w $1BE5				;$0087C5	|
-	STA.w $2116				;$0087C8	|
-	LDA.w $1BE4				;$0087CB	|
-	STA.w $2117				;$0087CE	|
-	LDX.b #$06				;$0087D1	|
-CODE_0087D3:
-	LDA.w DATA_008A16,X
-	STA.w $4310,X				;$0087D6	|
-	DEX					;$0087D9	|
-	BPL CODE_0087D3				;$0087DA	|
-	LDA.b #$02				;$0087DC	|
-	STA.w $420B				;$0087DE	|
-	STY.w $2115				;$0087E1	|
-	LDA.w $1BE5				;$0087E4	|
-	STA.w $2116				;$0087E7	|
-	LDA.w $1BE4				;$0087EA	|
-	CLC					;$0087ED	|
-	ADC.b #$08				;$0087EE	|
-	STA.w $2117				;$0087F0	|
-	LDX.b #$06				;$0087F3	|
-CODE_0087F5:
-	LDA.w DATA_008A1D,X
-	STA.w $4310,X				;$0087F8	|
-	DEX					;$0087FB	|
-	BPL CODE_0087F5				;$0087FC	|
-	LDA.b #$02				;$0087FE	|
-	STA.w $420B				;$008800	|
-	STY.w $2115				;$008803	|
-	LDA.w $1BE5				;$008806	|
-	INC A					;$008809	|
-	STA.w $2116				;$00880A	|
-	LDA.w $1BE4				;$00880D	|
-	STA.w $2117				;$008810	|
-	LDX.b #$06				;$008813	|
-CODE_008815:
-	LDA.w DATA_008A24,X
-	STA.w $4310,X				;$008818	|
-	DEX					;$00881B	|
-	BPL CODE_008815				;$00881C	|
-	LDA.b #$02				;$00881E	|
-	STA.w $420B				;$008820	|
-	STY.w $2115				;$008823	|
-	LDA.w $1BE5				;$008826	|
-	INC A					;$008829	|
-	STA.w $2116				;$00882A	|
-	LDA.w $1BE4				;$00882D	|
-	CLC					;$008830	|
-	ADC.b #$08				;$008831	|
-	STA.w $2117				;$008833	|
-	LDX.b #$06				;$008836	|
-CODE_008838:
-	LDA.w DATA_008A2B,X
-	STA.w $4310,X				;$00883B	|
-	DEX					;$00883E	|
-	BPL CODE_008838				;$00883F	|
-	LDA.b #$02				;$008841	|
-	STA.w $420B				;$008843	|
-	JMP CODE_0088DD				;$008846	|
+.horizontal_layer_1_DMA				;		\ 
+	LDY.b #$81				;$0087C0	 |\ Set VRAM increment after $2119 writes and
+	STY.w $2115				;$0087C2	 |/ Set address increment by 32 for "vertical" writes
+	LDA.w $1BE5				;$0087C5	 |\ Set the VRAM destination for layer 1 tilemap 
+	STA.w $2116				;$0087C8	 | | Left, upper screen 8x8 strip
+	LDA.w $1BE4				;$0087CB	 | |
+	STA.w $2117				;$0087CE	 |/
+	LDX.b #$06				;$0087D1	 | Number of DMA settings to copy
+.left_upper_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_1,X		;$0087D3	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$0087D6	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$0087D9	 | | source: $001BE6, size: #$0040
+	BPL .left_upper_layer_1_DMA_setup	;$0087DA	 |/
+	LDA.b #$02				;$0087DC	 |\ Run DMA on channel 1
+	STA.w $420B				;$0087DE	 |/
+	STY.w $2115				;$0087E1	 | Rewrite VRAM increment and remap setting
+	LDA.w $1BE5				;$0087E4	 |\ Write the next VRAM address
+	STA.w $2116				;$0087E7	 | | Which is #$0800 bytes higher
+	LDA.w $1BE4				;$0087EA	 | | Left, lower screen 8x8 strip
+	CLC					;$0087ED	 | |
+	ADC.b #$08				;$0087EE	 | |
+	STA.w $2117				;$0087F0	 |/
+	LDX.b #$06				;$0087F3	 | Number of DMA settings to copy
+.left_lower_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_2,X		;$0087F5	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$0087F8	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$0087FB	 | | source: $001C26, size: #$002C
+	BPL .left_lower_layer_1_DMA_setup	;$0087FC	 |/
+	LDA.b #$02				;$0087FE	 |\ Run DMA on channel 1
+	STA.w $420B				;$008800	 |/
+	STY.w $2115				;$008803	 | Rewrite VRAM increment and remap setting
+	LDA.w $1BE5				;$008806	 |\ Write the next VRAM address
+	INC A					;$008809	 | | Which is a single byte higher
+	STA.w $2116				;$00880A	 | | Right, upper screen 8x8 strip
+	LDA.w $1BE4				;$00880D	 | |
+	STA.w $2117				;$008810	 |/
+	LDX.b #$06				;$008813	 | Number of DMA settings to copy
+.right_upper_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_3,X		;$008815	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$008818	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$00881B	 | | source: $001C66, size: #$0040
+	BPL .right_upper_layer_1_DMA_setup	;$00881C	 |/
+	LDA.b #$02				;$00881E	 |\ Run DMA on channel 1
+	STA.w $420B				;$008820	 |/
+	STY.w $2115				;$008823	 | Rewrite VRAM increment and remap setting
+	LDA.w $1BE5				;$008826	 |\ Write the next VRAM address
+	INC A					;$008829	 | | Which is #$0801 bytes higher
+	STA.w $2116				;$00882A	 | | Right, lower screen 8x8 strip
+	LDA.w $1BE4				;$00882D	 | |
+	CLC					;$008830	 | |
+	ADC.b #$08				;$008831	 | |
+	STA.w $2117				;$008833	 |/
+	LDX.b #$06				;$008836	 | Number of DMA settings to copy
+.right_lower_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_4,X		;$008838	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$00883B	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$00883E	 | | source: $001CA6, size: #$002C
+	BPL .right_lower_layer_1_DMA_setup	;$00883F	 |/
+	LDA.b #$02				;$008841	 |\ Run DMA on channel 1
+	STA.w $420B				;$008843	 |/
+	JMP .layer_2_upload_check		;$008846	/
 
-CODE_008849:
-	LDY.b #$80
-	STY.w $2115				;$00884B	|
-	LDA.w $1BE5				;$00884E	|
-	STA.w $2116				;$008851	|
-	LDA.w $1BE4				;$008854	|
-	STA.w $2117				;$008857	|
-	LDX.b #$06				;$00885A	|
-CODE_00885C:
-	LDA.w DATA_008A16,X
-	STA.w $4310,X				;$00885F	|
-	DEX					;$008862	|
-	BPL CODE_00885C				;$008863	|
-	LDA.b #$02				;$008865	|
-	STA.w $420B				;$008867	|
-	STY.w $2115				;$00886A	|
-	LDA.w $1BE5				;$00886D	|
-	STA.w $2116				;$008870	|
-	LDA.w $1BE4				;$008873	|
-	CLC					;$008876	|
-	ADC.b #$04				;$008877	|
-	STA.w $2117				;$008879	|
-	LDX.b #$06				;$00887C	|
-CODE_00887E:
-	LDA.w DATA_008A1D,X
-	STA.w $4310,X				;$008881	|
-	DEX					;$008884	|
-	BPL CODE_00887E				;$008885	|
-	LDA.b #$40				;$008887	|
-	STA.w $4315				;$008889	|
-	LDA.b #$02				;$00888C	|
-	STA.w $420B				;$00888E	|
-	STY.w $2115				;$008891	|
-	LDA.w $1BE5				;$008894	|
-	CLC					;$008897	|
-	ADC.b #$20				;$008898	|
-	STA.w $2116				;$00889A	|
-	LDA.w $1BE4				;$00889D	|
-	STA.w $2117				;$0088A0	|
-	LDX.b #$06				;$0088A3	|
-CODE_0088A5:
-	LDA.w DATA_008A24,X
-	STA.w $4310,X				;$0088A8	|
-	DEX					;$0088AB	|
-	BPL CODE_0088A5				;$0088AC	|
-	LDA.b #$02				;$0088AE	|
-	STA.w $420B				;$0088B0	|
-	STY.w $2115				;$0088B3	|
-	LDA.w $1BE5				;$0088B6	|
-	CLC					;$0088B9	|
-	ADC.b #$20				;$0088BA	|
-	STA.w $2116				;$0088BC	|
-	LDA.w $1BE4				;$0088BF	|
-	CLC					;$0088C2	|
-	ADC.b #$04				;$0088C3	|
-	STA.w $2117				;$0088C5	|
-	LDX.b #$06				;$0088C8	|
-CODE_0088CA:
-	LDA.w DATA_008A2B,X
-	STA.w $4310,X				;$0088CD	|
-	DEX					;$0088D0	|
-	BPL CODE_0088CA				;$0088D1	|
-	LDA.b #$40				;$0088D3	|
-	STA.w $4315				;$0088D5	|
-	LDA.b #$02				;$0088D8	|
-	STA.w $420B				;$0088DA	|
-CODE_0088DD:
-	LDA.b #$00
-	STA.w $1BE4				;$0088DF	|
-	LDA.w $1CE6				;$0088E2	|
-	BNE CODE_0088EA				;$0088E5	|
-	JMP CODE_008A10				;$0088E7	|
+.vertical_layer_1				;		\ 
+	LDY.b #$80				;$008849	 |\ Set VRAM increment after $2119 writes and
+	STY.w $2115				;$00884B	 |/ Set address increment by 1 for "horizontal" writes
+	LDA.w $1BE5				;$00884E	 |\ Set the VRAM destination for layer 1 tilemap
+	STA.w $2116				;$008851	 | | Lower, left screen 8x8 strip
+	LDA.w $1BE4				;$008854	 | |
+	STA.w $2117				;$008857	 |/
+	LDX.b #$06				;$00885A	 | Number of DMA settings to copy
+.lower_left_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_1,X		;$00885C	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$00885F	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$008862	 | | source: $001BE6, size: #$0040
+	BPL .lower_left_layer_1_DMA_setup	;$008863	 |/
+	LDA.b #$02				;$008865	 |\ Run DMA on channel 1
+	STA.w $420B				;$008867	 |/
+	STY.w $2115				;$00886A	 | Rewrite VRAM increment and remap setting
+	LDA.w $1BE5				;$00886D	 |\ Write the next VRAM address
+	STA.w $2116				;$008870	 | | Which is #$0400 bytes higher
+	LDA.w $1BE4				;$008873	 | | Lower, right screen 8x8 strip
+	CLC					;$008876	 | |
+	ADC.b #$04				;$008877	 | |
+	STA.w $2117				;$008879	 |/
+	LDX.b #$06				;$00887C	 | Number of DMA settings to copy
+.lower_right_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_2,X		;$00887E	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$008881	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$008884	 | | source: $001C26, size: #$002C
+	BPL .lower_right_layer_1_DMA_setup	;$008885	 |/
+	LDA.b #$40				;$008887	 |\ Change the Transfer size to #$0040
+	STA.w $4315				;$008889	 |/ For writing the full vertical data
+	LDA.b #$02				;$00888C	 |\ Run DMA on channel 1
+	STA.w $420B				;$00888E	 |/
+	STY.w $2115				;$008891	 | Rewrite VRAM increment and remap setting
+	LDA.w $1BE5				;$008894	 |\ Write the next VRAM address
+	CLC					;$008897	 | | Which is #$0020 bytes higher
+	ADC.b #$20				;$008898	 | | Upper, left screen 8x8 strip
+	STA.w $2116				;$00889A	 | |
+	LDA.w $1BE4				;$00889D	 | |
+	STA.w $2117				;$0088A0	 |/
+	LDX.b #$06				;$0088A3	 | Number of DMA settings to copy
+.upper_left_layer_1_DMA_setup				;		 |
+	LDA.w .layer_1_DMA_settings_3,X		;$0088A5	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$0088A8	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$0088AB	 | | source: $001C66, size: #$0040
+	BPL .upper_left_layer_1_DMA_setup	;$0088AC	 |/
+	LDA.b #$02				;$0088AE	 |\ Run DMA on channel 1
+	STA.w $420B				;$0088B0	 |/
+	STY.w $2115				;$0088B3	 | Rewrite VRAM increment and remap setting
+	LDA.w $1BE5				;$0088B6	 |\ Write the next VRAM address
+	CLC					;$0088B9	 | | Which is #$0420 bytes higher
+	ADC.b #$20				;$0088BA	 | | Upper, right screen 8x8 strip
+	STA.w $2116				;$0088BC	 | |
+	LDA.w $1BE4				;$0088BF	 | |
+	CLC					;$0088C2	 | |
+	ADC.b #$04				;$0088C3	 |/
+	STA.w $2117				;$0088C5	 |
+	LDX.b #$06				;$0088C8	 | Number of DMA settings to copy
+.upper_right_layer_1_DMA_setup			;		 |
+	LDA.w .layer_1_DMA_settings_4,X		;$0088CA	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$0088CD	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$0088D0	 | | source: $001CA6, size: #$002C
+	BPL .upper_right_layer_1_DMA_setup	;$0088D1	 |/
+	LDA.b #$40				;$0088D3	 |\ Change the Transfer size to #$0040
+	STA.w $4315				;$0088D5	 |/ For writing the full vertical data
+	LDA.b #$02				;$0088D8	 |\ Run DMA on channel 1
+	STA.w $420B				;$0088DA	 |/
+.layer_2_upload_check				;		 |
+	LDA.b #$00				;$0088DD	 |\ Reset the VRAM upload address
+	STA.w $1BE4				;$0088DF	 |/
+	LDA.w $1CE6				;$0088E2	 |\ if a kayer 1 VRAM destination is set, 
+	BNE .layer_2_direction_check		;$0088E5	 |/ Handle layer 1 tilemap DMA
+	JMP .return				;$0088E7	/ No more data to upload, return
 
-CODE_0088EA:
-	LDA $5B
-	AND.b #$02				;$0088EC	|
-	BEQ CODE_0088F3				;$0088EE	|
-	JMP CODE_00897C				;$0088F0	|
+.layer_2_direction_check			;		\ 
+	LDA $5B					;$0088EA	 |\ If the layer 2 data is not vertical
+	AND.b #$02				;$0088EC	 | | Branch and handle horizontal uploads
+	BEQ .horizontal_layer_2_DMA		;$0088EE	 |/
+	JMP .vertical_layer_2			;$0088F0	/ Handle vertical layer 2 data
 
-CODE_0088F3:
-	LDY.b #$81
-	STY.w $2115				;$0088F5	|
-	LDA.w $1CE7				;$0088F8	|
-	STA.w $2116				;$0088FB	|
-	LDA.w $1CE6				;$0088FE	|
-	STA.w $2117				;$008901	|
-	LDX.b #$06				;$008904	|
-CODE_008906:
-	LDA.w DATA_008A32,X
-	STA.w $4310,X				;$008909	|
-	DEX					;$00890C	|
-	BPL CODE_008906				;$00890D	|
-	LDA.b #$02				;$00890F	|
-	STA.w $420B				;$008911	|
-	STY.w $2115				;$008914	|
-	LDA.w $1CE7				;$008917	|
-	STA.w $2116				;$00891A	|
-	LDA.w $1CE6				;$00891D	|
-	CLC					;$008920	|
-	ADC.b #$08				;$008921	|
-	STA.w $2117				;$008923	|
-	LDX.b #$06				;$008926	|
-CODE_008928:
-	LDA.w DATA_008A39,X
-	STA.w $4310,X				;$00892B	|
-	DEX					;$00892E	|
-	BPL CODE_008928				;$00892F	|
-	LDA.b #$02				;$008931	|
-	STA.w $420B				;$008933	|
-	STY.w $2115				;$008936	|
-	LDA.w $1CE7				;$008939	|
-	INC A					;$00893C	|
-	STA.w $2116				;$00893D	|
-	LDA.w $1CE6				;$008940	|
-	STA.w $2117				;$008943	|
-	LDX.b #$06				;$008946	|
-CODE_008948:
-	LDA.w DATA_008A40,X
-	STA.w $4310,X				;$00894B	|
-	DEX					;$00894E	|
-	BPL CODE_008948				;$00894F	|
-	LDA.b #$02				;$008951	|
-	STA.w $420B				;$008953	|
-	STY.w $2115				;$008956	|
-	LDA.w $1CE7				;$008959	|
-	INC A					;$00895C	|
-	STA.w $2116				;$00895D	|
-	LDA.w $1CE6				;$008960	|
-	CLC					;$008963	|
-	ADC.b #$08				;$008964	|
-	STA.w $2117				;$008966	|
-	LDX.b #$06				;$008969	|
-CODE_00896B:
-	LDA.w DATA_008A47,X
-	STA.w $4310,X				;$00896E	|
-	DEX					;$008971	|
-	BPL CODE_00896B				;$008972	|
-	LDA.b #$02				;$008974	|
-	STA.w $420B				;$008976	|
-	JMP CODE_008A10				;$008979	|
+.horizontal_layer_2_DMA				;		\ 
+	LDY.b #$81				;$0088F3	 |\ Set VRAM increment after $2119 writes and
+	STY.w $2115				;$0088F5	 |/ Set address increment by 32 for "vertical" writes
+	LDA.w $1CE7				;$0088F8	 |\ Set the VRAM destination for layer 2 tilemap 
+	STA.w $2116				;$0088FB	 | | Left, upper screen 8x8 strip
+	LDA.w $1CE6				;$0088FE	 | |
+	STA.w $2117				;$008901	 |/
+	LDX.b #$06				;$008904	 | Number of DMA settings to copy Number of DMA settings to copy
+.left_upper_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_1,X		;$008906	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$008909	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$00890C	 | | source: $001CE8, size: #$0040
+	BPL .left_upper_layer_2_DMA_setup	;$00890D	 |/
+	LDA.b #$02				;$00890F	 |\ Run DMA on channel 1
+	STA.w $420B				;$008911	 |/
+	STY.w $2115				;$008914	 | Rewrite VRAM increment and remap setting
+	LDA.w $1CE7				;$008917	 |\ Write the next VRAM address
+	STA.w $2116				;$00891A	 | | Which is #$0800 bytes higher
+	LDA.w $1CE6				;$00891D	 | | Left, lower screen 8x8 strip
+	CLC					;$008920	 | |
+	ADC.b #$08				;$008921	 | |
+	STA.w $2117				;$008923	 |/
+	LDX.b #$06				;$008926	 | Number of DMA settings to copy
+.left_lower_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_2,X		;$008928	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$00892B	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$00892E	 | | source: $001D28, size: #$002C
+	BPL .left_lower_layer_2_DMA_setup	;$00892F	 |/
+	LDA.b #$02				;$008931	 |\ Run DMA on channel 1
+	STA.w $420B				;$008933	 |/
+	STY.w $2115				;$008936	 | Rewrite VRAM increment and remap setting
+	LDA.w $1CE7				;$008939	 |\ Write the next VRAM address
+	INC A					;$00893C	 | | Which is a single byte higher
+	STA.w $2116				;$00893D	 | | Right, upper screen 8x8 strip
+	LDA.w $1CE6				;$008940	 | |
+	STA.w $2117				;$008943	 |/
+	LDX.b #$06				;$008946	 | Number of DMA settings to copy
+.right_upper_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_3,X		;$008848	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$00894B	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$00894E	 | | source: $001D68, size: #$0040
+	BPL .right_upper_layer_2_DMA_setup	;$00894F	 |/
+	LDA.b #$02				;$008951	 |\ Run DMA on channel 1
+	STA.w $420B				;$008953	 |/
+	STY.w $2115				;$008956	 | Rewrite VRAM increment and remap setting
+	LDA.w $1CE7				;$008959	 |\ Write the next VRAM address
+	INC A					;$00895C	 | | Which is #$0801 bytes higher
+	STA.w $2116				;$00895D	 | | Right, lower screen 8x8 strip
+	LDA.w $1CE6				;$008960	 | |
+	CLC					;$008963	 | |
+	ADC.b #$08				;$008964	 | |
+	STA.w $2117				;$008966	 |/
+	LDX.b #$06				;$008969	 | Number of DMA settings to copy
+.right_lower_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_4,X		;$00896B	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$00896E	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$008971	 | | source: $001DA8, size: #$002C
+	BPL .right_lower_layer_2_DMA_setup	;$008972	 |/
+	LDA.b #$02				;$008974	 |\ Run DMA on channel 1
+	STA.w $420B				;$008976	 |/
+	JMP .return				;$008979	/
 
-CODE_00897C:
-	LDY.b #$80
-	STY.w $2115				;$00897E	|
-	LDA.w $1CE7				;$008981	|
-	STA.w $2116				;$008984	|
-	LDA.w $1CE6				;$008987	|
-	STA.w $2117				;$00898A	|
-	LDX.b #$06				;$00898D	|
-CODE_00898F:
-	LDA.w DATA_008A32,X
-	STA.w $4310,X				;$008992	|
-	DEX					;$008995	|
-	BPL CODE_00898F				;$008996	|
-	LDA.b #$02				;$008998	|
-	STA.w $420B				;$00899A	|
-	STY.w $2115				;$00899D	|
-	LDA.w $1CE7				;$0089A0	|
-	STA.w $2116				;$0089A3	|
-	LDA.w $1CE6				;$0089A6	|
-	CLC					;$0089A9	|
-	ADC.b #$04				;$0089AA	|
-	STA.w $2117				;$0089AC	|
-	LDX.b #$06				;$0089AF	|
-CODE_0089B1:
-	LDA.w DATA_008A39,X
-	STA.w $4310,X				;$0089B4	|
-	DEX					;$0089B7	|
-	BPL CODE_0089B1				;$0089B8	|
-	LDA.b #$40				;$0089BA	|
-	STA.w $4315				;$0089BC	|
-	LDA.b #$02				;$0089BF	|
-	STA.w $420B				;$0089C1	|
-	STY.w $2115				;$0089C4	|
-	LDA.w $1CE7				;$0089C7	|
-	CLC					;$0089CA	|
-	ADC.b #$20				;$0089CB	|
-	STA.w $2116				;$0089CD	|
-	LDA.w $1CE6				;$0089D0	|
-	STA.w $2117				;$0089D3	|
-	LDX.b #$06				;$0089D6	|
-CODE_0089D8:
-	LDA.w DATA_008A40,X
-	STA.w $4310,X				;$0089DB	|
-	DEX					;$0089DE	|
-	BPL CODE_0089D8				;$0089DF	|
-	LDA.b #$02				;$0089E1	|
-	STA.w $420B				;$0089E3	|
-	STY.w $2115				;$0089E6	|
-	LDA.w $1CE7				;$0089E9	|
-	CLC					;$0089EC	|
-	ADC.b #$20				;$0089ED	|
-	STA.w $2116				;$0089EF	|
-	LDA.w $1CE6				;$0089F2	|
-	CLC					;$0089F5	|
-	ADC.b #$04				;$0089F6	|
-	STA.w $2117				;$0089F8	|
-	LDX.b #$06				;$0089FB	|
-CODE_0089FD:
-	LDA.w DATA_008A47,X
-	STA.w $4310,X				;$008A00	|
-	DEX					;$008A03	|
-	BPL CODE_0089FD				;$008A04	|
-	LDA.b #$40				;$008A06	|
-	STA.w $4315				;$008A08	|
-	LDA.b #$02				;$008A0B	|
-	STA.w $420B				;$008A0D	|
-CODE_008A10:
-	LDA.b #$00
-	STA.w $1CE6				;$008A12	|
-	RTL					;$008A15	|
+.vertical_layer_2				;		\ 
+	LDY.b #$80				;$00897C	 |\ Set VRAM increment after $2119 writes and
+	STY.w $2115				;$00897E	 |/ Set address increment by 1 for "horizontal" writes
+	LDA.w $1CE7				;$008981	 |\ Set the VRAM destination for layer 2 tilemap
+	STA.w $2116				;$008984	 | | Lower, left screen 8x8 strip
+	LDA.w $1CE6				;$008987	 | |
+	STA.w $2117				;$00898A	 |/
+	LDX.b #$06				;$00898D	 | Number of DMA settings to copy
+.lower_left_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_1,X		;$00898F	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$008992	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$008995	 | | source: $001CE8, size: #$0040
+	BPL .lower_left_layer_2_DMA_setup	;$008996	 |/
+	LDA.b #$02				;$008998	 |\ Run DMA on channel 1
+	STA.w $420B				;$00899A	 |/
+	STY.w $2115				;$00899D	 | Rewrite VRAM increment and remap setting
+	LDA.w $1CE7				;$0089A0	 |\ Write the next VRAM address
+	STA.w $2116				;$0089A3	 | | Which is #$0400 bytes higher
+	LDA.w $1CE6				;$0089A6	 | | Lower, right screen 8x8 strip
+	CLC					;$0089A9	 | |
+	ADC.b #$04				;$0089AA	 | |
+	STA.w $2117				;$0089AC	 |/
+	LDX.b #$06				;$0089AF	 | Number of DMA settings to copy
+.lower_right_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_2,X		;$0089B1	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$0089B4	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$0089B7	 | | source: $001D28, size: #$002C
+	BPL .lower_right_layer_2_DMA_setup	;$0089B8	 |/
+	LDA.b #$40				;$0089BA	 |\ Change the Transfer size to #$0040
+	STA.w $4315				;$0089BC	 |/ For writing the full vertical data
+	LDA.b #$02				;$0089BF	 |\ Run DMA on channel 1
+	STA.w $420B				;$0089C1	 |/
+	STY.w $2115				;$0089C4	 | Rewrite VRAM increment and remap setting
+	LDA.w $1CE7				;$0089C7	 |\ Write the next VRAM address
+	CLC					;$0089CA	 | | Which is #$0020 bytes higher
+	ADC.b #$20				;$0089CB	 | | Upper, left screen 8x8 strip
+	STA.w $2116				;$0089CD	 | |
+	LDA.w $1CE6				;$0089D0	 | |
+	STA.w $2117				;$0089D3	 |/
+	LDX.b #$06				;$0089D6	 | Number of DMA settings to copy
+.upper_left_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_3,X		;$0089D8	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$0089DB	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$0089DE	 | | source: $001D68, size: #$0040
+	BPL .upper_left_layer_2_DMA_setup	;$0089DF	 |/
+	LDA.b #$02				;$0089E1	 |\ Run DMA on channel 1
+	STA.w $420B				;$0089E3	 |/
+	STY.w $2115				;$0089E6	 | Rewrite VRAM increment and remap setting
+	LDA.w $1CE7				;$0089E9	 |\ Write the next VRAM address
+	CLC					;$0089EC	 | | Which is #$0420 bytes higher
+	ADC.b #$20				;$0089ED	 | | Upper, right screen 8x8 strip
+	STA.w $2116				;$0089EF	 | |
+	LDA.w $1CE6				;$0089F2	 | |
+	CLC					;$0089F5	 | |
+	ADC.b #$04				;$0089F6	 |/
+	STA.w $2117				;$0089F8	 |
+	LDX.b #$06				;$0089FB	 | Number of DMA settings to copy
+.upper_right_layer_2_DMA_setup			;		 |
+	LDA.w .layer_2_DMA_settings_4,X		;$0089FD	 |\ Generic DMA copy loop
+	STA.w $4310,X				;$008A00	 | | Transfer mode: 1, Destination: $2118
+	DEX					;$008A03	 | | source: $001DA8, size: #$002C
+	BPL .upper_right_layer_2_DMA_setup	;$008A04	 |/
+	LDA.b #$40				;$008A06	 |\ Change the Transfer size to #$0040
+	STA.w $4315				;$008A08	 |/ For writing the full vertical data
+	LDA.b #$02				;$008A0B	 |\ Run DMA on channel 1
+	STA.w $420B				;$008A0D	 |/
+.return						;		 |
+	LDA.b #$00				;$008A10	 |\ Reset the VRAM upload address
+	STA.w $1CE6				;$008A12	 |/
+	RTL					;$008A15	/ Return from generic layer uploader
 
-DATA_008A16:
+.layer_1_DMA_settings_1
 	db $01,$18,$E6,$1B,$00,$40,$00
 
-DATA_008A1D:
+.layer_1_DMA_settings_2
 	db $01,$18,$26,$1C,$00,$2C,$00
 
-DATA_008A24:
+.layer_1_DMA_settings_3
 	db $01,$18,$66,$1C,$00,$40,$00
 
-DATA_008A2B:
+.layer_1_DMA_settings_4
 	db $01,$18,$A6,$1C,$00,$2C,$00
 
-DATA_008A32:
+.layer_2_DMA_settings_1
 	db $01,$18,$E8,$1C,$00,$40,$00
 
-DATA_008A39:
+.layer_2_DMA_settings_2
 	db $01,$18,$28,$1D,$00,$2C,$00
 
-DATA_008A40:
+.layer_2_DMA_settings_3
 	db $01,$18,$68,$1D,$00,$40,$00
 
-DATA_008A47:
+.layer_2_DMA_settings_4
 	db $01,$18,$A8,$1D,$00,$2C,$00
 
 clear_non_stack:
@@ -4472,7 +4472,7 @@ overworld_VRAM_DMA_offset:
 overworld_layer_2_DMA_offsets:
 	db $00,$08,$10,$18
 
-DMA_overworld_tilemap:					;		\ 
+DMA_overworld_tilemap:				;		\ 
 	LDA.b #$80				;$00A529	 |\ Set VRAM mode increment after $2119 writes
 	STA.w $2115				;$00A52B	 |/
 	STZ.w $2116				;$00A52E	 |\ Set the VRAM address to $3000 plus the block

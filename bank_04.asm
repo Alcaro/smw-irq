@@ -5032,7 +5032,7 @@ CODE_04D6E9:
 	STA $1C					;$04D712	|
 CODE_04D714:
 	JSL CODE_05881A
-	JSL CODE_0087AD				;$04D718	|
+	JSL generic_layer_1_and_2_upload	;$04D718	|
 	REP #$30				;$04D71C	|
 	INC $47					;$04D71E	|
 	LDA $1C					;$04D720	|

@@ -86,7 +86,7 @@ CODE_0580BD:
 	REP #$30
 	JSL CODE_0588EC				;$0580BF	|
 	JSL CODE_058955				;$0580C3	|
-	JSL CODE_0087AD				;$0580C7	|
+	JSL generic_layer_1_and_2_upload	;$0580C7	|
 	REP #$30				;$0580CB	|
 	INC $47					;$0580CD	|
 	INC $4B					;$0580CF	|
