@@ -608,7 +608,7 @@ CODE_04853B:
 
 CODE_048576:
 	LDA.w $13D9
-	JSL ExecutePtrLong			;$048579	|
+	JSL execute_pointer_long		;$048579	|
 
 PtrsLong04857D:
 	dl CODE_048EF1
@@ -5336,7 +5336,7 @@ CODE_04DAE9:
 CODE_04DAEF:
 	SEP #$30
 	LDA.w $1DE8				;$04DAF1	|
-	JSL ExecutePtr				;$04DAF4	|
+	JSL execute_pointer			;$04DAF4	|
 
 Ptrs04DAF8:
 	dw CODE_04DB18
@@ -6076,7 +6076,7 @@ CODE_04E56B:
 
 CODE_04E570:
 	LDA.w $1B86
-	JSL ExecutePtr				;$04E573	|
+	JSL execute_pointer			;$04E573	|
 
 Ptrs04E577:
 	dw CODE_04E5EE
@@ -7430,7 +7430,7 @@ CODE_04F3BF:
 
 CODE_04F3E5:
 	DEC A
-	JSL ExecutePtr				;$04F3E6	|
+	JSL execute_pointer			;$04F3E6	|
 
 Ptrs04F3EA:
 	dw CODE_04F3FF
@@ -7942,7 +7942,7 @@ CODE_04F853:
 	JSR CODE_04F87C
 	BNE Return04F828			;$04F856	|
 	LDA.w $0DE5,X				;$04F858	|
-	JSL ExecutePtr				;$04F85B	|
+	JSL execute_pointer			;$04F85B	|
 
 OWSprites:
 	dw Return04F828

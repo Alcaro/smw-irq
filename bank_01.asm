@@ -195,7 +195,7 @@ HandleSprite:
 	JMP CallSpriteMain			;$018130	|
 
 CODE_018133:
-	JSL ExecutePtr
+	JSL execute_pointer
 
 SpriteStatusRtPtr:
 	dw EraseSprite
@@ -238,7 +238,7 @@ CallSpriteInit:
 	LDA.b #$08
 	STA.w $14C8,X				;$018174	|
 	LDA $9E,X				;$018177	|
-	JSL ExecutePtr				;$018179	|
+	JSL execute_pointer			;$018179	|
 
 SpriteInitPtr:
 	dw InitStandardSprite
@@ -908,7 +908,7 @@ Return0185C2:
 CallSpriteMain:
 	STZ.w $1491
 	LDA $9E,X				;$0185C6	|
-	JSL ExecutePtr				;$0185C8	|
+	JSL execute_pointer			;$0185C8	|
 
 SpriteMainPtr:
 	dw ShellessKoopas
@@ -6521,7 +6521,7 @@ Thwomp:
 	JSR SubOffscreen0Bnk1			;$01AEB1	|
 	JSR MarioSprInteractRt			;$01AEB4	|
 	LDA $C2,X				;$01AEB7	|
-	JSL ExecutePtr				;$01AEB9	|
+	JSL execute_pointer			;$01AEB9	|
 
 ThwompStatePtrs:
 	dw CODE_01AEC3
@@ -8676,7 +8676,7 @@ Magikoopa:
 CODE_01BDE2:
 	LDA $C2,X
 	AND.b #$03				;$01BDE4	|
-	JSL ExecutePtr				;$01BDE6	|
+	JSL execute_pointer			;$01BDE6	|
 
 MagiKoopaPtrs:
 	dw CODE_01BDF2
@@ -9715,7 +9715,7 @@ TouchedPowerUp:
 	STA.w $1DFC				;$01C54A	|
 NoItem:
 	LDA.w GivePowerPtrIndex,Y
-	JSL ExecutePtr				;$01C550	|
+	JSL execute_pointer			;$01C550	|
 
 HandlePowerUpPtrs:
 	dw GiveMarioMushroom
@@ -10915,7 +10915,7 @@ CODE_01CDD5:
 	STA.w $15AC,X				;$01CE08	|
 CODE_01CE0B:
 	LDA.w $151C,X
-	JSL ExecutePtr				;$01CE0E	|
+	JSL execute_pointer			;$01CE0E	|
 
 MortonPtrs1:
 	dw CODE_01CE1E
@@ -10964,7 +10964,7 @@ CODE_01CE4C:
 
 CODE_01CE5F:
 	LDA $C2,X
-	JSL ExecutePtr				;$01CE61	|
+	JSL execute_pointer			;$01CE61	|
 
 MortonPtrs2:
 	dw CODE_01D116
@@ -10973,7 +10973,7 @@ MortonPtrs2:
 
 CODE_01CE6B:
 	LDA.w $1528,X
-	JSL ExecutePtr				;$01CE6E	|
+	JSL execute_pointer			;$01CE6E	|
 
 Ptrs01CE72:
 	dw CODE_01CE78
@@ -11353,7 +11353,7 @@ DATA_01D0DE:
 
 CODE_01D116:
 	LDA.w $1528,X
-	JSL ExecutePtr				;$01D119	|
+	JSL execute_pointer			;$01D119	|
 
 MortonPtrs3:
 	dw CODE_01D146
@@ -12215,7 +12215,7 @@ CODE_01D74D:
 	BNE Return01D6EC			;$01D75A	|
 CODE_01D75C:
 	LDA $C2,X
-	JSL ExecutePtr				;$01D75E	|
+	JSL execute_pointer			;$01D75E	|
 
 Ptrs01D762:
 	dw CODE_01D7F4
@@ -13733,7 +13733,7 @@ DATA_01E2B0:
 MontyMole:
 	JSR SubOffscreen0Bnk1
 	LDA $C2,X				;$01E2D2	|
-	JSL ExecutePtr				;$01E2D4	|
+	JSL execute_pointer			;$01E2D4	|
 
 Ptrs01E2D8:
 	dw CODE_01E2E0
@@ -15623,7 +15623,7 @@ CODE_01F0AC:
 	STA.w $18AE				;$01F0C1	|
 CODE_01F0C4:
 	LDA.w $1594,X
-	JSL ExecutePtr				;$01F0C7	|
+	JSL execute_pointer			;$01F0C7	|
 
 Ptrs01F0CB:
 	dw CODE_01F14B
@@ -17033,7 +17033,7 @@ DATA_01FAB4:
 
 KoopaKid:
 	LDA $C2,X
-	JSL ExecutePtr				;$01FAC3	|
+	JSL execute_pointer			;$01FAC3	|
 
 KoopaKidPtrs:
 	dw WallKoopaKids

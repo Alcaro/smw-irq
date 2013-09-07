@@ -971,7 +971,7 @@ CODE_058818:
 CODE_05881A:
 	SEP #$30
 	LDA.w $1925				;$05881C	|
-	JSL ExecutePtrLong			;$05881F	|
+	JSL execute_pointer_long		;$05881F	|
 
 PtrsLong058823:
 	dl CODE_0589CE
@@ -1010,7 +1010,7 @@ PtrsLong058823:
 CODE_058883:
 	SEP #$30
 	LDA.w $1925				;$058885	|
-	JSL ExecutePtrLong			;$058888	|
+	JSL execute_pointer_long		;$058888	|
 
 PtrsLong05888C:
 	dl Return058C70
@@ -1049,7 +1049,7 @@ PtrsLong05888C:
 CODE_0588EC:
 	SEP #$30
 	LDA.w $1925				;$0588EE	|
-	JSL ExecutePtrLong			;$0588F1	|
+	JSL execute_pointer_long		;$0588F1	|
 
 PtrsLong0588F5:
 	dl CODE_0589CE
@@ -1088,7 +1088,7 @@ PtrsLong0588F5:
 CODE_058955:
 	SEP #$30
 	LDA.w $1925				;$058957	|
-	JSL ExecutePtrLong			;$05895A	|
+	JSL execute_pointer_long		;$05895A	|
 
 PtrsLong05895E:
 	dl CODE_058D7A
@@ -3481,10 +3481,10 @@ AnimatedTileData:
 	db $00,$95,$00,$95,$00,$95,$00,$95
 	db $00,$9D,$00,$9F,$00,$A1,$00,$A3
 	
-mode_7_lava_tile_pointers:		;TODO when I get home fix pointers
-	db $80,$8E,$80,$90,$80,$92,$80,$94
-	db $00,$7D,$00,$7F,$00,$81,$00,$83
-	db $00,$83,$00,$81,$00,$7F,$00,$7D
+mode_7_lava_tile_pointers:
+	dw $8E80,$9080,$9280,$9480
+	dw $7D00,$7F00,$8100,$8300
+	dw $8300,$8100,$7F00,$7D00 
 
 ;global TODO start adding labels names to constants where applicable
 	db $00,$9E,$00,$A0,$00,$A2,$00,$A0
@@ -3673,7 +3673,7 @@ CODE_05BC76:
 	BNE Return05BC49			;$05BC7C	|
 	LDA.w $143E				;$05BC7E	|
 	BEQ Return05BC49			;$05BC81	|
-	JSL ExecutePtr				;$05BC83	|
+	JSL execute_pointer			;$05BC83	|
 
 Ptrs05BC87:
 	dw CODE_05C04D
@@ -3699,7 +3699,7 @@ CODE_05BCA5:
 	BEQ Return05BC49			;$05BCAD	|
 	LDY.w $9D				;$05BCAF	|
 	BNE Return05BC49			;$05BCB2	|
-	JSL ExecutePtr				;$05BCB4	|
+	JSL execute_pointer			;$05BCB4	|
 
 Ptrs05BCB8:
 	dw CODE_05C04D
@@ -3732,7 +3732,7 @@ CODE_05BCD6:
 
 CODE_05BCE9:
 	LDA.w $143E
-	JSL ExecutePtr				;$05BCEC	|
+	JSL execute_pointer			;$05BCEC	|
 
 Ptrs05BCF0:
 	dw CODE_05BD36
@@ -3754,7 +3754,7 @@ Ptrs05BCF0:
 CODE_05BD0E:
 	LDA.w $143F
 	BEQ Return05BD35			;$05BD11	|
-	JSL ExecutePtr				;$05BD13	|
+	JSL execute_pointer			;$05BD13	|
 
 Ptrs05BD17:
 	dw CODE_05BD4C
@@ -5578,7 +5578,7 @@ CODE_05CBFF:
 
 CODE_05CC07:
 	LDA.w $13D9
-	JSL ExecutePtr				;$05CC0A	|
+	JSL execute_pointer			;$05CC0A	|
 
 Ptrs05CC0E:
 	dw CODE_05CC66
@@ -6760,7 +6760,7 @@ CODE_05DAEF:
 	ROL					;$05DAF8	|
 	ROL					;$05DAF9	|
 	ROL					;$05DAFA	|
-	JSL ExecutePtrLong			;$05DAFB	|
+	JSL execute_pointer_long		;$05DAFB	|
 
 PtrsLong05DAFF:
 	dl CODE_05DB3E

@@ -1497,7 +1497,7 @@ DATA_028B8C:
 	db $00,$00,$80,$80,$80,$C0,$40,$00
 
 CODE_028B94:
-	JSL ExecutePtr
+	JSL execute_pointer
 
 Ptrs028B98:
 	dw Return028B77
@@ -2163,7 +2163,7 @@ CODE_02904D:
 	BEQ CODE_02905E				;$029059	|
 	DEC.w $16C5,X				;$02905B	|
 CODE_02905E:
-	JSL ExecutePtr
+	JSL execute_pointer
 
 BounceSpritePtrs:
 	dw Return02904C
@@ -3034,7 +3034,7 @@ CODE_0296C0:
 	LDA.w $17C0,X
 	BEQ Return0296D7			;$0296C3	|
 	AND.b #$7F				;$0296C5	|
-	JSL ExecutePtr				;$0296C7	|
+	JSL execute_pointer			;$0296C7	|
 
 Ptrs0296CB:
 	dw Return0296D7
@@ -3638,7 +3638,7 @@ CODE_029B16:
 	BEQ CODE_029B27				;$029B22	|
 	DEC.w $176F,X				;$029B24	|
 CODE_029B27:
-	JSL ExecutePtr
+	JSL execute_pointer
 
 ExtendedSpritePtrs:
 	dw Return029B15
@@ -6471,7 +6471,7 @@ CallGenerator:
 	LDY $9D					;$02B003	|
 	BNE Return02B02A			;$02B005	|
 	DEC A					;$02B007	|
-	JSL ExecutePtr				;$02B008	|
+	JSL execute_pointer			;$02B008	|
 
 GeneratorPtrs:
 	dw GenerateEerie
@@ -6983,7 +6983,7 @@ Return02B3AA:
 
 CODE_02B3AB:
 	DEC A
-	JSL ExecutePtr				;$02B3AC	|
+	JSL execute_pointer			;$02B3AC	|
 
 ShooterPtrs:
 	dw ShootBullet
@@ -8324,7 +8324,7 @@ CODE_02BD3F:
 	BEQ CODE_02BDB3				;$02BD5A	|
 	LDA $C2,X				;$02BD5C	|
 	AND.b #$01				;$02BD5E	|
-	JSL ExecutePtr				;$02BD60	|
+	JSL execute_pointer			;$02BD60	|
 
 UrchinPtrs:
 	dw CODE_02BD68
@@ -8714,7 +8714,7 @@ CODE_02C01B:
 	STA $AA,X				;$02C022	|
 CODE_02C024:
 	LDA $C2,X
-	JSL ExecutePtr				;$02C026	|
+	JSL execute_pointer			;$02C026	|
 
 RipVanFishPtrs:
 	dw CODE_02C02E
@@ -9156,7 +9156,7 @@ CODE_02C328:
 CODE_02C334:
 	STA $AA,X
 	LDA $C2,X				;$02C336	|
-	JSL ExecutePtr				;$02C338	|
+	JSL execute_pointer			;$02C338	|
 
 ChuckPtrs:
 	dw CODE_02C63B
@@ -10543,7 +10543,7 @@ PeaBouncerMain:
 	STA.w $1DFC				;$02CDEE	|
 CODE_02CDF1:
 	LDA.w $1528,X
-	JSL ExecutePtr				;$02CDF4	|
+	JSL execute_pointer			;$02CDF4	|
 
 PeaBouncerPtrs:
 	dw Return02CDFE
@@ -11434,7 +11434,7 @@ CODE_02D3FD:
 	ADC.w $14E0,X				;$02D403	|
 	STA.w $14E0,X				;$02D406	|
 	LDA $C2,X				;$02D409	|
-	JSL ExecutePtr				;$02D40B	|
+	JSL execute_pointer			;$02D40B	|
 
 Layer3SmashPtrs:
 	dw CODE_02D419
@@ -12643,7 +12643,7 @@ CODE_02DCB7:
 	STZ $B6,X				;$02DCD9	|
 CODE_02DCDB:
 	LDA $C2,X
-	JSL ExecutePtr				;$02DCDD	|
+	JSL execute_pointer			;$02DCDD	|
 
 SumoBroPtrs:
 	dw CODE_02DCEA
@@ -13010,7 +13010,7 @@ CODE_02DFAF:
 	STZ $AA,X				;$02DFBA	|
 CODE_02DFBC:
 	LDA $C2,X
-	JSL ExecutePtr				;$02DFBE	|
+	JSL execute_pointer			;$02DFBE	|
 
 VolcanoLotusPtrs:
 	dw CODE_02DFC9
@@ -13216,7 +13216,7 @@ CODE_02E0CD:
 	JSL SprSprPMarioSprRts			;$02E129	|
 	JSR UpdateYPosNoGrvtyB1			;$02E12D	|
 	LDA $C2,X				;$02E130	|
-	JSL ExecutePtr				;$02E132	|
+	JSL execute_pointer			;$02E132	|
 
 JumpingPiranhaPtrs:
 	dw CODE_02E13C
@@ -14043,7 +14043,7 @@ CODE_02E727:
 	JSR CODE_02EB3D				;$02E73C	|
 	LDA $C2,X				;$02E73F	|
 	AND.b #$01				;$02E741	|
-	JSL ExecutePtr				;$02E743	|
+	JSL execute_pointer			;$02E743	|
 
 FishPtrs:
 	dw CODE_02E74E
@@ -14343,7 +14343,7 @@ CODE_02E94C:
 	JSR SubOffscreen0Bnk2			;$02E956	|
 	JSL SprSprPMarioSprRts			;$02E959	|
 	LDA $C2,X				;$02E95D	|
-	JSL ExecutePtr				;$02E95F	|
+	JSL execute_pointer			;$02E95F	|
 
 PipeLakituPtrs:
 	dw CODE_02E96D
@@ -14663,7 +14663,7 @@ Return02EB7C:
 
 CODE_02EB7D:
 	LDA $C2,X
-	JSL ExecutePtr				;$02EB7F	|
+	JSL execute_pointer			;$02EB7F	|
 
 SuperKoopaPtrs:
 	dw CODE_02EB8D
@@ -15705,7 +15705,7 @@ CODE_02F321:
 	ADC.b #$03				;$02F32D	|
 	STA $AA,X				;$02F32F	|
 	LDA $C2,X				;$02F331	|
-	JSL ExecutePtr				;$02F333	|
+	JSL execute_pointer			;$02F333	|
 
 BirdsPtrs:
 	dw CODE_02F342
@@ -16397,7 +16397,7 @@ Return02F820:
 	RTS
 
 CODE_02F821:
-	JSL ExecutePtr
+	JSL execute_pointer
 
 Ptrs02F825:
 	dw Return02F820

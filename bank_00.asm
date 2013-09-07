@@ -827,44 +827,44 @@ CODE_0086CF:
 	JSL $7F812E				;$0086DA	|
 	RTS					;$0086DE	|
 
-ExecutePtr:
-	STY $03
-	PLY					;$0086E1	|
-	STY $00					;$0086E2	|
-	REP #$30				;$0086E4	|
-	AND.w #$00FF				;$0086E6	|
-	ASL					;$0086E9	|
-	TAY					;$0086EA	|
-	PLA					;$0086EB	|
-	STA $01					;$0086EC	|
-	INY					;$0086EE	|
-	LDA [$00],Y				;$0086EF	|
-	STA $00					;$0086F1	|
-	SEP #$30				;$0086F3	|
-	LDY $03					;$0086F5	|
-	JMP [$0000]				;$0086F7	|
+execute_pointer:				;		\ 
+	STY $03					;$0086DF	 | Preserve Y
+	PLY					;$0086E1	 |\ Pull the high byte and bank byte and store it in $00
+	STY $00					;$0086E2	 |/ to create a pointer to the pointer table 
+	REP #$30				;$0086E4	 | 16 bit AXY
+	AND.w #$00FF				;$0086E6	 | Allow for a maximum of 256 pointers
+	ASL					;$0086E9	 |\ Get the pointer table index and store it in Y
+	TAY					;$0086EA	 |/
+	PLA					;$0086EB	 |\ Pull the high byte and bank byte and store it in $01
+	STA $01					;$0086EC	 |/ to create a pointer to the pointer table 
+	INY					;$0086EE	 | Increment to the first byte of the pointer table
+	LDA [$00],Y				;$0086EF	 | Load the pointer
+	STA $00					;$0086F1	 | And store the pointer
+	SEP #$30				;$0086F3	 | 8 bit AXY
+	LDY $03					;$0086F5	 | Restore Y
+	JMP [$0000]				;$0086F7	/ Jump to the pointer
 
-ExecutePtrLong:
-	STY $05
-	PLY					;$0086FC	|
-	STY $02					;$0086FD	|
-	REP #$30				;$0086FF	|
-	AND.w #$00FF				;$008701	|
-	STA $03					;$008704	|
-	ASL					;$008706	|
-	ADC $03					;$008707	|
-	TAY					;$008709	|
-	PLA					;$00870A	|
-	STA $03					;$00870B	|
-	INY					;$00870D	|
-	LDA [$02],Y				;$00870E	|
-	STA $00					;$008710	|
-	INY					;$008712	|
-	LDA [$02],Y				;$008713	|
-	STA $01					;$008715	|
-	SEP #$30				;$008717	|
-	LDY $05					;$008719	|
-	JMP [$0000]				;$00871B	|
+execute_pointer_long:				;		\ 
+	STY $05					;$0086FA	 | Preserve Y
+	PLY					;$0086FC	 |\ Pull the high byte and bank byte and store it in $02
+	STY $02					;$0086FD	 |/ to create a pointer to the pointer table 
+	REP #$30				;$0086FF	 | 16 bit AXY
+	AND.w #$00FF				;$008701	 | Allow for a maximum of 256 pointers
+	STA $03					;$008704	 |\ Multiply the pointer by three
+	ASL					;$008706	 | |
+	ADC $03					;$008707	 | |
+	TAY					;$008709	 |/
+	PLA					;$00870A	 |\ Pull the high byte and bank byte and store it in $03
+	STA $03					;$00870B	 |/ to create a pointer to the pointer table 
+	INY					;$00870D	 | Increment to the first byte of the pointer table
+	LDA [$02],Y				;$00870E	 |\ Load and store the first two bytes of the pointer
+	STA $00					;$008710	 |/ 
+	INY					;$008712	 | Move to the next byte in the pointer table
+	LDA [$02],Y				;$008713	 |\ Load and store the last byte of the pointer
+	STA $01					;$008715	 |/ (Also rereads the high byte)
+	SEP #$30				;$008717	 | 8 bit AXY
+	LDY $05					;$008719	 | Restore Y
+	JMP [$0000]				;$00871B	/ Jump to the pointer
 
 DMA_stripe_image:
 	REP #$10				;$00871E	\ 16 bit XY
@@ -2204,7 +2204,7 @@ DATA_00931D:
 
 run_game_mode:
 	LDA.w $0100
-	JSL ExecutePtr				;$009325	|
+	JSL execute_pointer			;$009325	|
 
 Ptrs009329:
 	dw CODE_009391
@@ -3253,7 +3253,7 @@ CODE_009B80:
 
 CODE_009B88:
 	DEC A
-	JSL ExecutePtr				;$009B89	|
+	JSL execute_pointer			;$009B89	|
 
 Ptrs009B8D:
 	dw CODE_009B91
@@ -6773,7 +6773,7 @@ CODE_00BFBC:
 	DEC A					;$00BFC0	|
 	PHK					;$00BFC1	|
 	PER $0003				;$00BFC2	|
-	JML ExecutePtr				;$00BFC5	|
+	JML execute_pointer			;$00BFC5	|
 
 TileGenerationPtr:
 	dw CODE_00C074
@@ -7471,7 +7471,7 @@ Return00C592:
 
 CODE_00C593:
 	LDA $71					;$00C593	\ Execute animation code.
-	JSL ExecutePtr				;$00C595	/
+	JSL execute_pointer			;$00C595	/
 
 animation_pointers:
 	dw no_animation

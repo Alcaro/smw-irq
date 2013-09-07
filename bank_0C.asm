@@ -1614,7 +1614,7 @@ CODE_0CA1CD:
 CODE_0CA1D4:
 	JSR CODE_0CAB1F
 	LDA.w $1442				;$0CA1D7	|
-	JSL ExecutePtrLong			;$0CA1DA	|
+	JSL execute_pointer_long		;$0CA1DA	|
 
 PtrsLong0CA1DE:
 	dl CODE_0CA1ED
@@ -4248,7 +4248,7 @@ CODE_0CC99A:
 	JSR CODE_0CD803
 	LDA.w $13C6				;$0CC99D	|
 	DEC A					;$0CC9A0	|
-	JSL ExecutePtr				;$0CC9A1	|
+	JSL execute_pointer			;$0CC9A1	|
 
 Ptrs0CC9A5:
 	dw CODE_0CC9B3
@@ -4263,7 +4263,7 @@ CODE_0CC9B3:
 	JSR CODE_0CCB5B
 	JSR CODE_0CCACE				;$0CC9B6	|
 	LDA.w $1442				;$0CC9B9	|
-	JSL ExecutePtr				;$0CC9BC	|
+	JSL execute_pointer			;$0CC9BC	|
 
 Ptrs0CC9C0:
 	dw CODE_0CCB1C
@@ -4276,7 +4276,7 @@ Ptrs0CC9C0:
 CODE_0CC9CC:
 	JSR CODE_0CCACE
 	LDA.w $1442				;$0CC9CF	|
-	JSL ExecutePtr				;$0CC9D2	|
+	JSL execute_pointer			;$0CC9D2	|
 
 Ptrs0CC9D6:
 	dw CODE_0CD003
@@ -4290,7 +4290,7 @@ CODE_0CC9E0:
 	JSR CODE_0CCACE				;$0CC9E3	|
 	JSR CODE_0CD4F8				;$0CC9E6	|
 	LDA.w $1442				;$0CC9E9	|
-	JSL ExecutePtr				;$0CC9EC	|
+	JSL execute_pointer			;$0CC9EC	|
 
 Ptrs0CC9F0:
 	dw CODE_0CCB1C
@@ -4316,7 +4316,7 @@ CODE_0CCA11:
 	JSR CODE_0CCF49				;$0CCA15	|
 CODE_0CCA18:
 	LDA.w $1442
-	JSL ExecutePtr				;$0CCA1B	|
+	JSL execute_pointer			;$0CCA1B	|
 
 Ptrs0CCA1F:
 	dw CODE_0CCB1C
@@ -4338,7 +4338,7 @@ CODE_0CCA2F:
 CODE_0CCA3F:
 	JSR CODE_0CD3F4
 	LDA.w $1442				;$0CCA42	|
-	JSL ExecutePtr				;$0CCA45	|
+	JSL execute_pointer			;$0CCA45	|
 
 Ptrs0CCA49:
 	dw CODE_0CD0BC
@@ -4358,7 +4358,7 @@ CODE_0CCA51:
 	JSR CODE_0CCAFD				;$0CCA64	|
 CODE_0CCA67:
 	LDA.w $1442
-	JSL ExecutePtr				;$0CCA6A	|
+	JSL execute_pointer			;$0CCA6A	|
 
 Ptrs0CCA6E:
 	dw CODE_0CD0C9
@@ -4366,7 +4366,7 @@ Ptrs0CCA6E:
 
 CODE_0CCA72:
 	LDA.w $1442
-	JSL ExecutePtr				;$0CCA75	|
+	JSL execute_pointer			;$0CCA75	|
 
 Ptrs0CCA79:
 	dw CODE_0CD0D2

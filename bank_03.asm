@@ -89,7 +89,7 @@ CODE_0380A2:
 	LDA $9D					;$0380A6	|
 	BNE Return0380D4			;$0380A8	|
 	LDA $C2,X				;$0380AA	|
-	JSL ExecutePtr				;$0380AC	|
+	JSL execute_pointer			;$0380AC	|
 
 BooBossPtrs:
 	dw CODE_0380BE
@@ -1128,7 +1128,7 @@ CODE_0388C0:
 	JSL UpdateXPosNoGrvty			;$0388CB	|
 	JSL UpdateYPosNoGrvty			;$0388CF	|
 	LDA $C2,X				;$0388D3	|
-	JSL ExecutePtr				;$0388D5	|
+	JSL execute_pointer			;$0388D5	|
 
 SwooperPtrs:
 	dw CODE_0388E4
@@ -1348,7 +1348,7 @@ BowserStatue:
 	BNE Return038A68			;$038A41	|
 	JSR SubOffscreen0Bnk3			;$038A43	|
 	LDA $C2,X				;$038A46	|
-	JSL ExecutePtr				;$038A48	|
+	JSL execute_pointer			;$038A48	|
 
 BowserStatuePtrs:
 	dw CODE_038A57
@@ -2418,7 +2418,7 @@ CODE_039237:
 	JSR SubOffscreen0Bnk3			;$03923B	|
 	JSL UpdateSpritePos			;$03923E	|
 	LDA $C2,X				;$039242	|
-	JSL ExecutePtr				;$039244	|
+	JSL execute_pointer			;$039244	|
 
 FallingSpikePtrs:
 	dw CODE_03924C
@@ -2629,7 +2629,7 @@ WoodenSpike:
 	JSR CODE_039488				;$03942D	|
 	LDA $C2,X				;$039430	|
 	AND.b #$03				;$039432	|
-	JSL ExecutePtr				;$039434	|
+	JSL execute_pointer			;$039434	|
 
 WoodenSpikePtrs:
 	dw CODE_039458
@@ -3049,7 +3049,7 @@ Fishbone:
 	STA.w $1558,X				;$03971D	|
 CODE_039720:
 	LDA $C2,X
-	JSL ExecutePtr				;$039722	|
+	JSL execute_pointer			;$039722	|
 
 FishbonePtrs:
 	dw CODE_03972F
@@ -3789,7 +3789,7 @@ DinoMainSubRt:
 	JSL MarioSprInteract			;$039C58	|
 	JSL UpdateSpritePos			;$039C5C	|
 	LDA $C2,X				;$039C60	|
-	JSL ExecutePtr				;$039C62	|
+	JSL execute_pointer			;$039C62	|
 
 RhinoStatePtrs:
 	dw CODE_039CA8
@@ -4178,7 +4178,7 @@ Blargg:
 	JSL MarioSprInteract			;$039F3F	|
 	JSR SubOffscreen0Bnk3			;$039F43	|
 	LDA $C2,X				;$039F46	|
-	JSL ExecutePtr				;$039F48	|
+	JSL execute_pointer			;$039F48	|
 
 BlarggPtrs:
 	dw CODE_039F57
@@ -4782,7 +4782,7 @@ CODE_03A31A:
 	JSL UpdateXPosNoGrvty			;$03A31D	|
 	JSL UpdateYPosNoGrvty			;$03A321	|
 	LDA.w $151C,X				;$03A325	|
-	JSL ExecutePtr				;$03A328	|
+	JSL execute_pointer			;$03A328	|
 
 BowserFightPtrs:
 	dw CODE_03A441
@@ -5985,7 +5985,7 @@ CODE_03AD18:
 	LDA.b #$04				;$03AD1C	|
 	STA.w $1602,X				;$03AD1E	|
 	LDA $C2,X				;$03AD21	|
-	JSL ExecutePtr				;$03AD23	|
+	JSL execute_pointer			;$03AD23	|
 
 PeachPtrs:
 	dw CODE_03AD37
@@ -8712,7 +8712,7 @@ CODE_03C810:
 
 Firework:
 	LDA $C2,X
-	JSL ExecutePtr				;$03C818	|
+	JSL execute_pointer			;$03C818	|
 
 FireworkPtrs:
 	dw CODE_03C828
@@ -9264,7 +9264,7 @@ CODE_03CC14:
 	LDA $9D					;$03CC1E	|
 	BNE Return03CC37			;$03CC20	|
 	LDA.w $151C,X				;$03CC22	|
-	JSL ExecutePtr				;$03CC25	|
+	JSL execute_pointer			;$03CC25	|
 
 PipeKoopaPtrs:
 	dw CODE_03CC8A
