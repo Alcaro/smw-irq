@@ -842,7 +842,7 @@ execute_pointer:				;		\
 	STA $00					;$0086F1	 | And store the pointer
 	SEP #$30				;$0086F3	 | 8 bit AXY
 	LDY $03					;$0086F5	 | Restore Y
-	JMP [$0000]				;$0086F7	/ Jump to the pointer
+	JML [$0000]				;$0086F7	/ Jump to the pointer
 
 execute_pointer_long:				;		\ 
 	STY $05					;$0086FA	 | Preserve Y
@@ -864,7 +864,7 @@ execute_pointer_long:				;		\
 	STA $01					;$008715	 |/ (Also rereads the high byte)
 	SEP #$30				;$008717	 | 8 bit AXY
 	LDY $05					;$008719	 | Restore Y
-	JMP [$0000]				;$00871B	/ Jump to the pointer
+	JML [$0000]				;$00871B	/ Jump to the pointer
 
 DMA_stripe_image:
 	REP #$10				;$00871E	\ 16 bit XY

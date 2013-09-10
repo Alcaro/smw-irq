@@ -309,7 +309,7 @@ CODE_070B:
 	mov a, #$10
 	mov y, #$5C				;$070D		|
 	call write_DSP				;$070F		|
-	set1 $1D.4				;$0712		|
+	set $1D.4				;$0712		|
 	mov a, #$00				;$0714		|
 	mov $0308, a				;$0716		|
 	ret					;$0719		|
@@ -336,7 +336,7 @@ CODE_072F:
 	call write_DSP				;$073B		|
 CODE_073E:
 	mov $04, #$00
-	clr1 $1D.4				;$0741		|
+	clr $1D.4				;$0741		|
 	mov x, #$08				;$0743		|
 	mov a, $C9				;$0745		|
 	beq CODE_074C				;$0747		|
@@ -393,7 +393,7 @@ CODE_07A0:
 	mov a, $0381
 	mov $0380, a				;$07A3		|
 CODE_07A6:
-	clr1 $13.7
+	clr $13.7
 	mov x, #$08				;$07A8		|
 	mov a, $90+x				;$07AA		|
 	beq CODE_07B3				;$07AC		|
@@ -481,7 +481,7 @@ CODE_0837:
 	mov a, #$40				;$083C		|
 	mov y, #$5C				;$083E		|
 	call write_DSP				;$0840		|
-	set1 $1D.6				;$0843		|
+	set $1D.6				;$0843		|
 	mov a, #$00				;$0845		|
 	mov $030C, a				;$0847		|
 	ret					;$084A		|
@@ -499,7 +499,7 @@ CODE_084B:
 
 CODE_085E:
 	mov $07, #$00
-	clr1 $1D.6				;$0861		|
+	clr $1D.6				;$0861		|
 	mov a, #$00				;$0863		|
 	mov $2F, a				;$0865		|
 	mov y, #$3D				;$0867		|
@@ -564,7 +564,7 @@ CODE_08CD:
 	mov a, $0385
 	mov $0384, a				;$08D0		|
 CODE_08D3:
-	clr1 $13.7
+	clr $13.7
 	mov x, #$0C				;$08D5		|
 	mov a, $90+x				;$08D7		|
 	beq CODE_08E0				;$08D9		|
@@ -751,7 +751,7 @@ CODE_0A14:
 	mov a, #$80				;$0A1B		|
 	mov y, #$5C				;$0A1D		|
 	call write_DSP				;$0A1F		|
-	set1 $1D.7				;$0A22		|
+	set $1D.7				;$0A22		|
 	mov a, #$00				;$0A24		|
 	mov y, #$20				;$0A26		|
 CODE_0A28:
@@ -782,7 +782,7 @@ CODE_0A51:
 	bne CODE_0A2E				;$0A54		|
 	dbnz $1C, CODE_0A38			;$0A56		|
 	mov $05, #$00				;$0A59		|
-	clr1 $1D.7				;$0A5C		|
+	clr $1D.7				;$0A5C		|
 	mov x, #$0E				;$0A5E		|
 	mov a, $CF				;$0A60		|
 	beq CODE_0A67				;$0A62		|
@@ -819,7 +819,7 @@ CODE_0A99:
 	mov y, #$5C				;$0AA0		|
 	call write_DSP				;$0AA2		|
 CODE_0AA5:
-	clr1 $13.7
+	clr $13.7
 	mov a, $9E				;$0AA7		|
 	beq CODE_0AB0				;$0AA9		|
 	mov x, #$0E				;$0AAB		|
@@ -852,7 +852,7 @@ CODE_0ACE:
 	mov a, #$80				;$0AD5		|
 	mov y, #$5C				;$0AD7		|
 	call write_DSP 				;$0AD9		|
-	set1 $1D.7				;$0ADC		|
+	set $1D.7				;$0ADC		|
 	mov a, #$00				;$0ADE		|
 	mov y, #$20				;$0AE0		|
 CODE_0AE2:
@@ -884,7 +884,7 @@ CODE_0B08:
 	bne CODE_0AE8				;$0B0B		|
 	dbnz $1C, CODE_0AF2			;$0B0D		|
 	mov $05, #$00				;$0B10		|
-	clr1 $1D.7				;$0B13		|
+	clr $1D.7				;$0B13		|
 	mov x, #$0E				;$0B15		|
 	mov a, $CF				;$0B17		|
 	jmp CODE_0D4B				;$0B19		|
@@ -993,11 +993,11 @@ CODE_0BCC:
 	mov a, #$20				;$0BD1		|
 	mov y, #$5C				;$0BD3		|
 	call write_DSP				;$0BD5		|
-	set1 $1D.5				;$0BD8		|
+	set $1D.5				;$0BD8		|
 	bra CODE_0BDE				;$0BDA		|
 
 CODE_0BDC:
-	clr1 $1D.5
+	clr $1D.5
 CODE_0BDE:
 	mov a, $02
 	bmi CODE_0BAE				;$0BE0		|
@@ -1765,7 +1765,7 @@ CODE_10D1:
 	mov y, #$5C				;$10D3		|
 	call write_DSP_safe			;$10D5		|
 CODE_10D8:
-	clr1 $13.7
+	clr $13.7
 	mov a, $90+x				;$10DA		|
 	beq CODE_10E4				;$10DC		|
 	mov a, $48				;$10DE		|
@@ -1804,7 +1804,7 @@ CODE_1119:
 	mov a, $1D
 	and a, $48				;$111B		|
 	bne CODE_112A				;$111D		|
-	set1 $13.7				;$111F		|
+	set $13.7				;$111F		|
 	mov a, #$B0				;$1121		|
 	mov y, #$02				;$1123		|
 	dec $90+x				;$1125		|
@@ -1881,7 +1881,7 @@ CODE_1195:
 	jmp CODE_0634
 
 CODE_1198:
-	clr1 $13.7
+	clr $13.7
 	mov a, $B1+x				;$119A		|
 	beq CODE_11A7				;$119C		|
 	mov a, $0370+x				;$119E		|
@@ -1905,7 +1905,7 @@ CODE_11B9:
 CODE_11C3:
 	call CODE_1036
 CODE_11C6:
-	clr1 $13.7
+	clr $13.7
 	mov a, $02B1+x				;$11C8		|
 	mov y, a				;$11CB		|
 	mov a, $02B0+x				;$11CC		|
@@ -1937,7 +1937,7 @@ CODE_11EB:
 	jmp CODE_1170				;$11FC		|
 
 CODE_11FF:
-	set1 $13.7
+	set $13.7
 CODE_1201:
 	movw $16, ya
 	mov $12, y				;$1203		|
@@ -1965,7 +1965,7 @@ CODE_1228:
 	ret					;$122C		|
 
 CODE_122D:
-	set1 $13.7
+	set $13.7
 	mov y, $49				;$122F		|
 	mov a, $0362+x				;$1231		|
 	mul ya					;$1234		|
