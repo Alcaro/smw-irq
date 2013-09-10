@@ -248,53 +248,53 @@ NMI_start:					;		\
 	LDA.w $0D9B				;$0081DE	 |\ Check if we are in a regular level
 	LSR					;$0081E1	 | |
 	BEQ .lagging_level_NMI			;$0081E2	 | |
-	JMP .lagging_overworld_NMI		;$0081E4	 |/ Otherwise process as the overworld
+	JMP .lagging_OW_NMI			;$0081E4	 |/ Otherwise process as the OW
 .no_lag						;		 |
 	INC $10					;$0081E7	 | Allow the game loop to run after NMI
 	JSR upload_palette			;$0081E9	 | Upload special and normal palettes
 	LDA.w $0D9B				;$0081EC	 |\ Separate the current level mode
 	LSR					;$0081EF	 |/
-	BNE .overworld_NMI			;$0081F0	 | $0D9B was 02, run OW code
+	BNE .OW_NMI				;$0081F0	 | $0D9B was 02, run OW code
 	BCS .transition_NMI			;$0081F2	 | $0D9B was 01(transition), Skip the status bar draw
 	JSR draw_status_bar			;$0081F4	 | Draw the status bar
 .transition_NMI					;		 |
 	LDA.w $13C6				;$0081F7	 |\ Skip the end credits code 
 	CMP.b #$08				;$0081FA	 | | if the current cutscene is not $08 (end credits)
 	BNE .not_end_credits			;$0081FC	 |/
-	LDA.w $1FFE				;$0081FE	 |\ Skip updating the credits background
-	BEQ .draw_mario				;$008201	 |/ If a new background is not yet needed
-	JSL DMA_credits_background		;$008203	 | Update the Credits background
+	LDA.w $1FFE				;$0081FE	 |\ Skip updating the credits BG
+	BEQ .draw_mario				;$008201	 |/ If a new BG is not yet needed
+	JSL DMA_credits_BG			;$008203	 | Update the Credits BG
 	BRA .draw_mario				;$008207	 | Continue with NMI by drawing mario
 .not_end_credits				;		 |
 	JSL generic_layer_1_and_2_upload	;$008209	 | Primary level data DMA
 	LDA.w $143A				;$00820D	 |\ Check if the transition screens need DMAed
 	BEQ .skip_transition_DMA		;$008210	 |/
 	JSR DMA_transition_screen		;$008212	 | DMA start/bonus/game over/time up transition screens
-	BRA .skip_overworld_NMI			;$008215	 | Skip past regular and overworld NMI
+	BRA .skip_OW_NMI			;$008215	 | Skip past regular and OW NMI
 .skip_transition_DMA				;		 |
 	JSR DMA_animated_level_tiles		;$008217	 | DMA animated level tiles (plus animated palettes)
 .draw_mario					;		 |
 	JSR restore_SP1_tiles			;$00821A	 | DMA $0BF6 to VRAM, redundant due to graphics upload
 	JSR dynamic_sprite_DMA			;$00821D	 | DMA Mario/Yoshi/Vertical fireball
-	BRA .skip_overworld_NMI			;$008220	 | Skip over a majority of the overworld NMI
-.overworld_NMI					;		 |
+	BRA .skip_OW_NMI			;$008220	 | Skip over a majority of the OW NMI
+.OW_NMI						;		 |
 	LDA.w $13D9				;$008222	 |\ If not switching submaps, skip OW layer DMA
-	CMP.b #$0A				;$008225	 | | and handle the regular overworld routines
-	BNE .regular_overworld_handle		;$008227	 |/
+	CMP.b #$0A				;$008225	 | | and handle the regular OW routines
+	BNE .regular_OW_handle			;$008227	 |/
 	LDY.w $1DE8				;$008229	 |
 	DEY					;$00822C	 |\ If submap loading is finished, skip layer data DMA
-	DEY					;$00822D	 | | and handle the regular overworld routines
+	DEY					;$00822D	 | | and handle the regular OW routines
 	CPY.b #$04				;$00822E	 | |
-	BCS .regular_overworld_handle		;$008230	 |/
-	JSR DMA_overworld_tilemap		;$008232	 | Overworld layer 1 and 2 DMA
-	BRA .regular_overworld_bypass		;$008235	 | Skip over various unneeded overworld DMAs
-.regular_overworld_handle			;		 |
-	JSR DMA_animated_overworld_tiles	;$008237	 | DMA animated overworld tiles (plus animated palettes)
+	BCS .regular_OW_handle			;$008230	 |/
+	JSR DMA_OW_tilemap			;$008232	 | OW layer 1 and 2 DMA
+	BRA .regular_OW_bypass			;$008235	 | Skip over various unneeded OW DMAs
+.regular_OW_handle				;		 |
+	JSR DMA_animated_OW_tiles		;$008237	 | DMA animated OW tiles (plus animated palettes)
 	JSR dynamic_sprite_DMA			;$00823A	 | DMA Mario/Yoshi/Vertical fireball
-.skip_overworld_NMI:				;		 |
+.skip_OW_NMI:					;		 |
 	JSR _load_stripe_image_			;$00823D	 | Upload Stripe image data
 	JSR DMA_OAM				;$008240	 | DMA Sprite tiles to the screen
-.regular_overworld_bypass			;		 |
+.regular_OW_bypass				;		 |
 	JSR update_controllers			;$008243	 | Run the controller update routine
 .lagging_level_NMI				;		 |
 	LDA $1A					;$008246	 |\ Set layer 1 X position from mirrors
@@ -318,7 +318,7 @@ NMI_start:					;		\
 	STA.w $2110				;$008272	 |/
 	LDA.w $0D9B				;$008275	 |\ If we are in a level, skip to level NMI return
 	BEQ .level_NMI_return			;$008278	 |/
-.lagging_overworld_NMI				;		 |
+.lagging_OW_NMI					;		 |
 	LDA.b #$81				;$00827A	 | Load Enable NMI and autojoy enabled
 	LDY.w $13C6				;$00827C	 |\ Skip to NMI return if the credits are not playing
 	CPY.b #$08				;$00827F	 | |
@@ -411,7 +411,7 @@ NMI_start:					;		\
 	STA.w $211E				;$00833A	 | |
 	LDA $35					;$00833D	 | |
 	STA.w $211E				;$00833F	 |/
-	JSR mode_7_static_background_scroll	;$008342	 |
+	JSR mode_7_static_BG_scroll		;$008342	 |
 	LDA.w $0D9B				;$008345	 |\ If we are not at bowser there are a few extra
 	LSR					;$008348	 | | Items we still need to process otherwise
 	BCC .skip_bowser			;$008349	 |/ We can finish off NMI
@@ -464,7 +464,7 @@ IRQ_NMI_return:					;		 |
 	LDA $25					;$0083A3	 | |
 	STA.w $2112				;$0083A5	 |/
 mode_7_IRQ_return:				;		 |
-	LDA $3E					;$0083A8	 |\ Set the background mode
+	LDA $3E					;$0083A8	 |\ Set the BG mode
 	STA.w $2105				;$0083AA	 |/
 	LDA $40					;$0083AD	 |\ Set any color math settings
 	STA.w $2131				;$0083AF	 |/
@@ -486,7 +486,7 @@ mode_7_IRQ:					;		\
 	STA.w $4200				;$0083C3	 | Store Interrupt flags
 	LDY.b #$14				;$0083C6	 |\ short wait for HBlank, use a short wait to
 	JSR wait_for_hblank			;$0083C8	 |/ account for the JSR of the scroll routine
-	JSR mode_7_static_background_scroll	;$0083CB	 | Set the status bar scroll
+	JSR mode_7_static_BG_scroll		;$0083CB	 | Set the status bar scroll
 	BRA mode_7_IRQ_return			;$0083CE	/
 
 .first_IRQ					;		\ 
@@ -524,7 +524,7 @@ mode_7_scroll:					;		\
 	STA.w $210E				;$008411	 |/
 	BRA IRQ_return				;$008414	/ Finish off IRQ
 
-mode_7_static_background_scroll:		;		\ 
+mode_7_static_BG_scroll:			;		\ 
 	LDA.b #$59				;$008416	 |\ set layer 1 tilemap address to $5800, mirror X
 	STA.w $2107				;$008418	 |/
 	LDA.b #$07				;$00841B	 |\ set layer 1 base character address to $7000
@@ -954,7 +954,7 @@ generic_layer_1_and_2_upload:			;		\
 	LDA $5B					;$0087B7	 |\ If the layer 1 data is not vertical
 	AND.b #$01				;$0087B9	 | | Branch and handle horizontal uploads
 	BEQ .horizontal_layer_1_DMA		;$0087BB	 |/
-	JMP .vertical_layer_1			;$0087BD	/ Handle vertical layer 1 data (includes overworld)
+	JMP .vertical_layer_1			;$0087BD	/ Handle vertical layer 1 data (includes OW)
 
 .horizontal_layer_1_DMA				;		\ 
 	LDY.b #$81				;$0087C0	 |\ Set VRAM increment after $2119 writes and
@@ -4360,7 +4360,7 @@ animate_red_level_tile:				;		 |
 	STA.w $2122				;$00A432	 |/
 	RTS					;$00A435	/
 
-restore_SP1_tiles:					;		\ (This routine is pretty much useless in vanilla SMW) 
+restore_SP1_tiles:				;		\ (This routine is pretty much useless in vanilla SMW) 
 	LDA.w $1935				;$00A436	 |\ Check for a request to DMA tiles 4A-4F and 5A-5F 
 	BEQ .return				;$00A439	 |/
 	STZ.w $1935				;$00A43B	 | Prevent continuous tile uploading
@@ -4430,7 +4430,7 @@ upload_palette:
 	BRA .continue_upload			;$00A4CD	 | continue the transfer until there is no more data
 .finished_upload:				;		 |
 	SEP #$10				;$00A4CF	 | 
-	JSR set_background_color		;$00A4D1	 | Upload the background color
+	JSR set_BG_color			;$00A4D1	 | Upload the BG color
 	LDA.w $0680				;$00A4D4	 |\ if not special upload, don't clear the special
 	BNE .skip_special_clear			;$00A4D7	 |/ upload index or number of bytes to transfer
 	STZ.w $0681				;$00A4D9	 |\ Reset special palette index
@@ -4440,7 +4440,7 @@ upload_palette:
 palette_upload_return:				;		 |
 	RTS					;$00A4E2	/ Finished uploading palettes
 
-DMA_animated_overworld_tiles:			;		\ 
+DMA_animated_OW_tiles:				;		\ 
 	REP #$10				;$00A4E3	 | 16 bit XY
 	LDA.b #$80				;$00A4E5	 |\ Set VRAM increment after writing to $2119
 	STA.w $2115				;$00A4E7	 |/
@@ -4448,7 +4448,7 @@ DMA_animated_overworld_tiles:			;		\
 	STY.w $2116				;$00A4ED	 |/
 	LDY.w #$1801				;$00A4F0	 |\ Set DMA transfer mode 1, DMA address $2118
 	STY.w $4320				;$00A4F3	 |/
-	LDY.w #$0AF6				;$00A4F6	 |\ Set DMA source as $0AF6 (overworld animated tiles)
+	LDY.w #$0AF6				;$00A4F6	 |\ Set DMA source as $0AF6 (OW animated tiles)
 	STY.w $4322				;$00A4F9	 |/
 	STZ.w $4324				;$00A4FC	 | Set DMA source bank as #$00
 	LDY.w #$0160				;$00A4FF	 |\ Transfer #$160 bytes
@@ -4466,23 +4466,23 @@ DMA_animated_overworld_tiles:			;		\
 	LDA.b #$7D				;$00A51C	 | Load CGRAM color address
 	JMP animate_red_level_tile		;$00A51E	/ Set the red level tile palette animation and return
 
-overworld_VRAM_DMA_offset:
+OW_VRAM_DMA_offset:
 	db $00,$04,$08,$0C
 
-overworld_layer_2_DMA_offsets:
+OW_layer_2_DMA_offsets:
 	db $00,$08,$10,$18
 
-DMA_overworld_tilemap:				;		\ 
+DMA_OW_tilemap:					;		\ 
 	LDA.b #$80				;$00A529	 |\ Set VRAM mode increment after $2119 writes
 	STA.w $2115				;$00A52B	 |/
 	STZ.w $2116				;$00A52E	 |\ Set the VRAM address to $3000 plus the block
 	LDA.b #$30				;$00A531	 | | Offset, $3000 is the layer 2 tilemap
 	CLC					;$00A533	 | |
-	ADC.w overworld_VRAM_DMA_offset,Y	;$00A534	 | |
+	ADC.w OW_VRAM_DMA_offset,Y		;$00A534	 | |
 	STA.w $2117				;$00A537	 |/
 	LDX.b #$06				;$00A53A	 | Number of settings to load
 .layer_2_DMA_copy_loop				;		 |\ DMA copy loop
-	LDA.w overworld_layer_2_DMA_settings,X	;$00A53C	 | | DMA mode 1, destination $2118
+	LDA.w .OW_layer_2_DMA_settings,X	;$00A53C	 | | DMA mode 1, destination $2118
 	STA.w $4310,X				;$00A53F	 | | Source $7F4000, size $0800 byte
 	DEX					;$00A542	 | |
 	BPL .layer_2_DMA_copy_loop		;$00A543	 |/
@@ -4497,7 +4497,7 @@ DMA_overworld_tilemap:				;		\
 .main_OW_DMA					;		 |
 	LDA.w $4313				;$00A555	 |\ Offset the DMA source high byte to the current 
 	CLC					;$00A558	 | | Block of layer 2 data
-	ADC.w overworld_layer_2_DMA_offsets,Y	;$00A559	 | |
+	ADC.w OW_layer_2_DMA_offsets,Y		;$00A559	 | |
 	STA.w $4313				;$00A55C	 |/
 	LDA.b #$02				;$00A55F	 |\ Run DMA on channel 1
 	STA.w $420B				;$00A561	 |/
@@ -4506,22 +4506,22 @@ DMA_overworld_tilemap:				;		\
 	STZ.w $2116				;$00A569	 |\ Set the VRAM address to $2000 plus the block
 	LDA.b #$20				;$00A56C	 | | Offset, $2000 is the layer 1 tilemap
 	CLC					;$00A56E	 | |
-	ADC.w overworld_VRAM_DMA_offset,Y	;$00A56F	 | |
+	ADC.w OW_VRAM_DMA_offset,Y		;$00A56F	 | |
 	STA.w $2117				;$00A572	 |/
 	LDX.b #$06				;$00A575	 | Number of settings to load
 .layer_1_DMA_copy_loop				;		 |\ DMA copy loop
-	LDA.w overworld_layer_1_DMA_settings,X	;$00A577	 | | DMA mode 1, destination $2118
+	LDA.w .OW_layer_1_DMA_settings,X	;$00A577	 | | DMA mode 1, destination $2118
 	STA.w $4310,X				;$00A57A	 | | Source $7EE400, size $0800 bytes
 	DEX					;$00A57D	 | |
 	BPL .layer_1_DMA_copy_loop		;$00A57E	 |/
 	LDA.b #$02				;$00A580	 |\ Run DMA on channel 1
 	STA.w $420B				;$00A582	 |/
-	RTS					;$00A585	 / Finished with overworld DMA
+	RTS					;$00A585	 / Finished with OW DMA
 
-overworld_layer_2_DMA_settings:
+.OW_layer_2_DMA_settings
 	db $01,$18,$00,$40,$7F,$00,$08
 
-overworld_layer_1_DMA_settings:
+.OW_layer_1_DMA_settings
 	db $01,$18,$00,$E4,$7E,$00,$08
 
 CODE_00A594:
@@ -5557,25 +5557,25 @@ RGB_offsets:
 channel_intensity:
 	db $20,$40,$80
 
-set_background_color:
-	LDX.b #$02				;$00AE47	|\ Load number of color channels to process
-.next_channel					;		| |
-	REP #$20				;$00AE49	| | Use 16 bit A to get the full color
-	LDA.w $0701				;$00AE4B	| | Load the current background color
-	LDY.w RGB_offsets,X			;$00AE4E	| | Get the number of bits to shift
-.loop						;		| |\ Get the current channel to the last 5 bits of A
-	DEY					;$00AE51	| | |
-	BMI .set_channel_intensity		;$00AE52	| | |
-	LSR					;$00AE54	| | |
-	BRA .loop				;$00AE55	| |/
-.set_channel_intensity				;		| |
-	SEP #$20				;$00AE57	| |\ Isolate color channel bits
-	AND.b #$1F				;$00AE59	| |/
-	ORA.w channel_intensity,X		;$00AE5B	| | Set which color channel to set
-	STA.w $2132				;$00AE5E	| | Store color intensity
-	DEX					;$00AE61	| |\ Decrement to do the next color channel
-	BPL .next_channel			;$00AE62	| |/
-	RTS					;$00AE64	|/ Return after background set
+set_BG_color:					;		\ 
+	LDX.b #$02				;$00AE47	 | Load number of color channels to process
+.next_channel					;		 |
+	REP #$20				;$00AE49	 | Use 16 bit A to get the full color
+	LDA.w $0701				;$00AE4B	 | Load the current BG color
+	LDY.w RGB_offsets,X			;$00AE4E	 | Get the number of bits to shift
+.loop						;		 |\ Get the current channel to the last 5 bits of A
+	DEY					;$00AE51	 | |
+	BMI .set_channel_intensity		;$00AE52	 | |
+	LSR					;$00AE54	 | |
+	BRA .loop				;$00AE55	 |/
+.set_channel_intensity				;		 |
+	SEP #$20				;$00AE57	 |\ Isolate color channel bits
+	AND.b #$1F				;$00AE59	 |/
+	ORA.w channel_intensity,X		;$00AE5B	 | Set which color channel to set
+	STA.w $2132				;$00AE5E	 | Store color intensity
+	DEX					;$00AE61	 |\ Decrement to do the next color channel
+	BPL .next_channel			;$00AE62	 |/
+	RTS					;$00AE64	/ Return after BG set
 
 DATA_00AE65:
 	db $1F,$00,$E0,$03,$00,$7C
@@ -8857,7 +8857,7 @@ death_animation:
 	BRA .show_message			;$00D0E4	/
 
 .not_game_over
-	LDY.b #$0B				;$00D0E6	\ Load the fade to overworld game mode.
+	LDY.b #$0B				;$00D0E6	\ Load the fade to OW game mode.
 	LDA.w $0F31				;$00D0E8	 |\ If the hundreds place of the time,
 	ORA.w $0F32				;$00D0EB	 | | the tens place,
 	ORA.w $0F33				;$00D0EE	 | | and the ones place are zero,

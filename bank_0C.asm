@@ -720,7 +720,7 @@ CODE_0C9409:
 	SEP #$30				;$0C9438	|
 	STZ $67					;$0C943A	|
 	STZ.w $1928				;$0C943C	|
-	JSL DMA_credits_background		;$0C943F	|
+	JSL DMA_credits_BG			;$0C943F	|
 	JSR CODE_0CA051				;$0C9443	|
 	LDA.b #$09				;$0C9446	|
 	STA.w $1DFB				;$0C9448	|
@@ -874,13 +874,13 @@ CODE_0C94EB:
 Return0C9558:
 	RTS
 
-credits_background_DMA_1:
+credits_BG_DMA_1:
 	db $01,$18,$00,$40,$7F,$00,$04
 
-credits_background_DMA_2:
+credits_BG_DMA_2:
 	db $01,$18,$00,$44,$7F,$00,$04
 
-DMA_credits_background:				;		\
+DMA_credits_BG:					;		\
 	SEP #$30				;$0C9569	 |\ 8 bit AXY
 	PHB					;$0C9569	 | | and switch the data bank to $0C
 	PHK					;$0C956A	 | |
@@ -893,7 +893,7 @@ DMA_credits_background:				;		\
 	STA.w $2117				;$0C9578	 |/
 	LDY.b #$06				;$0C957B	 | Number of settings to copy
 .DMA_copy_1					;		 |
-	LDA.w credits_background_DMA_1,Y	;$0C957D	 |\ Copy DMA settings to channel 2
+	LDA.w credits_BG_DMA_1,Y		;$0C957D	 |\ Copy DMA settings to channel 2
 	STA.w $4310,Y				;$0C9580	 | |
 	DEY					;$0C9583	 | |
 	BPL .DMA_copy_1				;$0C9584	 |/
@@ -913,7 +913,7 @@ DMA_credits_background:				;		\
 	STA.w $2117				;$0C95A3	 |/
 	LDY.b #$06				;$0C95A6	 | Number of settings to copy
 .DMA_copy_2					;		 |
-	LDA.w credits_background_DMA_2,Y	;$0C95A8	 |\ Copy DMA settings to channel 2
+	LDA.w credits_BG_DMA_2,Y		;$0C95A8	 |\ Copy DMA settings to channel 2
 	STA.w $4310,Y				;$0C95AB	 | |
 	DEY					;$0C95AE	 | |
 	BPL .DMA_copy_2				;$0C95AF	 |/
@@ -925,9 +925,9 @@ DMA_credits_background:				;		\
 	STA.w $4313				;$0C95BA	 |/
 	LDA.b #$02				;$0C95BD	 |\ Start DMA on channel 1
 	STA.w $420B				;$0C95BF	 |/
-	STZ.w $1FFE				;$0C95C2	 | Clear background update flag
+	STZ.w $1FFE				;$0C95C2	 | Clear BG update flag
 	PLB					;$0C95C5	 | Restore databank
-	RTL					;$0C95C6	/ Done with background DMA
+	RTL					;$0C95C6	/ Done with BG DMA
 
 DATA_0C95C7:
 	db $07
